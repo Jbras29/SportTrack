@@ -14,7 +14,7 @@ public class Badge {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nom;
-    private int xpNecessaire;
+    private int kmNecessaire;
     public Long getId() {
         return id;
     }
@@ -27,16 +27,16 @@ public class Badge {
     public void setNom(String nom) {
         this.nom = nom;
     }
-    public int getXpNecessaire() {
-        return xpNecessaire;
+    public int getKmNecessaire() {
+        return kmNecessaire;
     }
-    public void setXpNecessaire(int xpNecessaire) {
-        this.xpNecessaire = xpNecessaire;
+    public void setKmNecessaire(int kmNecessaire) {
+        this.kmNecessaire = kmNecessaire;
     }
-    public Badge(Long id, String nom, int xpNecessaire) {
+    public Badge(Long id, String nom, int kmNecessaire) {
         this.id = id;
         this.nom = nom;
-        this.xpNecessaire = xpNecessaire;
+        this.kmNecessaire = kmNecessaire;
     }
     public Badge() {
     }
@@ -46,7 +46,7 @@ public class Badge {
         int result = 1;
         result = prime * result + ((id == null) ? 0 : id.hashCode());
         result = prime * result + ((nom == null) ? 0 : nom.hashCode());
-        result = prime * result + xpNecessaire;
+        result = prime * result + kmNecessaire;
         return result;
     }
     @Override
@@ -68,7 +68,7 @@ public class Badge {
                 return false;
         } else if (!nom.equals(other.nom))
             return false;
-        if (xpNecessaire != other.xpNecessaire)
+        if (kmNecessaire != other.kmNecessaire)
             return false;
         return true;
     }
