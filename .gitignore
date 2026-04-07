@@ -26,4 +26,4 @@ replay_pid*
 target/
 "@ | Set-Content .gitignore
 
-.m2repo/
+.m2repo/gi
