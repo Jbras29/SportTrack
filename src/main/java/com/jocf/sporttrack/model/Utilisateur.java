@@ -3,6 +3,8 @@ package com.jocf.sporttrack.model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -44,6 +46,11 @@ public class Utilisateur {
 
     @Column(nullable = false)
     private String motdepasse;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TypeUtilisateur typeUtilisateur = TypeUtilisateur.UTILISATEUR;
 
     private String sexe;
     private Integer age;
