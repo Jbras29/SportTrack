@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.jocf.sporttrack.SporttrackApplicationTests
--------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.885 s -- in com.jocf.sporttrack.SporttrackApplicationTests
