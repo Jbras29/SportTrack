@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface BadgeRepository extends JpaRepository<Utilisateur, Long> {
+public interface BadgeRepository extends JpaRepository<Badge, Long> {
 
     List<Badge> findByKmNecessaireLessThanEqual(int distanceEnKm);
 

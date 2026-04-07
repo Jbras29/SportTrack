@@ -12,10 +12,12 @@ import java.util.Optional;
 public interface AnnonceRepository extends JpaRepository<Annonce, Long> {
 
     // Toutes les annonces d'un événement, triées par date décroissante
-    List<Annonce> findByEvenementOrderByDateDesc(Evenement evenement);
 
     // Dernière annonce d'un événement
-    Optional<Annonce> findTopByEvenementOrderByDateDesc(Evenement evenement);
 
     List<Annonce> findByEvenement(Evenement evenement);
+
+    List<Annonce> findByEvenementOrderByDateDesc(Evenement evenement);
+
+    Optional<Annonce> findTopByEvenementOrderByDateDesc(Evenement evenement);
 }
