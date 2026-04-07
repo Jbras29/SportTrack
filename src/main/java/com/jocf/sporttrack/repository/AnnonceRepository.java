@@ -16,4 +16,6 @@ public interface AnnonceRepository extends JpaRepository<Annonce, Long> {
 
     // Dernière annonce d'un événement
     Optional<Annonce> findTopByEvenementOrderByDateDesc(Evenement evenement);
+
+    List<Annonce> findByEvenement(Evenement evenement);
 }

@@ -13,6 +13,7 @@ public enum TypeSport {
     HOCKEY_GAZON,
     CRICKET,
     WATERPOLO,
+    COURSE,
 
     // Sports de raquette
     TENNIS,
