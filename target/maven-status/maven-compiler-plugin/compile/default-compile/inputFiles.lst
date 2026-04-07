@@ -1,1 +1,5 @@
 /Users/jbras/SportTrack/src/main/java/com/jocf/sporttrack/SporttrackApplication.java
+/Users/jbras/SportTrack/src/main/java/com/jocf/sporttrack/config/SecurityConfig.java
+/Users/jbras/SportTrack/src/main/java/com/jocf/sporttrack/model/Utilisateur.java
+/Users/jbras/SportTrack/src/main/java/com/jocf/sporttrack/repository/UtilisateurRepository.java
+/Users/jbras/SportTrack/src/main/java/com/jocf/sporttrack/service/UtilisateurService.java
