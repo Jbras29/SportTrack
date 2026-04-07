@@ -3,7 +3,6 @@ package com.jocf.sporttrack.service;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 import java.util.List;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -11,6 +10,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,15 +19,15 @@ public class UtilisateurService implements UserDetailsService {
 
     private final UtilisateurRepository utilisateurRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
+    private final AuthenticationConfiguration authenticationConfiguration;
 
     public UtilisateurService(
             UtilisateurRepository utilisateurRepository,
             PasswordEncoder passwordEncoder,
-            AuthenticationManager authenticationManager) {
+            AuthenticationConfiguration authenticationConfiguration) {
         this.utilisateurRepository = utilisateurRepository;
         this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
+        this.authenticationConfiguration = authenticationConfiguration;
     }
 
     public List<Utilisateur> recupererTousLesUtilisateurs() {
@@ -53,10 +53,18 @@ public class UtilisateurService implements UserDetailsService {
     }
 
     public Utilisateur connecter(String username, String motdepasse) {
-        Authentication authentication = authenticationManager.authenticate(
+        Authentication authentication = getAuthenticationManager().authenticate(
                 new UsernamePasswordAuthenticationToken(username, motdepasse));
 
         return trouverParUsername(authentication.getName());
+    }
+
+    private org.springframework.security.authentication.AuthenticationManager getAuthenticationManager() {
+        try {
+            return authenticationConfiguration.getAuthenticationManager();
+        } catch (Exception exception) {
+            throw new IllegalStateException("Impossible d'initialiser AuthenticationManager.", exception);
+        }
     }
 
     @Override

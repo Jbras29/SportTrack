@@ -23,6 +23,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +34,9 @@ class UtilisateurServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private AuthenticationConfiguration authenticationConfiguration;
 
     @Mock
     private AuthenticationManager authenticationManager;
@@ -47,7 +51,7 @@ class UtilisateurServiceTest {
         utilisateurService = new UtilisateurService(
                 utilisateurRepository,
                 passwordEncoder,
-                authenticationManager);
+                authenticationConfiguration);
     }
 
     @Test
@@ -129,6 +133,7 @@ class UtilisateurServiceTest {
                 .motdepasse("hashed-secret")
                 .build();
 
+        when(authenticationConfiguration.getAuthenticationManager()).thenReturn(authenticationManager);
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
         when(authentication.getName()).thenReturn("jdupont");
