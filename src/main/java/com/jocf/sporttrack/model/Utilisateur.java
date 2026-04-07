@@ -3,6 +3,8 @@ package com.jocf.sporttrack.model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -44,6 +46,11 @@ public class Utilisateur {
 
     @Column(nullable = false)
     private String motdepasse;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TypeUtilisateur typeUtilisateur = TypeUtilisateur.UTILISATEUR;
 
     private String sexe;
     private Integer age;
@@ -101,4 +108,15 @@ public class Utilisateur {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Badge> badges = new ArrayList<>();
+  
+    @OneToMany(mappedBy = "organisateur", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Evenement> evenementsOrganises = new ArrayList<>();
+
+    @Builder.Default
+    @ManyToMany(mappedBy = "participants")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Evenement> evenementsParticipes = new ArrayList<>();
 }
