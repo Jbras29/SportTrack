@@ -90,4 +90,16 @@ public class Utilisateur {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Activite> activites = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "organisateur", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Evenement> evenementsOrganises = new ArrayList<>();
+
+    @Builder.Default
+    @ManyToMany(mappedBy = "participants")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Evenement> evenementsParticipes = new ArrayList<>();
 }
