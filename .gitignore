@@ -27,3 +27,5 @@ target/
 "@ | Set-Content .gitignore
 
 .m2repo/
+
+*.db
