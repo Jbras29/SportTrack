@@ -1,8 +1,7 @@
 package com.jocf.sporttrack.service;
 
-import com.jocf.sporttrack.model.Utilisateur;
-import com.jocf.sporttrack.repository.UtilisateurRepository;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -13,6 +12,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.jocf.sporttrack.model.Utilisateur;
+import com.jocf.sporttrack.repository.UtilisateurRepository;
 
 @Service
 public class UtilisateurService implements UserDetailsService {
@@ -32,6 +34,36 @@ public class UtilisateurService implements UserDetailsService {
 
     public List<Utilisateur> recupererTousLesUtilisateurs() {
         return utilisateurRepository.findAll();
+    }
+
+    public Optional<Utilisateur> trouverParId(Long id) {
+        return utilisateurRepository.findById(id);
+    }
+
+    public Utilisateur modifierUtilisateur(Long id, Utilisateur utilisateurDetails) {
+        Utilisateur utilisateur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + id));
+
+        utilisateur.setNom(utilisateurDetails.getNom());
+        utilisateur.setPrenom(utilisateurDetails.getPrenom());
+        utilisateur.setUsername(utilisateurDetails.getUsername());
+        utilisateur.setMotdepasse(utilisateurDetails.getMotdepasse() != null ?
+                passwordEncoder.encode(utilisateurDetails.getMotdepasse()) : utilisateur.getMotdepasse());
+        utilisateur.setSexe(utilisateurDetails.getSexe());
+        utilisateur.setAge(utilisateurDetails.getAge());
+        utilisateur.setPoids(utilisateurDetails.getPoids());
+        utilisateur.setTaille(utilisateurDetails.getTaille());
+        utilisateur.setXp(utilisateurDetails.getXp());
+        utilisateur.setHp(utilisateurDetails.getHp());
+
+        return utilisateurRepository.save(utilisateur);
+    }
+
+    public void supprimerUtilisateur(Long id) {
+        if (!utilisateurRepository.existsById(id)) {
+            throw new IllegalArgumentException("Utilisateur introuvable : " + id);
+        }
+        utilisateurRepository.deleteById(id);
     }
 
     public Utilisateur creerUtilisateur(Utilisateur utilisateur) {
