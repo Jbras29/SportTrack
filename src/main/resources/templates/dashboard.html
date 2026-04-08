@@ -294,11 +294,12 @@
         <div class="profile-header">
             <img th:src="'https://i.pravatar.cc/150?img=' + ${avatarId}" alt="Profil" class="profile-avatar">
             <div class="profile-info">
-                <h1 th:text="${user.prenom} + ' ' + ${user.nom}">Jean Dupont</h1>
+                <h1 th:text="${user.prenom + ' ' + user.nom}">Jean Dupont</h1>
                 <p th:text="'@' + ${#strings.substring(user.email, 0, user.email.indexOf('@'))} + ' • Objectif : ' + (${user.objectifsPersonnels} ?: 'Non défini')">
                     @jeandupont_sport • Objectif : Courir le marathon de Paris
                 </p>
-                <div class="level-badge" th:text="'Niveau ' + ${level} + ' - ' + (${level == 1} ? 'Débutant' : ${level == 2} ? 'Novice' : ${level == 3} ? 'Intermédiaire' : ${level == 4} ? 'Confirmé' : ${level == 5} ? 'Expert' : 'Champion')">
+                <div class="level-badge"
+                     th:text="|Niveau ${level} - ${level == 1 ? 'Débutant' : level == 2 ? 'Novice' : level == 3 ? 'Intermédiaire' : level == 4 ? 'Confirmé' : level == 5 ? 'Expert' : 'Champion'}|">
                     Niveau 5 - Expert
                 </div>
             </div>

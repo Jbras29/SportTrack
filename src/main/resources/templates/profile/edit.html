@@ -441,7 +441,7 @@
                         <select id="niveauPratiqueSportive" th:field="*{niveauPratiqueSportive}">
                             <option value="">Non spécifié</option>
                             <option th:each="n : ${niveauxPratique}" th:value="${n}"
-                                    th:text="${n == T(com.jocf.sporttrack.model.NiveauPratiqueSportive).DEBUTANT} ? 'Débutant — je découvre ou reprends le sport' : (${n == T(com.jocf.sporttrack.model.NiveauPratiqueSportive).INTERMEDIAIRE} ? 'Intermédiaire — pratique régulière' : (${n == T(com.jocf.sporttrack.model.NiveauPratiqueSportive).AVANCE} ? 'Avancé — entraînement soutenu' : 'Expert — compétition / athlète'))"></option>
+                                    th:text="${n.name() == 'DEBUTANT'} ? 'Débutant — je découvre ou reprends le sport' : (${n.name() == 'INTERMEDIAIRE'} ? 'Intermédiaire — pratique régulière' : (${n.name() == 'AVANCE'} ? 'Avancé — entraînement soutenu' : 'Expert — compétition / athlète'))"></option>
                         </select>
                     </div>
 
