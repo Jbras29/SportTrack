@@ -17,6 +17,7 @@ import com.jocf.sporttrack.model.PrefSportive;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.PrefSportiveRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
+import java.util.Comparator;
 
 @Service
 public class UtilisateurService implements UserDetailsService {
@@ -80,6 +81,37 @@ public class UtilisateurService implements UserDetailsService {
                             .ifPresent(utilisateur.getPrefSportives()::add);
                 }
             }
+        }
+
+        return utilisateurRepository.save(utilisateur);
+    }
+
+    public Utilisateur ajouterPrefSportive(Long utilisateurId, String nomPreference) {
+        Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+
+        String nomNormalise = normaliserNomPreference(nomPreference);
+        boolean dejaAssociee = utilisateur.getPrefSportives().stream()
+                .anyMatch(pref -> pref.getNom() != null && pref.getNom().equalsIgnoreCase(nomNormalise));
+        if (dejaAssociee) {
+            throw new IllegalArgumentException("Cette preference sportive existe deja dans votre profil.");
+        }
+
+        PrefSportive preference = prefSportiveRepository.findByNomIgnoreCase(nomNormalise)
+                .orElseGet(() -> prefSportiveRepository.save(PrefSportive.builder().nom(nomNormalise).build()));
+
+        utilisateur.getPrefSportives().add(preference);
+        trierPreferences(utilisateur);
+        return utilisateurRepository.save(utilisateur);
+    }
+
+    public Utilisateur supprimerPrefSportive(Long utilisateurId, Long prefSportiveId) {
+        Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+
+        boolean supprimee = utilisateur.getPrefSportives().removeIf(pref -> prefSportiveId.equals(pref.getId()));
+        if (!supprimee) {
+            throw new IllegalArgumentException("Preference sportive introuvable sur ce profil.");
         }
 
         return utilisateurRepository.save(utilisateur);
@@ -149,5 +181,24 @@ public class UtilisateurService implements UserDetailsService {
 
     public List<Utilisateur> rechercherParNom(String prenom) {
         return utilisateurRepository.findByPrenomContainingIgnoreCase(prenom);
+    }
+
+    private String normaliserNomPreference(String nomPreference) {
+        if (nomPreference == null) {
+            throw new IllegalArgumentException("Le nom de la preference sportive est obligatoire.");
+        }
+
+        String nomNormalise = nomPreference.trim().replaceAll("\\s+", " ");
+        if (nomNormalise.isBlank()) {
+            throw new IllegalArgumentException("Le nom de la preference sportive est obligatoire.");
+        }
+
+        return nomNormalise;
+    }
+
+    private void trierPreferences(Utilisateur utilisateur) {
+        utilisateur.getPrefSportives().sort(Comparator.comparing(
+                PrefSportive::getNom,
+                Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
     }
 }

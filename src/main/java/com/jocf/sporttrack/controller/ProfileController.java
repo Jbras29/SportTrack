@@ -1,19 +1,17 @@
 package com.jocf.sporttrack.controller;
 
 import com.jocf.sporttrack.model.NiveauPratiqueSportive;
-import com.jocf.sporttrack.model.PrefSportive;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.PhotoProfilStorageService;
-import com.jocf.sporttrack.service.PrefSportiveService;
 import com.jocf.sporttrack.service.UtilisateurService;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Comparator;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,48 +21,80 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ProfileController {
 
     private final UtilisateurService utilisateurService;
-    private final PrefSportiveService prefSportiveService;
     private final PhotoProfilStorageService photoProfilStorageService;
 
     public ProfileController(
             UtilisateurService utilisateurService,
-            PrefSportiveService prefSportiveService,
             PhotoProfilStorageService photoProfilStorageService) {
         this.utilisateurService = utilisateurService;
-        this.prefSportiveService = prefSportiveService;
         this.photoProfilStorageService = photoProfilStorageService;
     }
 
     @GetMapping("/profile/edit")
     public String editProfileForm(@RequestParam(required = false) Long id, HttpSession session, Model model) {
-        Long idEffectif = id != null ? id : (Long) session.getAttribute("utilisateurId");
+        Long idEffectif = recupererUtilisateurId(id, session);
         if (idEffectif == null) {
             return "redirect:/login";
         }
         Utilisateur utilisateur = utilisateurService.trouverParId(idEffectif)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + idEffectif));
+        utilisateur.getPrefSportives().sort(Comparator.comparing(
+                pref -> pref.getNom() != null ? pref.getNom().toLowerCase() : ""));
         model.addAttribute("utilisateur", utilisateur);
-        model.addAttribute("toutesPrefSportives", prefSportiveService.recupererToutesLesPrefSportives());
         model.addAttribute("niveauxPratique", NiveauPratiqueSportive.values());
         return "profile/edit";
     }
 
     @PostMapping("/profile/edit")
-    public String editProfileSubmit(
-            @ModelAttribute Utilisateur utilisateurDetails,
-            @RequestParam(required = false) List<Long> prefSportiveIds) {
+    public String editProfileSubmit(@ModelAttribute Utilisateur utilisateurDetails) {
         if (utilisateurDetails.getMotdepasse() != null && utilisateurDetails.getMotdepasse().isBlank()) {
             utilisateurDetails.setMotdepasse(null);
         }
-        List<PrefSportive> preferences = new ArrayList<>();
-        if (prefSportiveIds != null) {
-            for (Long pid : prefSportiveIds) {
-                preferences.add(PrefSportive.builder().id(pid).build());
-            }
-        }
-        utilisateurDetails.setPrefSportives(preferences);
+        utilisateurDetails.setPrefSportives(null);
         utilisateurService.modifierUtilisateur(utilisateurDetails.getId(), utilisateurDetails);
         return "redirect:/profile/edit?id=" + utilisateurDetails.getId();
+    }
+
+    @PostMapping("/profile/preferences")
+    public String ajouterPreferenceSportive(
+            @RequestParam(required = false) Long id,
+            @RequestParam String nomPreference,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        Long utilisateurId = recupererUtilisateurId(id, session);
+        if (utilisateurId == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            utilisateurService.ajouterPrefSportive(utilisateurId, nomPreference);
+            redirectAttributes.addFlashAttribute("preferenceMessage", "Preference sportive ajoutee.");
+        } catch (IllegalArgumentException exception) {
+            redirectAttributes.addFlashAttribute("preferenceErreur", exception.getMessage());
+        }
+
+        return "redirect:/profile/edit?id=" + utilisateurId;
+    }
+
+    @PostMapping("/profile/preferences/{prefSportiveId}/delete")
+    public String supprimerPreferenceSportive(
+            @PathVariable Long prefSportiveId,
+            @RequestParam(required = false) Long id,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        Long utilisateurId = recupererUtilisateurId(id, session);
+        if (utilisateurId == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            utilisateurService.supprimerPrefSportive(utilisateurId, prefSportiveId);
+            redirectAttributes.addFlashAttribute("preferenceMessage", "Preference sportive supprimee.");
+        } catch (IllegalArgumentException exception) {
+            redirectAttributes.addFlashAttribute("preferenceErreur", exception.getMessage());
+        }
+
+        return "redirect:/profile/edit?id=" + utilisateurId;
     }
 
     @PostMapping("/profile/photo")
@@ -86,5 +116,9 @@ public class ProfileController {
             redirectAttributes.addFlashAttribute("photoErreur", "Impossible d'enregistrer la photo.");
         }
         return "redirect:/profile/edit?id=" + idSession;
+    }
+
+    private Long recupererUtilisateurId(Long id, HttpSession session) {
+        return id != null ? id : (Long) session.getAttribute("utilisateurId");
     }
 }

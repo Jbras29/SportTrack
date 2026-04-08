@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface PrefSportiveRepository extends JpaRepository<PrefSportive, Long> {
 
     Optional<PrefSportive> findByNom(String nom);
+
+    Optional<PrefSportive> findByNomIgnoreCase(String nom);
 }

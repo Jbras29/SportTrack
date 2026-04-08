@@ -220,42 +220,69 @@
             pointer-events: none;
         }
 
-        /* --- PREFERENCES SPORTIVES (Chips/Pills) --- */
-        .sport-chips {
+        /* --- PREFERENCES SPORTIVES --- */
+        .preferences-card {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .preferences-list {
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .chip-label {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .chip-label input { display: none; }
-
-        .chip-text {
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: var(--hover-bg);
+        .preference-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
             border: 1px solid var(--border-light);
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-muted);
-            transition: all 0.2s;
+            border-radius: 14px;
+            background-color: #FAFCFD;
         }
 
-        .chip-label input:checked + .chip-text {
-            background-color: var(--brand-light-blue);
-            border-color: var(--brand-light-blue);
-            color: white;
-            box-shadow: 0 2px 8px rgba(33, 162, 215, 0.3);
-        }
-
-        .chip-label input:hover:not(:checked) + .chip-text {
-            background-color: #E2E8F0;
+        .preference-name {
+            font-size: 15px;
+            font-weight: 600;
             color: var(--text-main);
+        }
+
+        .preference-empty {
+            padding: 16px;
+            border: 1px dashed var(--border-light);
+            border-radius: 14px;
+            color: var(--text-muted);
+            background-color: #FAFCFD;
+            font-size: 14px;
+        }
+
+        .inline-form {
+            margin: 0;
+        }
+
+        .btn-delete {
+            padding: 10px 14px;
+            background-color: rgba(243, 148, 52, 0.12);
+            color: #b45309;
+            border: 1px solid rgba(243, 148, 52, 0.25);
+        }
+
+        .btn-delete:hover {
+            background-color: rgba(243, 148, 52, 0.2);
+        }
+
+        .preference-add-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            margin-top: 20px;
+        }
+
+        .preference-add-form .form-group {
+            flex: 1;
         }
 
         /* --- BOUTONS D'ACTION --- */
@@ -309,6 +336,7 @@
             .main-wrapper { padding: 20px; }
             .form-card { padding: 25px; }
             .action-buttons { flex-direction: column-reverse; }
+            .preference-item, .preference-add-form { flex-direction: column; align-items: stretch; }
         }
 
         .flash-banner {
@@ -343,6 +371,8 @@
         <div class="form-card">
             <div th:if="${photoMessage}" class="flash-banner ok" th:text="${photoMessage}"></div>
             <div th:if="${photoErreur}" class="flash-banner err" th:text="${photoErreur}"></div>
+            <div th:if="${preferenceMessage}" class="flash-banner ok" th:text="${preferenceMessage}"></div>
+            <div th:if="${preferenceErreur}" class="flash-banner err" th:text="${preferenceErreur}"></div>
 
             <form th:action="@{/profile/photo}" method="post" enctype="multipart/form-data" id="form-photo-profil" style="display:none;">
                 <input type="file" name="file" id="input-photo-profil" accept="image/*">
@@ -446,17 +476,6 @@
                     </div>
 
                     <div class="form-group full-width">
-                        <label>Préférences sportives</label>
-                        <div class="sport-chips">
-                            <label class="chip-label" th:each="pref : ${toutesPrefSportives}">
-                                <input type="checkbox" name="prefSportiveIds" th:value="${pref.id}"
-                                       th:checked="${utilisateur.prefSportives != null and #lists.contains(utilisateur.prefSportives.![id], pref.id)}">
-                                <span class="chip-text" th:text="${pref.nom}">Sport</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-group full-width">
                         <label for="objectifsPersonnels">Objectifs personnels</label>
                         <textarea id="objectifsPersonnels" th:field="*{objectifsPersonnels}"
                                   placeholder="Ex. : courir 50 km par mois, semi-marathon, objectifs de poids…"></textarea>
@@ -472,6 +491,39 @@
                 </div>
 
             </form>
+
+            <div class="preferences-card">
+                <div class="section-title">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M3 6h.01"></path><path d="M3 12h.01"></path><path d="M3 18h.01"></path></svg>
+                    Préférences sportives
+                </div>
+
+                <div class="preferences-list" th:if="${utilisateur.prefSportives != null and !#lists.isEmpty(utilisateur.prefSportives)}">
+                    <div class="preference-item" th:each="pref : ${utilisateur.prefSportives}">
+                        <span class="preference-name" th:text="${pref.nom}">Course</span>
+                        <form class="inline-form"
+                              th:action="@{/profile/preferences/{prefSportiveId}/delete(prefSportiveId=${pref.id})}"
+                              method="post">
+                            <input type="hidden" name="id" th:value="${utilisateur.id}">
+                            <button type="submit" class="btn btn-delete">Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="preference-empty" th:if="${utilisateur.prefSportives == null or #lists.isEmpty(utilisateur.prefSportives)}">
+                    Aucune préférence sportive ajoutée pour le moment.
+                </div>
+
+                <form class="preference-add-form" th:action="@{/profile/preferences}" method="post">
+                    <input type="hidden" name="id" th:value="${utilisateur.id}">
+                    <div class="form-group">
+                        <label for="nomPreference">Ajouter une préférence</label>
+                        <input type="text" id="nomPreference" name="nomPreference"
+                               placeholder="Ex. : course, natation, tennis" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Ajouter</button>
+                </form>
+            </div>
         </div>
 
     </div>
