@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -36,8 +37,18 @@ public class UtilisateurController {
     }
 
     @PostMapping("/create")
-    @Operation(summary = "Créer un nouvel utilisateur")
-    public ResponseEntity<Utilisateur> createUtilisateur(@RequestParam String nom,@RequestParam String prenom ,@RequestParam String email,@RequestParam String motDePasse, @RequestParam String sexe, @RequestParam Integer age, @RequestParam Double poids, @RequestParam Double taille) {
+@Operation(summary = "Créer un nouvel utilisateur")
+public String createUtilisateur(
+        @RequestParam String nom,
+        @RequestParam String prenom,
+        @RequestParam String email,
+        @RequestParam String motDePasse,
+        @RequestParam String sexe,
+        @RequestParam Integer age,
+        @RequestParam Double poids,
+        @RequestParam Double taille,
+        RedirectAttributes redirectAttributes) {
+    try {
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setNom(nom);
         utilisateur.setPrenom(prenom);
@@ -48,10 +59,14 @@ public class UtilisateurController {
         utilisateur.setPoids(poids);
         utilisateur.setTaille(taille);
 
+        utilisateurService.creerUtilisateur(utilisateur);
+        return "redirect:/login"; //Succès 
 
-        Utilisateur created = utilisateurService.creerUtilisateur(utilisateur);
-        return ResponseEntity.ok(created);
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
+        return "redirect:/register"; //échec 
     }
+}
 
     @PutMapping("/{id}")
     @Operation(summary = "Modifier un utilisateur")
