@@ -59,11 +59,11 @@ class UtilisateurServiceTest {
         Utilisateur utilisateur = Utilisateur.builder()
                 .nom("Dupont")
                 .prenom("Jean")
-                .username("jdupont")
+                .email("jdupont")
                 .motdepasse("secret")
                 .build();
 
-        when(utilisateurRepository.existsByUsername("jdupont")).thenReturn(false);
+        when(utilisateurRepository.existsByEmail("jdupont")).thenReturn(false);
         when(passwordEncoder.encode("secret")).thenReturn("hashed-secret");
         when(utilisateurRepository.save(any(Utilisateur.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -84,11 +84,11 @@ class UtilisateurServiceTest {
     @Test
     void creerUtilisateurRefuseUnUsernameDejaUtilise() {
         Utilisateur utilisateur = Utilisateur.builder()
-                .username("jdupont")
+                .email("jdupont")
                 .motdepasse("secret")
                 .build();
 
-        when(utilisateurRepository.existsByUsername("jdupont")).thenReturn(true);
+        when(utilisateurRepository.existsByEmail("jdupont")).thenReturn(true);
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
@@ -102,11 +102,11 @@ class UtilisateurServiceTest {
     @Test
     void loadUserByUsernameRetourneUnUserDetailsSpringSecurity() {
         Utilisateur utilisateur = Utilisateur.builder()
-                .username("jdupont")
+                .email("jdupont")
                 .motdepasse("hashed-secret")
                 .build();
 
-        when(utilisateurRepository.findByUsername("jdupont")).thenReturn(Optional.of(utilisateur));
+        when(utilisateurRepository.findByEmail("jdupont")).thenReturn(Optional.of(utilisateur));
 
         UserDetails userDetails = utilisateurService.loadUserByUsername("jdupont");
 
@@ -118,7 +118,7 @@ class UtilisateurServiceTest {
 
     @Test
     void loadUserByUsernameLeveUneExceptionSiUtilisateurIntrouvable() {
-        when(utilisateurRepository.findByUsername("inconnu")).thenReturn(Optional.empty());
+        when(utilisateurRepository.findByEmail("inconnu")).thenReturn(Optional.empty());
 
         assertThrows(
                 UsernameNotFoundException.class,
@@ -129,7 +129,7 @@ class UtilisateurServiceTest {
     void connecterAuthentifiePuisRetourneLUtilisateur() {
         Utilisateur utilisateur = Utilisateur.builder()
                 .id(1L)
-                .username("jdupont")
+                .email("jdupont")
                 .motdepasse("hashed-secret")
                 .build();
 
@@ -137,12 +137,12 @@ class UtilisateurServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
         when(authentication.getName()).thenReturn("jdupont");
-        when(utilisateurRepository.findByUsername("jdupont")).thenReturn(Optional.of(utilisateur));
+        when(utilisateurRepository.findByEmail("jdupont")).thenReturn(Optional.of(utilisateur));
 
         Utilisateur resultat = utilisateurService.connecter("jdupont", "secret");
 
         assertNotNull(resultat);
         assertEquals(1L, resultat.getId());
-        assertEquals("jdupont", resultat.getUsername());
+        assertEquals("jdupont", resultat.getEmail());
     }
 }

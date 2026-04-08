@@ -115,7 +115,7 @@ class CommentaireServiceTest {
 
     @Test
     void creerCommentaireAvecAuteurEtActiviteValides() {
-        Utilisateur auteur = Utilisateur.builder().id(1L).username("auteur").build();
+        Utilisateur auteur = Utilisateur.builder().id(1L).email("auteur").build();
         Activite activite = Activite.builder().id(1L).build();
 
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(auteur));

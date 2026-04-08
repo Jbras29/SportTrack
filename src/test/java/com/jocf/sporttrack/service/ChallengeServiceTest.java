@@ -79,7 +79,7 @@ class ChallengeServiceTest {
 
     @Test
     void creerChallengeAvecOrganisateurValide() {
-        Utilisateur organisateur = Utilisateur.builder().id(1L).username("organisateur").build();
+        Utilisateur organisateur = Utilisateur.builder().id(1L).email("organisateur").build();
         Challenge challenge = Challenge.builder()
                 .nom("Nouveau Challenge")
                 .dateDebut(Date.valueOf("2024-01-01"))

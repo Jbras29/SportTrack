@@ -113,7 +113,7 @@ class ActiviteServiceTest {
 
     @Test
     void creerActiviteAvecUtilisateurValide() {
-        Utilisateur utilisateur = Utilisateur.builder().id(1L).username("user").build();
+        Utilisateur utilisateur = Utilisateur.builder().id(1L).email("user").build();
         LocalDate date = LocalDate.of(2024, 4, 7);
 
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
