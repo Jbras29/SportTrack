@@ -3,6 +3,9 @@ package com.jocf.sporttrack.service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.jocf.sporttrack.model.Utilisateur;
@@ -37,4 +40,15 @@ class FriendRequestTest {
         assertTrue(aliceMaj.getDemandesAmisEnvoyees().stream()
             .anyMatch(u -> u.getId().equals(bob.getId())));
     }
+
+    @Test
+void recherche_utilisateur_inexistant() {
+    // aucun utilisateur "Inconnu" en base
+
+    
+    List<Utilisateur> results = utilisateurService.rechercherParNom("Inconnu");
+
+    // Then
+    assertTrue(results.isEmpty());
+}
 }

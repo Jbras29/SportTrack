@@ -146,4 +146,8 @@ public class UtilisateurService implements UserDetailsService {
                 .authorities(AuthorityUtils.createAuthorityList("ROLE_USER"))
                 .build();
     }
+
+    public List<Utilisateur> rechercherParNom(String prenom) {
+        return utilisateurRepository.findByPrenomContainingIgnoreCase(prenom);
+    }
 }
