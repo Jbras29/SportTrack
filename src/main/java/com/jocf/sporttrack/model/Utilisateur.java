@@ -42,7 +42,7 @@ public class Utilisateur {
     private String prenom;
 
     @Column(nullable = false, unique = true)
-    private String username;
+    private String email;
 
     @Column(nullable = false)
     private String motdepasse;

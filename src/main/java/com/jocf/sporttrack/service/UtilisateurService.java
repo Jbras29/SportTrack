@@ -46,7 +46,7 @@ public class UtilisateurService implements UserDetailsService {
 
         utilisateur.setNom(utilisateurDetails.getNom());
         utilisateur.setPrenom(utilisateurDetails.getPrenom());
-        utilisateur.setUsername(utilisateurDetails.getUsername());
+        utilisateur.setEmail(utilisateurDetails.getEmail());
         utilisateur.setMotdepasse(utilisateurDetails.getMotdepasse() != null ?
                 passwordEncoder.encode(utilisateurDetails.getMotdepasse()) : utilisateur.getMotdepasse());
         utilisateur.setSexe(utilisateurDetails.getSexe());
@@ -67,8 +67,8 @@ public class UtilisateurService implements UserDetailsService {
     }
 
     public Utilisateur creerUtilisateur(Utilisateur utilisateur) {
-        if (utilisateurRepository.existsByUsername(utilisateur.getUsername())) {
-            throw new IllegalArgumentException("Ce username est deja utilise.");
+        if (utilisateurRepository.existsByEmail(utilisateur.getEmail())) {
+            throw new IllegalArgumentException("Ce email est deja utilise.");
         }
 
         utilisateur.setId(null);
@@ -79,16 +79,16 @@ public class UtilisateurService implements UserDetailsService {
         return utilisateurRepository.save(utilisateur);
     }
 
-    public Utilisateur trouverParUsername(String username) {
-        return utilisateurRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + username));
+    public Utilisateur trouverParEmail(String email) {
+        return utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + email));
     }
 
-    public Utilisateur connecter(String username, String motdepasse) {
+    public Utilisateur connecter(String email, String motdepasse) {
         Authentication authentication = getAuthenticationManager().authenticate(
-                new UsernamePasswordAuthenticationToken(username, motdepasse));
+                new UsernamePasswordAuthenticationToken(email, motdepasse));
 
-        return trouverParUsername(authentication.getName());
+        return trouverParEmail(authentication.getName());
     }
 
     private org.springframework.security.authentication.AuthenticationManager getAuthenticationManager() {
@@ -100,10 +100,10 @@ public class UtilisateurService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Utilisateur utilisateur = trouverParUsername(username);
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Utilisateur utilisateur = trouverParEmail(email);
 
-        return User.withUsername(utilisateur.getUsername())
+        return User.withUsername(utilisateur.getEmail())
                 .password(utilisateur.getMotdepasse())
                 .authorities(AuthorityUtils.createAuthorityList("ROLE_USER"))
                 .build();
