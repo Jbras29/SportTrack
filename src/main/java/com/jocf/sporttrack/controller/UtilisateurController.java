@@ -5,6 +5,8 @@ import com.jocf.sporttrack.service.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +27,23 @@ public class UtilisateurController {
     public ResponseEntity<List<Utilisateur>> getAllUtilisateurs() {
         List<Utilisateur> utilisateurs = utilisateurService.recupererTousLesUtilisateurs();
         return ResponseEntity.ok(utilisateurs);
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "Récupérer l'utilisateur actuellement connecté")
+    public ResponseEntity<Utilisateur> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        
+        String email = authentication.getName();
+        try {
+            Utilisateur user = utilisateurService.trouverParEmail(email);
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).build();
+        }
     }
 
     @PostMapping("/auth")

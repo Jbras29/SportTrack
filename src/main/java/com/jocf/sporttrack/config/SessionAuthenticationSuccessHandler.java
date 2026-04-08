@@ -19,7 +19,7 @@ public class SessionAuthenticationSuccessHandler extends SimpleUrlAuthentication
 
     public SessionAuthenticationSuccessHandler(UtilisateurService utilisateurService) {
         this.utilisateurService = utilisateurService;
-        setDefaultTargetUrl("/dashboard.html");
+        setDefaultTargetUrl("/dashboard");
         setAlwaysUseDefaultTargetUrl(true);
     }
 
