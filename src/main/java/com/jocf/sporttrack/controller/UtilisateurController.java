@@ -28,6 +28,17 @@ public class UtilisateurController {
         return ResponseEntity.ok(utilisateurs);
     }
 
+    @PostMapping("/login")
+    @Operation(summary = "Authentifier un utilisateur")
+    public ResponseEntity<String> login(@RequestParam String email, @RequestParam String motDePasse) {
+        try {
+            utilisateurService.connecter(email, motDePasse);
+            return ResponseEntity.ok("Connexion réussie");
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Email ou mot de passe incorrect");
+        }
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Récupérer un utilisateur par ID")
     public ResponseEntity<Utilisateur> getUtilisateurById(@PathVariable Long id) {
