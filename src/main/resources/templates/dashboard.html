@@ -84,8 +84,8 @@
             color: var(--brand-blue);
         }
 
-        .nav-btn svg { width: 24px; height: 24px; }
-        .spacer { flex-grow: 1; }
+        .nav-btn.logout { color: #EF4444; }
+        .nav-btn.logout:hover { background-color: rgba(239, 68, 68, 0.1); }
 
         /* --- CONTENU PRINCIPAL --- */
         .main-wrapper {
@@ -144,6 +144,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            text-decoration: none;
         }
         .btn-edit:hover { background-color: var(--border-light); }
 
@@ -287,6 +288,12 @@
         <a href="#" class="nav-btn active" title="Mon Profil">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </a>
+
+        <form action="/logout" method="POST" style="margin: 0;">
+            <button type="submit" class="nav-btn logout" title="Déconnexion" style="border: none; background: none; padding: 0; width: 50px; height: 50px; margin-bottom: 15px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 8 20 12 16 16"></polyline><line x1="9" y1="12" x2="20" y2="12"></line></svg>
+            </button>
+        </form>
     </nav>
 
     <div class="main-wrapper">
@@ -303,10 +310,10 @@
                     Niveau 5 - Expert
                 </div>
             </div>
-            <button class="btn-edit">
+            <a href="/profile/edit" class="btn-edit">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 Modifier
-            </button>
+            </a>
         </div>
 
         <div class="stats-grid">
