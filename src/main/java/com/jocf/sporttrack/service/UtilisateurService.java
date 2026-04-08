@@ -66,6 +66,12 @@ public class UtilisateurService implements UserDetailsService {
         utilisateur.setObjectifsPersonnels(utilisateurDetails.getObjectifsPersonnels());
         utilisateur.setNiveauPratiqueSportive(utilisateurDetails.getNiveauPratiqueSportive());
 
+        if (utilisateurDetails.getPhotoProfil() != null) {
+            utilisateur.setPhotoProfil(utilisateurDetails.getPhotoProfil().isBlank()
+                    ? null
+                    : utilisateurDetails.getPhotoProfil());
+        }
+
         if (utilisateurDetails.getPrefSportives() != null) {
             utilisateur.getPrefSportives().clear();
             for (PrefSportive preference : utilisateurDetails.getPrefSportives()) {
@@ -77,6 +83,13 @@ public class UtilisateurService implements UserDetailsService {
         }
 
         return utilisateurRepository.save(utilisateur);
+    }
+
+    public void modifierPhotoProfil(Long id, String cheminPublic) {
+        Utilisateur utilisateur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + id));
+        utilisateur.setPhotoProfil(cheminPublic);
+        utilisateurRepository.save(utilisateur);
     }
 
     public void supprimerUtilisateur(Long id) {

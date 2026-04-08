@@ -47,6 +47,12 @@ public class Utilisateur {
     @Column(nullable = false)
     private String motdepasse;
 
+    /**
+     * Chemin public servi par l'application (ex. /uploads/profiles/1-uuid.jpg), ou null pour utiliser le placeholder.
+     */
+    @Column(length = 512)
+    private String photoProfil;
+
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -125,4 +131,12 @@ public class Utilisateur {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Evenement> evenementsParticipes = new ArrayList<>();
+
+    /** URL de l'image à afficher : photo utilisateur ou image par défaut sous /static. */
+    public String cheminPhotoProfilAffichee() {
+        if (photoProfil != null && !photoProfil.isBlank()) {
+            return photoProfil;
+        }
+        return "/images/profile-placeholder.svg";
+    }
 }
