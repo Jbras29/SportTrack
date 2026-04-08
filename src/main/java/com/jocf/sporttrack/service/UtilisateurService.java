@@ -55,6 +55,8 @@ public class UtilisateurService implements UserDetailsService {
         utilisateur.setTaille(utilisateurDetails.getTaille());
         utilisateur.setXp(utilisateurDetails.getXp());
         utilisateur.setHp(utilisateurDetails.getHp());
+        utilisateur.setObjectifsPersonnels(utilisateurDetails.getObjectifsPersonnels());
+        utilisateur.setNiveauPratiqueSportive(utilisateurDetails.getNiveauPratiqueSportive());
 
         return utilisateurRepository.save(utilisateur);
     }

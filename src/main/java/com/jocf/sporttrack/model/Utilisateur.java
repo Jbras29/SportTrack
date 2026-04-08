@@ -59,6 +59,12 @@ public class Utilisateur {
     private Integer xp;
     private Integer hp;
 
+    @Column(length = 4000)
+    private String objectifsPersonnels;
+
+    @Enumerated(EnumType.STRING)
+    private NiveauPratiqueSportive niveauPratiqueSportive;
+
     @Builder.Default
     @ManyToMany
     @JoinTable(
