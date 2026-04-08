@@ -32,9 +32,13 @@ public class ProfileController {
 
     @GetMapping("/profile/edit")
     public String editProfileForm(@RequestParam(required = false) Long id, HttpSession session, Model model) {
-        Long idEffectif = recupererUtilisateurId(id, session);
-        if (idEffectif == null) {
+        Long idSession = (Long) session.getAttribute("utilisateurId");
+        if (idSession == null) {
             return "redirect:/login";
+        }
+        Long idEffectif = id != null ? id : idSession;
+        if (!idEffectif.equals(idSession)) {
+            return "redirect:/profile/edit";
         }
         Utilisateur utilisateur = utilisateurService.trouverParId(idEffectif)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + idEffectif));
@@ -46,13 +50,17 @@ public class ProfileController {
     }
 
     @PostMapping("/profile/edit")
-    public String editProfileSubmit(@ModelAttribute Utilisateur utilisateurDetails) {
+    public String editProfileSubmit(@ModelAttribute Utilisateur utilisateurDetails, HttpSession session) {
+        Long idSession = (Long) session.getAttribute("utilisateurId");
+        if (idSession == null || !utilisateurDetails.getId().equals(idSession)) {
+            return "redirect:/login";
+        }
         if (utilisateurDetails.getMotdepasse() != null && utilisateurDetails.getMotdepasse().isBlank()) {
             utilisateurDetails.setMotdepasse(null);
         }
         utilisateurDetails.setPrefSportives(null);
         utilisateurService.modifierUtilisateur(utilisateurDetails.getId(), utilisateurDetails);
-        return "redirect:/profile/edit?id=" + utilisateurDetails.getId();
+        return "redirect:/profile/edit";
     }
 
     @PostMapping("/profile/preferences")
@@ -61,19 +69,22 @@ public class ProfileController {
             @RequestParam String nomPreference,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
-        Long utilisateurId = recupererUtilisateurId(id, session);
-        if (utilisateurId == null) {
+        Long idSession = (Long) session.getAttribute("utilisateurId");
+        if (idSession == null) {
             return "redirect:/login";
+        }
+        if (id != null && !id.equals(idSession)) {
+            return "redirect:/profile/edit";
         }
 
         try {
-            utilisateurService.ajouterPrefSportive(utilisateurId, nomPreference);
+            utilisateurService.ajouterPrefSportive(idSession, nomPreference);
             redirectAttributes.addFlashAttribute("preferenceMessage", "Preference sportive ajoutee.");
         } catch (IllegalArgumentException exception) {
             redirectAttributes.addFlashAttribute("preferenceErreur", exception.getMessage());
         }
 
-        return "redirect:/profile/edit?id=" + utilisateurId;
+        return "redirect:/profile/edit";
     }
 
     @PostMapping("/profile/preferences/{prefSportiveId}/delete")
@@ -82,19 +93,22 @@ public class ProfileController {
             @RequestParam(required = false) Long id,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
-        Long utilisateurId = recupererUtilisateurId(id, session);
-        if (utilisateurId == null) {
+        Long idSession = (Long) session.getAttribute("utilisateurId");
+        if (idSession == null) {
             return "redirect:/login";
+        }
+        if (id != null && !id.equals(idSession)) {
+            return "redirect:/profile/edit";
         }
 
         try {
-            utilisateurService.supprimerPrefSportive(utilisateurId, prefSportiveId);
+            utilisateurService.supprimerPrefSportive(idSession, prefSportiveId);
             redirectAttributes.addFlashAttribute("preferenceMessage", "Preference sportive supprimee.");
         } catch (IllegalArgumentException exception) {
             redirectAttributes.addFlashAttribute("preferenceErreur", exception.getMessage());
         }
 
-        return "redirect:/profile/edit?id=" + utilisateurId;
+        return "redirect:/profile/edit";
     }
 
     @PostMapping("/profile/photo")
@@ -116,9 +130,5 @@ public class ProfileController {
             redirectAttributes.addFlashAttribute("photoErreur", "Impossible d'enregistrer la photo.");
         }
         return "redirect:/profile/edit?id=" + idSession;
-    }
-
-    private Long recupererUtilisateurId(Long id, HttpSession session) {
-        return id != null ? id : (Long) session.getAttribute("utilisateurId");
     }
 }
