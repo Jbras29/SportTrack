@@ -24,7 +24,7 @@ public class LoginController {
 
     @GetMapping("/register")
     public String registerPage() {
-        return "/create/register";
+        return "/account/register";
     }
 
     @PostMapping("/utilisateurs/create")

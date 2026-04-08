@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amis & Réseau | Sport Track</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-blue: #135077;
+            --brand-orange: #F39434;
+            --brand-light-blue: #21A2D7;
+            --brand-green: #8EB445;
+            --brand-red: #EF4444;
+            --bg-app: #F3F6F8;
+            --bg-card: #FFFFFF;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --border-light: #E2E8F0;
+            --hover-bg: #F1F5F9;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .slim-sidebar {
+            width: 80px;
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--brand-blue), var(--brand-light-blue));
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: 800;
+            font-size: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 10px rgba(33, 162, 215, 0.3);
+        }
+
+        .nav-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover { background-color: var(--hover-bg); color: var(--brand-blue); }
+        .nav-btn.active { background-color: rgba(33, 162, 215, 0.1); color: var(--brand-blue); }
+        .nav-btn.logout { color: var(--brand-red); }
+        .nav-btn.logout:hover { background-color: rgba(239, 68, 68, 0.1); }
+        .nav-btn svg { width: 24px; height: 24px; }
+        .spacer { flex-grow: 1; }
+
+        .main-wrapper {
+            flex-grow: 1;
+            padding: 30px 40px;
+            overflow-y: auto;
+            display: flex;
+            gap: 30px;
+        }
+
+        .search-column {
+            flex-grow: 1;
+            max-width: 860px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--brand-blue);
+            margin: 0 0 5px 0;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+            margin: 0 0 25px 0;
+            font-size: 15px;
+        }
+
+        .flash-banner {
+            padding: 14px 16px;
+            border-radius: 14px;
+            margin-bottom: 18px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .flash-banner.ok {
+            background: rgba(142, 180, 69, 0.14);
+            color: #52712a;
+            border: 1px solid rgba(142, 180, 69, 0.35);
+        }
+
+        .flash-banner.err {
+            background: rgba(239, 68, 68, 0.12);
+            color: #b91c1c;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .search-bar {
+            margin-bottom: 28px;
+        }
+
+        .search-bar form {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            border-radius: 16px;
+            border: 2px solid var(--border-light);
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+            background-color: var(--bg-card);
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--brand-light-blue);
+            box-shadow: 0 0 0 4px rgba(33, 162, 215, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .btn-search {
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: none;
+            background: var(--brand-blue);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-search:hover { background: #0f3e5c; }
+
+        .section-block {
+            margin-bottom: 34px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            color: var(--text-main);
+            margin: 0 0 20px 0;
+            font-weight: 700;
+        }
+
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .user-card {
+            background-color: var(--bg-card);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .user-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 12px;
+            border: 2px solid var(--bg-app);
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0 0 8px 0;
+        }
+
+        .user-email {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 0 0 12px 0;
+            word-break: break-word;
+        }
+
+        .user-level {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--brand-orange);
+            background-color: rgba(243, 148, 52, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        .sports-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin-bottom: 18px;
+        }
+
+        .spacer-card {
+            flex-grow: 1;
+        }
+
+        .btn-add {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            background-color: var(--brand-blue);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-top: auto;
+        }
+
+        .btn-add:hover { background-color: #0f3e5c; }
+
+        .btn-add.sent,
+        .btn-add.friend,
+        .btn-add.incoming {
+            border: 1px solid var(--border-light);
+            cursor: default;
+        }
+
+        .btn-add.sent {
+            background-color: var(--hover-bg);
+            color: var(--text-muted);
+        }
+
+        .btn-add.friend {
+            background-color: rgba(142, 180, 69, 0.14);
+            color: #52712a;
+        }
+
+        .btn-add.incoming {
+            background-color: rgba(243, 148, 52, 0.14);
+            color: #a16207;
+        }
+
+        .empty-state {
+            padding: 22px;
+            background: var(--bg-card);
+            border: 1px dashed var(--border-light);
+            border-radius: 18px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .requests-column {
+            width: 340px;
+            flex-shrink: 0;
+        }
+
+        .requests-panel {
+            background-color: var(--bg-card);
+            border-radius: 24px;
+            padding: 25px;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            position: sticky;
+            top: 0;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--brand-blue);
+            margin: 0 0 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge-count {
+            background-color: var(--brand-orange);
+            color: white;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .request-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-light);
+            gap: 12px;
+        }
+
+        .request-item:last-child { border-bottom: none; }
+
+        .req-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .req-info {
+            flex-grow: 1;
+        }
+
+        .req-info h4 {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-main);
+        }
+
+        .req-info p {
+            margin: 2px 0 0 0;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .req-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-accept { background-color: rgba(142, 180, 69, 0.15); color: var(--brand-green); }
+        .btn-accept:hover { background-color: var(--brand-green); color: white; }
+        .btn-reject { background-color: var(--hover-bg); color: var(--text-muted); }
+        .btn-reject:hover { background-color: rgba(239, 68, 68, 0.15); color: var(--brand-red); }
+
+        .request-form {
+            margin: 0;
+        }
+
+        @media (max-width: 950px) {
+            .main-wrapper { flex-direction: column; }
+            .requests-column { width: 100%; }
+            .requests-panel { position: static; }
+        }
+
+        @media (max-width: 640px) {
+            .main-wrapper { padding: 20px; }
+            .search-bar form { flex-direction: column; }
+            .btn-search { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="slim-sidebar">
+        <div class="logo-icon">S</div>
+        <a th:href="@{/dashboard}" class="nav-btn" title="Accueil">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        </a>
+        <a th:href="@{/dashboard}" class="nav-btn" title="Mes Activités">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+        </a>
+        <a th:href="@{/search/friend}" class="nav-btn active" title="Réseau">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        </a>
+        <div class="spacer"></div>
+        <a th:href="@{/profile/edit}" class="nav-btn" title="Mon Profil">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </a>
+        <form th:action="@{/logout}" method="post" style="margin: 0;">
+            <button type="submit" class="nav-btn logout" title="Déconnexion" style="border: none; background: none; padding: 0;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 8 20 12 16 16"></polyline><line x1="9" y1="12" x2="20" y2="12"></line></svg>
+            </button>
+        </form>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="search-column">
+            <div class="page-header">
+                <h1>Réseau Sport Track</h1>
+                <p th:text="|Retrouvez des partenaires d'entrainement pour ${utilisateurCourant.prenom}.|">
+                    Retrouvez des partenaires d'entrainement.
+                </p>
+            </div>
+
+            <div th:if="${successMessage}" class="flash-banner ok" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="flash-banner err" th:text="${errorMessage}"></div>
+
+            <div class="search-bar">
+                <form th:action="@{/search/friend}" method="get">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" name="recherche" th:value="${recherche}" placeholder="Rechercher par nom, prenom ou adresse email...">
+                    </div>
+                    <button type="submit" class="btn-search">Rechercher</button>
+                </form>
+            </div>
+
+            <section class="section-block" th:if="${recherche != null and !#strings.isEmpty(recherche)}">
+                <h3 class="section-title" th:text="'Resultats pour : ' + ${recherche}">Resultats</h3>
+
+                <div class="empty-state" th:if="${#lists.isEmpty(resultatsRecherche)}">
+                    Aucun utilisateur ne correspond a votre recherche.
+                </div>
+
+                <div class="users-grid" th:unless="${#lists.isEmpty(resultatsRecherche)}">
+                    <div class="user-card" th:each="carte : ${resultatsRecherche}">
+                        <img th:src="${carte.utilisateur.cheminPhotoProfilAffichee()}" alt="Avatar" class="user-avatar">
+                        <h3 class="user-name" th:text="${carte.nomComplet}">Nom Prenom</h3>
+                        <p class="user-email" th:text="${carte.utilisateur.email}">email@exemple.com</p>
+                        <div class="user-level" th:text="'Niveau ' + ${carte.utilisateur.niveauExperience}">Niveau 1</div>
+                        <div class="sports-text" th:text="${carte.sportsTexte}">Aucune preference sportive</div>
+                        <div class="spacer-card"></div>
+
+                        <form th:if="${carte.peutEnvoyerDemande()}" th:action="@{/search/friend/request/{id}(id=${carte.utilisateur.id})}" method="post" style="width: 100%;">
+                            <input type="hidden" name="recherche" th:value="${recherche}">
+                            <button type="submit" class="btn-add">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                Ajouter
+                            </button>
+                        </form>
+
+                        <button th:if="${carte.demandeEnvoyee}" type="button" class="btn-add sent" disabled>
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Demande envoyee
+                        </button>
+
+                        <button th:if="${carte.dejaAmi}" type="button" class="btn-add friend" disabled>
+                            Deja ami
+                        </button>
+
+                        <button th:if="${carte.demandeRecue}" type="button" class="btn-add incoming" disabled>
+                            Demande recue
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-block">
+                <h3 class="section-title">Suggestions pour vous</h3>
+
+                <div class="empty-state" th:if="${suggestionsVides}">
+                    Pas de suggestions.
+                </div>
+
+                <div class="users-grid" th:unless="${suggestionsVides}">
+                    <div class="user-card" th:each="carte : ${suggestions}">
+                        <img th:src="${carte.utilisateur.cheminPhotoProfilAffichee()}" alt="Avatar" class="user-avatar">
+                        <h3 class="user-name" th:text="${carte.nomComplet}">Nom Prenom</h3>
+                        <p class="user-email" th:text="${carte.utilisateur.email}">email@exemple.com</p>
+                        <div class="user-level" th:text="'Niveau ' + ${carte.utilisateur.niveauExperience}">Niveau 1</div>
+                        <div class="sports-text" th:text="${carte.sportsTexte}">Aucune preference sportive</div>
+                        <div class="spacer-card"></div>
+
+                        <form th:if="${carte.peutEnvoyerDemande()}" th:action="@{/search/friend/request/{id}(id=${carte.utilisateur.id})}" method="post" style="width: 100%;">
+                            <input type="hidden" name="recherche" th:value="${recherche}">
+                            <button type="submit" class="btn-add">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                Ajouter
+                            </button>
+                        </form>
+
+                        <button th:if="${carte.demandeEnvoyee}" type="button" class="btn-add sent" disabled>
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Demande envoyee
+                        </button>
+
+                        <button th:if="${carte.dejaAmi}" type="button" class="btn-add friend" disabled>
+                            Deja ami
+                        </button>
+
+                        <button th:if="${carte.demandeRecue}" type="button" class="btn-add incoming" disabled>
+                            Demande recue
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="requests-column">
+            <div class="requests-panel">
+                <h3 class="panel-title">
+                    Demandes recues
+                    <span class="badge-count" th:text="${demandesRecuesCount}">0</span>
+                </h3>
+
+                <div class="empty-state" th:if="${#lists.isEmpty(demandesRecues)}">
+                    Aucune demande d'ami recue pour le moment.
+                </div>
+
+                <div th:unless="${#lists.isEmpty(demandesRecues)}">
+                    <div class="request-item" th:each="demande : ${demandesRecues}">
+                        <img th:src="${demande.cheminPhotoProfilAffichee()}" alt="Avatar" class="req-avatar">
+                        <div class="req-info">
+                            <h4 th:text="${demande.prenom + ' ' + demande.nom}">Nom Prenom</h4>
+                            <p th:text="'Niveau ' + ${demande.niveauExperience} + ' • ' + ${demande.email}">Niveau 1 • email</p>
+                        </div>
+                        <div class="req-actions">
+                            <form class="request-form" th:action="@{/search/friend/requests/{id}/reject(id=${demande.id})}" method="post">
+                                <input type="hidden" name="recherche" th:value="${recherche}">
+                                <button type="submit" class="btn-icon btn-reject" title="Refuser">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </form>
+
+                            <form class="request-form" th:action="@{/search/friend/requests/{id}/accept(id=${demande.id})}" method="post">
+                                <input type="hidden" name="recherche" th:value="${recherche}">
+                                <button type="submit" class="btn-icon btn-accept" title="Accepter">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
