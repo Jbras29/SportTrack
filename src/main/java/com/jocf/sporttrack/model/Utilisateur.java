@@ -1,5 +1,6 @@
 package com.jocf.sporttrack.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
@@ -84,6 +85,7 @@ public class Utilisateur {
             joinColumns = @JoinColumn(name = "utilisateur_id"),
             inverseJoinColumns = @JoinColumn(name = "ami_id")
     )
+    @JsonIgnoreProperties("amis")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Utilisateur> amis = new ArrayList<>();
@@ -95,6 +97,7 @@ public class Utilisateur {
             joinColumns = @JoinColumn(name = "expediteur_id"),
             inverseJoinColumns = @JoinColumn(name = "destinataire_id")
     )
+    @JsonIgnoreProperties({"amis", "demandesAmisEnvoyees"})
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Utilisateur> demandesAmisEnvoyees = new ArrayList<>();
@@ -134,6 +137,7 @@ public class Utilisateur {
 
     @Builder.Default
     @ManyToMany(mappedBy = "participants")
+    @JsonIgnoreProperties("participants")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Evenement> evenementsParticipes = new ArrayList<>();

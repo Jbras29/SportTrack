@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un Événement</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">Créer un nouvel événement</h2>
+
+                    <form id="formCreationEvenement">
+                        <div class="mb-3">
+                            <label for="nom" class="form-label text-secondary fw-bold">Nom de l'événement</label>
+                            <input type="text" class="form-control" id="nom" placeholder="Ex: Marathon du dimanche" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="date" class="form-label text-secondary fw-bold">Date et heure</label>
+                            <input type="datetime-local" class="form-control" id="date" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-secondary fw-bold">Inviter des amis (Optionnel)</label>
+                            <div id="listeAmisContainer" class="border p-3 rounded bg-white" style="max-height: 200px; overflow-y: auto;">
+                                <div class="text-center text-muted spinner-border-sm" role="status">
+                                    <span>Chargement des amis...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-outline-secondary me-md-2">Annuler</button>
+                            <button type="submit" class="btn btn-primary">Créer et Inviter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ID de l'utilisateur actuellement connecté (Valeur simulée pour le test)
+    const utilisateurConnecteId = 1;
+
+    // Fonction pour charger la liste d'amis de l'utilisateur depuis le backend
+    async function chargerListeAmis() {
+        const container = document.getElementById('listeAmisContainer');
+
+        try {
+            // Dans votre vrai projet, vous ferez un appel API comme ceci :
+            // const response = await fetch(`/api/utilisateurs/${utilisateurConnecteId}/amis`);
+            // const amis = await response.json();
+
+            // Données simulées (Mock) en attendant que l'API soit prête
+            const amis = [
+                { id: 2, nom: "Alice" },
+                { id: 3, nom: "Bob" },
+                { id: 4, nom: "Charlie (Pro Runner)" },
+                { id: 5, nom: "David" }
+            ];
+
+            // Vider le conteneur de chargement
+            container.innerHTML = '';
+
+            if (amis.length === 0) {
+                container.innerHTML = "<p class='text-muted mb-0'>Vous n'avez pas encore d'amis à inviter.</p>";
+                return;
+            }
+
+            // Génération dynamique des cases à cocher pour chaque ami
+            amis.forEach(ami => {
+                const div = document.createElement('div');
+                div.className = 'form-check mb-2';
+
+                div.innerHTML = `
+                    <input class="form-check-input ami-checkbox" type="checkbox" value="${ami.id}" id="ami_${ami.id}">
+                    <label class="form-check-label cursor-pointer" for="ami_${ami.id}">
+                        ${ami.nom}
+                    </label>
+                `;
+                container.appendChild(div);
+            });
+
+        } catch (error) {
+            console.error("Erreur lors du chargement des amis:", error);
+            container.innerHTML = "<p class='text-danger'>Impossible de charger votre liste d'amis.</p>";
+        }
+    }
+
+    // Gestion de l'événement de soumission du formulaire
+    document.getElementById('formCreationEvenement').addEventListener('submit', async function(event) {
+        // Empêcher le rechargement par défaut de la page HTML
+        event.preventDefault();
+
+        // 1. Récupérer les valeurs saisies par l'utilisateur
+        const nom = document.getElementById('nom').value;
+        const date = document.getElementById('date').value;
+
+        // 2. Récupérer tous les amis qui ont été cochés
+        const checkboxesAmis = document.querySelectorAll('.ami-checkbox:checked');
+        const participantsInvites = [];
+
+        checkboxesAmis.forEach(checkbox => {
+            // Spring Boot a besoin d'un objet avec l'ID pour faire le lien en base de données
+            participantsInvites.push({ id: parseInt(checkbox.value) });
+        });
+
+        // 3. Construire l'objet JSON final à envoyer au backend
+        const payload = {
+            nom: nom,
+            date: date,
+            participants: participantsInvites
+        };
+
+        // Affichage dans la console pour vérifier la structure des données avant l'envoi
+        console.log("Données envoyées au backend:", payload);
+
+        try {
+            // 4. Envoyer la requête POST au contrôleur Spring Boot
+            const response = await fetch(`/api/evenements/creer?organisateurId=${utilisateurConnecteId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const evenementCree = await response.json();
+                alert(`Succès ! L'événement "${evenementCree.nom}" a été créé avec ${participantsInvites.length} invité(s).`);
+
+                // Redirection vers la page détaillée de l'événement (à décommenter)
+                // window.location.href = `/evenements/details/${evenementCree.id}`;
+            } else {
+                alert("Erreur côté serveur lors de la création de l'événement.");
+            }
+        } catch (error) {
+            console.error("Erreur réseau:", error);
+            alert("Impossible de joindre le serveur. Vérifiez votre connexion.");
+        }
+    });
+
+    // Exécuter la fonction pour charger les amis dès que la page s'affiche
+    chargerListeAmis();
+</script>
+</body>
+</html>

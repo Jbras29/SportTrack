@@ -7,9 +7,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/utilisateurs")
@@ -36,7 +41,7 @@ public class UtilisateurController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).build();
         }
-        
+
         String email = authentication.getName();
         try {
             Utilisateur user = utilisateurService.trouverParEmail(email);
@@ -84,6 +89,39 @@ public class UtilisateurController {
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/me/amis")
+    @Operation(summary = "Récupérer la liste des amis de l'utilisateur connecté")
+    public ResponseEntity<List<Map<String, Object>>> getMesAmis() {
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email;
+        if (principal instanceof UserDetails) {
+            email = ((UserDetails) principal).getUsername();
+        } else {
+            email = principal.toString();
+        }
+
+        try {
+            // 1. Essayer de trouver l'utilisateur.
+            // S'il n'existe pas, cela va déclencher UsernameNotFoundException
+            Utilisateur u = utilisateurService.trouverParEmail(email);
+
+            // 2. Si on arrive ici, c'est que l'utilisateur a été trouvé !
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (Utilisateur ami : u.getAmis()) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", ami.getId());
+                map.put("nom", ami.getNom());
+                result.add(map);
+            }
+            return ResponseEntity.ok(result);
+
+        } catch (UsernameNotFoundException e) {
+            // 3. Si l'exception est levée, on l'attrape ici et on renvoie une erreur 401
+            return ResponseEntity.status(401).build();
         }
     }
 }
