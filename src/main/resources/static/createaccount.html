@@ -45,8 +45,13 @@
             letter-spacing: 1px;
             text-align: center;
         }
-        .logo .sport { color: var(--bleu-principal); }
-        .logo .track { color: var(--orange-principal); }
+        .logo .sport {
+            color: var(--bleu-principal);
+        }
+
+        .logo .track {
+            color: var(--orange-principal);
+        }
 
         .subtitle {
             text-align: center;
@@ -74,7 +79,8 @@
             margin-bottom: 6px;
         }
 
-        .input-group input, .input-group select {
+        .input-group input,
+        .input-group select {
             width: 100%;
             padding: 10px 12px;
             border: 2px solid #e0e6ed;
@@ -86,7 +92,8 @@
             background-color: #fff;
         }
 
-        .input-group input:focus, .input-group select:focus {
+        .input-group input:focus,
+        .input-group select:focus {
             border-color: var(--bleu-clair);
             outline: none;
             box-shadow: 0 0 0 3px rgba(33, 162, 215, 0.15);
@@ -154,7 +161,7 @@
         </div>
         <div class="subtitle">Créez votre profil d'athlète</div>
 
-        <form action="#" method="POST">
+        <form action="/utilisateurs/create" method="POST">
             <div class="form-grid">
                 
                 <div class="input-group">
@@ -168,8 +175,8 @@
                 </div>
 
                 <div class="input-group full-width">
-                    <label for="username">Nom d'utilisateur</label>
-                    <input type="text" id="username" name="username" placeholder="feno_sport" required>
+                    <label for="email">Adresse email</label>
+                    <input type="email" id="email" name="email" placeholder="feno.sport@example.com" required>
                 </div>
 
                 <div class="input-group full-width">
@@ -208,9 +215,25 @@
         </form>
 
         <div class="login-link">
-            Déjà un compte ? <a href="#">Se connecter ici</a>
+            Déjà un compte ? <a href="./login.html">Se connecter ici</a>
         </div>
     </div>
 
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const password = document.getElementById('motdepasse').value;
+            if (password.length < 8) {
+                alert('Le mot de passe doit contenir au moins 8 caractères.');
+                e.preventDefault();
+                return;
+            }
+            const age = document.getElementById('age').value;
+            if (age && (age < 1 || age > 120)) {
+                alert('Veuillez entrer un âge valide.');
+                e.preventDefault();
+                return;
+            }
+        });
+    </script>
 </body>
 </html>

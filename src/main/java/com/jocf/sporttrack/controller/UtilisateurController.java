@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/utilisateurs")
+@RequestMapping("/utilisateurs")
 @Tag(name = "Utilisateurs", description = "Gestion des utilisateurs")
 public class UtilisateurController {
 
@@ -35,9 +35,20 @@ public class UtilisateurController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
+    @PostMapping("/create")
     @Operation(summary = "Créer un nouvel utilisateur")
-    public ResponseEntity<Utilisateur> createUtilisateur(@RequestBody Utilisateur utilisateur) {
+    public ResponseEntity<Utilisateur> createUtilisateur(@RequestParam String nom,@RequestParam String prenom ,@RequestParam String email,@RequestParam String motDePasse, @RequestParam String sexe, @RequestParam Integer age, @RequestParam Double poids, @RequestParam Double taille) {
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setNom(nom);
+        utilisateur.setPrenom(prenom);
+        utilisateur.setEmail(email);
+        utilisateur.setMotdepasse(motDePasse);
+        utilisateur.setSexe(sexe);
+        utilisateur.setAge(age);
+        utilisateur.setPoids(poids);
+        utilisateur.setTaille(taille);
+
+
         Utilisateur created = utilisateurService.creerUtilisateur(utilisateur);
         return ResponseEntity.ok(created);
     }
