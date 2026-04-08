@@ -34,7 +34,6 @@ public class DashboardController {
 
             model.addAttribute("user", user);
             model.addAttribute("level", user.getNiveauExperience());
-            model.addAttribute("avatarId", user.getId() % 50);
             
             return "dashboard";
         } catch (Exception e) {

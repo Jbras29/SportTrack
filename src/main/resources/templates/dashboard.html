@@ -299,7 +299,7 @@
     <div class="main-wrapper">
         
         <div class="profile-header">
-            <img th:src="'https://i.pravatar.cc/150?img=' + ${avatarId}" alt="Profil" class="profile-avatar">
+            <img th:src="${user.cheminPhotoProfilAffichee()}" alt="Photo de profil" class="profile-avatar" width="80" height="80">
             <div class="profile-info">
                 <h1 th:text="${user.prenom + ' ' + user.nom}">Jean Dupont</h1>
                 <p th:text="'@' + ${#strings.substring(user.email, 0, user.email.indexOf('@'))} + ' • Objectif : ' + (${user.objectifsPersonnels} ?: 'Non défini')">
