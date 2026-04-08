@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -46,38 +45,6 @@ public class UtilisateurController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
-    @PostMapping("/create")
-@Operation(summary = "Créer un nouvel utilisateur")
-public String createUtilisateur(
-        @RequestParam String nom,
-        @RequestParam String prenom,
-        @RequestParam String email,
-        @RequestParam String motDePasse,
-        @RequestParam String sexe,
-        @RequestParam Integer age,
-        @RequestParam Double poids,
-        @RequestParam Double taille,
-        RedirectAttributes redirectAttributes) {
-    try {
-        Utilisateur utilisateur = new Utilisateur();
-        utilisateur.setNom(nom);
-        utilisateur.setPrenom(prenom);
-        utilisateur.setEmail(email);
-        utilisateur.setMotdepasse(motDePasse);
-        utilisateur.setSexe(sexe);
-        utilisateur.setAge(age);
-        utilisateur.setPoids(poids);
-        utilisateur.setTaille(taille);
-
-        utilisateurService.creerUtilisateur(utilisateur);
-        return "redirect:/login"; //Succès 
-
-    } catch (Exception e) {
-        redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
-        return "redirect:/register"; //échec 
-    }
-}
 
     @PutMapping("/{id}")
     @Operation(summary = "Modifier un utilisateur")
