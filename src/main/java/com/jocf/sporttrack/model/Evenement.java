@@ -39,6 +39,9 @@ public class Evenement {
     private String nom;
 
     @Column(nullable = false)
+    private String description;
+
+    @Column(nullable = false)
     private LocalDateTime date;
 
     @ManyToOne
