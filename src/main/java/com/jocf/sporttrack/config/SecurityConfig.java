@@ -20,6 +20,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/register", "/utilisateurs/create").permitAll()
+                        .requestMatchers("/").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")
