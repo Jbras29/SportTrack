@@ -8,8 +8,10 @@ import com.jocf.sporttrack.repository.UtilisateurRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ActiviteService {
@@ -38,6 +40,18 @@ public class ActiviteService {
 
     public List<Activite> recupererActivitesParTypeSport(TypeSport typeSport) {
         return activiteRepository.findByTypeSport(typeSport);
+    }
+
+    /**
+     * Activités des amis, les plus récentes en premier (par date d’activité).
+     */
+    public List<Activite> recupererActivitesDesAmis(Utilisateur utilisateur) {
+        List<Utilisateur> amis = utilisateur.getAmis();
+        if (amis == null || amis.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> ids = amis.stream().map(Utilisateur::getId).collect(Collectors.toList());
+        return activiteRepository.findByUtilisateurIdsWithUtilisateurOrderByDateDesc(ids);
     }
 
     public Activite creerActivite(Long utilisateurId, String nom, TypeSport typeSport, LocalDate date, Double distance, Integer temps, String location, Integer evaluation) {

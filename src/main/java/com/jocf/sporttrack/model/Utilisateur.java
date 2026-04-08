@@ -31,6 +31,12 @@ import java.util.List;
 @AllArgsConstructor
 public class Utilisateur {
 
+    /**
+     * Seuils cumulatifs d’XP pour les paliers d’expérience (niveaux 2 à 6).
+     * L’indice 0 vaut toujours 0 ; l’indice {@code i} est le minimum d’XP pour être au moins au niveau {@code i + 1}.
+     */
+    public static final int[] SEUILS_XP_NIVEAU_EXPERIENCE = {0, 100, 500, 1000, 3000, 5000};
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -138,5 +144,72 @@ public class Utilisateur {
             return photoProfil;
         }
         return "/images/profile-placeholder.svg";
+    }
+
+    public int getXpEffectif() {
+        return xp != null ? xp : 0;
+    }
+
+    /** HP affichable (0–100), avec valeur par défaut à 100 si non renseigné. */
+    public int getHpNormalise() {
+        int h = hp != null ? hp : 100;
+        return Math.max(0, Math.min(100, h));
+    }
+
+    /**
+     * Palier d’expérience « jeu » (1 à 6) dérivé de l’XP, indépendant de {@link #niveauPratiqueSportive}.
+     */
+    public int getNiveauExperience() {
+        int x = getXpEffectif();
+        if (x >= SEUILS_XP_NIVEAU_EXPERIENCE[5]) {
+            return 6;
+        }
+        if (x >= SEUILS_XP_NIVEAU_EXPERIENCE[4]) {
+            return 5;
+        }
+        if (x >= SEUILS_XP_NIVEAU_EXPERIENCE[3]) {
+            return 4;
+        }
+        if (x >= SEUILS_XP_NIVEAU_EXPERIENCE[2]) {
+            return 3;
+        }
+        if (x >= SEUILS_XP_NIVEAU_EXPERIENCE[1]) {
+            return 2;
+        }
+        return 1;
+    }
+
+    /** XP accumulés depuis le seuil du palier actuel (affichage type 250 / 400). */
+    public int getXpDepuisSeuilNiveauExperience() {
+        int niveau = getNiveauExperience();
+        int bas = SEUILS_XP_NIVEAU_EXPERIENCE[niveau - 1];
+        return Math.max(0, getXpEffectif() - bas);
+    }
+
+    /**
+     * Seuil d’XP du palier suivant (borne haute de la jauge).
+     * Au palier maximum, retourne le dernier seuil défini ({@link #SEUILS_XP_NIVEAU_EXPERIENCE}[5]).
+     */
+    public int getXpSeuilProchainNiveauExperience() {
+        int niveau = getNiveauExperience();
+        if (niveau >= 6) {
+            return SEUILS_XP_NIVEAU_EXPERIENCE[5];
+        }
+        return SEUILS_XP_NIVEAU_EXPERIENCE[niveau];
+    }
+
+    /** Pourcentage de remplissage de la jauge XP jusqu’au palier suivant (100 au maximum). */
+    public double getPourcentageBarreExperience() {
+        int niveau = getNiveauExperience();
+        if (niveau >= 6) {
+            return 100.0;
+        }
+        int bas = SEUILS_XP_NIVEAU_EXPERIENCE[niveau - 1];
+        int haut = SEUILS_XP_NIVEAU_EXPERIENCE[niveau];
+        int plage = haut - bas;
+        if (plage <= 0) {
+            return 100.0;
+        }
+        return 100.0 * (getXpEffectif() - bas) / plage;
     }
 }

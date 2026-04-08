@@ -117,6 +117,11 @@ public class UtilisateurService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + email));
     }
 
+    public Utilisateur trouverParEmailAvecAmis(String email) {
+        return utilisateurRepository.findByEmailWithAmis(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + email));
+    }
+
     public Utilisateur connecter(String email, String motdepasse) {
         Authentication authentication = getAuthenticationManager().authenticate(
                 new UsernamePasswordAuthenticationToken(email, motdepasse));

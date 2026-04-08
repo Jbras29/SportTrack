@@ -9,11 +9,21 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface ActiviteRepository extends JpaRepository<Activite, Long> {
+
+    @Query("""
+            SELECT DISTINCT a FROM Activite a
+            JOIN FETCH a.utilisateur u
+            WHERE u.id IN :utilisateurIds
+            ORDER BY a.date DESC
+            """)
+    List<Activite> findByUtilisateurIdsWithUtilisateurOrderByDateDesc(
+            @Param("utilisateurIds") Collection<Long> utilisateurIds);
 
     // Toutes les activités d'un utilisateur
     List<Activite> findByUtilisateur(Utilisateur utilisateur);
