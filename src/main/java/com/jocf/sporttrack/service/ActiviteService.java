@@ -40,6 +40,24 @@ public class ActiviteService {
         return activiteRepository.findByTypeSport(typeSport);
     }
 
+    public Activite creerActivite(Long utilisateurId, String nom, TypeSport typeSport, LocalDate date, Double distance, Integer temps, String location, Integer evaluation) {
+        Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+
+        Activite activite = Activite.builder()
+                .nom(nom)
+                .typeSport(typeSport)
+                .date(date)
+                .distance(distance != null ? distance : 0.0)
+                .temps(temps != null ? temps : 0)
+                .location(location != null ? location : "")
+                .evaluation(evaluation != null ? evaluation : 0)
+                .utilisateur(utilisateur)
+                .build();
+
+        return activiteRepository.save(activite);
+    }
+
     public Activite creerActivite(Long utilisateurId, String nom, TypeSport typeSport, LocalDate date) {
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));

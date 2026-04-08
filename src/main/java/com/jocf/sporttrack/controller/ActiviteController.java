@@ -3,25 +3,34 @@ package com.jocf.sporttrack.controller;
 import com.jocf.sporttrack.model.Activite;
 import com.jocf.sporttrack.model.TypeSport;
 import com.jocf.sporttrack.service.ActiviteService;
+import com.jocf.sporttrack.service.PrefSportiveService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-@RestController
-@RequestMapping("/api/activites")
+
+@Controller
+@RequestMapping("/activites")
 @Tag(name = "Activités", description = "Gestion des activités sportives")
 public class ActiviteController {
 
-    private final ActiviteService activiteService;
+    @Autowired
+    private ActiviteService activiteService;
 
-    public ActiviteController(ActiviteService activiteService) {
-        this.activiteService = activiteService;
-    }
+    @Autowired
+    private PrefSportiveService prefSportiveService;
 
     @GetMapping
     @Operation(summary = "Récupérer toutes les activités")
@@ -56,13 +65,26 @@ public class ActiviteController {
         return ResponseEntity.ok(activites);
     }
 
+    @GetMapping("/create")
+    public String createActivite(Model model) {
+
+        model.addAttribute("typesSportifs", TypeSport.values());
+
+        return "activity/create";
+    }
+    
+
     @PostMapping
     @Operation(summary = "Créer une nouvelle activité")
     public ResponseEntity<Activite> createActivite(@RequestParam Long utilisateurId, @RequestParam String nom,
                                                    @RequestParam TypeSport typeSport,
-                                                   @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+                                                   @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                                   @RequestParam Double distance,
+                                                   @RequestParam Integer temps,
+                                                   @RequestParam String location,
+                                                   @RequestParam Integer evaluation) {
         try {
-            Activite created = activiteService.creerActivite(utilisateurId, nom, typeSport, date);
+            Activite created = activiteService.creerActivite(utilisateurId, nom, typeSport, date, distance, temps, location, evaluation);
             return ResponseEntity.ok(created);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
