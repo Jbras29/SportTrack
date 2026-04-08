@@ -88,7 +88,7 @@ public class UtilisateurService implements UserDetailsService {
 
     public Utilisateur creerUtilisateur(Utilisateur utilisateur) {
         if (utilisateurRepository.existsByEmail(utilisateur.getEmail())) {
-            throw new IllegalArgumentException("Ce email est deja utilise.");
+            throw new IllegalArgumentException("Ce username est deja utilise.");
         }
 
         utilisateur.setId(null);
