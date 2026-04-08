@@ -57,6 +57,7 @@ public class FriendController {
     public String envoyerDemandeAmi(
             @PathVariable Long destinataireId,
             @RequestParam(required = false) String recherche,
+            @RequestParam(required = false) String redirectPage,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
         Utilisateur utilisateurCourant = getUtilisateurCourant(authentication);
@@ -65,13 +66,13 @@ public class FriendController {
 
         if (utilisateurCourant.getId().equals(destinataire.getId())) {
             redirectAttributes.addFlashAttribute("errorMessage", "Vous ne pouvez pas vous ajouter vous-meme.");
-            return construireRedirection(recherche);
+            return construireRedirection(recherche, redirectPage);
         }
 
         Set<Long> amisIds = new LinkedHashSet<>(utilisateurRepository.findAmiIdsByUtilisateurId(utilisateurCourant.getId()));
         if (amisIds.contains(destinataireId)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Cet utilisateur est deja votre ami.");
-            return construireRedirection(recherche);
+            return construireRedirection(recherche, redirectPage);
         }
 
         Set<Long> demandesRecuesIds = utilisateurRepository.findDemandesAmisRecuesByUtilisateurId(utilisateurCourant.getId()).stream()
@@ -79,7 +80,7 @@ public class FriendController {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         if (demandesRecuesIds.contains(destinataireId)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Cet utilisateur vous a deja envoye une demande.");
-            return construireRedirection(recherche);
+            return construireRedirection(recherche, redirectPage);
         }
 
         Set<Long> demandesEnvoyeesIds = new LinkedHashSet<>(
@@ -90,7 +91,7 @@ public class FriendController {
             redirectAttributes.addFlashAttribute("successMessage", "Demande d'ami envoyee.");
         }
 
-        return construireRedirection(recherche);
+        return construireRedirection(recherche, redirectPage);
     }
 
     @PostMapping("/requests/{expediteurId}/accept")
@@ -98,6 +99,7 @@ public class FriendController {
     public String accepterDemandeAmi(
             @PathVariable Long expediteurId,
             @RequestParam(required = false) String recherche,
+            @RequestParam(required = false) String redirectPage,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
         Utilisateur utilisateurCourant = getUtilisateurCourant(authentication);
@@ -109,7 +111,7 @@ public class FriendController {
 
         if (!demandeTrouvee) {
             redirectAttributes.addFlashAttribute("errorMessage", "Cette demande d'ami est introuvable.");
-            return construireRedirection(recherche);
+            return construireRedirection(recherche, redirectPage);
         }
 
         if (utilisateurCourant.getAmis().stream().noneMatch(ami -> ami.getId().equals(expediteurId))) {
@@ -122,7 +124,7 @@ public class FriendController {
         utilisateurRepository.save(expediteur);
         utilisateurRepository.save(utilisateurCourant);
         redirectAttributes.addFlashAttribute("successMessage", "Demande d'ami acceptee.");
-        return construireRedirection(recherche);
+        return construireRedirection(recherche, redirectPage);
     }
 
     @PostMapping("/requests/{expediteurId}/reject")
@@ -130,6 +132,7 @@ public class FriendController {
     public String refuserDemandeAmi(
             @PathVariable Long expediteurId,
             @RequestParam(required = false) String recherche,
+            @RequestParam(required = false) String redirectPage,
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
         Utilisateur utilisateurCourant = getUtilisateurCourant(authentication);
@@ -146,7 +149,7 @@ public class FriendController {
             redirectAttributes.addFlashAttribute("errorMessage", "Cette demande d'ami est introuvable.");
         }
 
-        return construireRedirection(recherche);
+        return construireRedirection(recherche, redirectPage);
     }
 
     private void remplirModele(Model model, Utilisateur utilisateurCourant, String recherche) {
@@ -239,7 +242,14 @@ public class FriendController {
         return utilisateurService.trouverParEmail(authentication.getName());
     }
 
-    private String construireRedirection(String recherche) {
+    private String construireRedirection(String recherche, String redirectPage) {
+        if ("friend".equalsIgnoreCase(redirectPage)) {
+            if (recherche == null || recherche.isBlank()) {
+                return "redirect:/friend";
+            }
+            return "redirect:/friend?recherche="
+                    + UriUtils.encodeQueryParam(recherche.trim(), StandardCharsets.UTF_8);
+        }
         if (recherche == null || recherche.isBlank()) {
             return "redirect:/search/friend";
         }
