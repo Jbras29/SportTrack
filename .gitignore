@@ -30,3 +30,4 @@ target/
 
 *.db
 /.idea
+/src/main/resources/static/uploads/profiles
