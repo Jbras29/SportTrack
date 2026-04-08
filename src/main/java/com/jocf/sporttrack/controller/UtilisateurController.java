@@ -27,8 +27,8 @@ public class UtilisateurController {
         return ResponseEntity.ok(utilisateurs);
     }
 
-    @PostMapping("/login")
-    @Operation(summary = "Authentifier un utilisateur")
+    @PostMapping("/auth")
+    @Operation(summary = "Authentifier un utilisateur (API, sans session HTTP)")
     public ResponseEntity<String> login(@RequestParam String email, @RequestParam String motDePasse) {
         try {
             utilisateurService.connecter(email, motDePasse);

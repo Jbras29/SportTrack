@@ -12,18 +12,26 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+            SessionAuthenticationSuccessHandler sessionAuthenticationSuccessHandler) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
-                        .requestMatchers("/login", "/utilisateurs/login").permitAll()
+                        .requestMatchers("/login").permitAll()
                         .requestMatchers("/register", "/utilisateurs/create").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .loginProcessingUrl("/utilisateurs/login")
-                        .defaultSuccessUrl("/swagger-ui/index.html", true)
+                        .loginProcessingUrl("/login")
+                        .successHandler(sessionAuthenticationSuccessHandler)
+                        .failureUrl("/login?error")
+                        .permitAll())
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                         .permitAll())
                 .httpBasic(Customizer.withDefaults())
                 .build();
