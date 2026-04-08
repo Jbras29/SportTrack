@@ -13,21 +13,26 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.jocf.sporttrack.model.PrefSportive;
 import com.jocf.sporttrack.model.Utilisateur;
+import com.jocf.sporttrack.repository.PrefSportiveRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 
 @Service
 public class UtilisateurService implements UserDetailsService {
 
     private final UtilisateurRepository utilisateurRepository;
+    private final PrefSportiveRepository prefSportiveRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationConfiguration authenticationConfiguration;
 
     public UtilisateurService(
             UtilisateurRepository utilisateurRepository,
+            PrefSportiveRepository prefSportiveRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationConfiguration authenticationConfiguration) {
         this.utilisateurRepository = utilisateurRepository;
+        this.prefSportiveRepository = prefSportiveRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationConfiguration = authenticationConfiguration;
     }
@@ -47,16 +52,35 @@ public class UtilisateurService implements UserDetailsService {
         utilisateur.setNom(utilisateurDetails.getNom());
         utilisateur.setPrenom(utilisateurDetails.getPrenom());
         utilisateur.setEmail(utilisateurDetails.getEmail());
-        utilisateur.setMotdepasse(utilisateurDetails.getMotdepasse() != null ?
-                passwordEncoder.encode(utilisateurDetails.getMotdepasse()) : utilisateur.getMotdepasse());
+        String nouveauMotdepasse = utilisateurDetails.getMotdepasse();
+        if (nouveauMotdepasse != null && nouveauMotdepasse.isBlank()) {
+            nouveauMotdepasse = null;
+        }
+        utilisateur.setMotdepasse(nouveauMotdepasse != null
+                ? passwordEncoder.encode(nouveauMotdepasse)
+                : utilisateur.getMotdepasse());
         utilisateur.setSexe(utilisateurDetails.getSexe());
         utilisateur.setAge(utilisateurDetails.getAge());
         utilisateur.setPoids(utilisateurDetails.getPoids());
         utilisateur.setTaille(utilisateurDetails.getTaille());
-        utilisateur.setXp(utilisateurDetails.getXp());
-        utilisateur.setHp(utilisateurDetails.getHp());
+        if (utilisateurDetails.getXp() != null) {
+            utilisateur.setXp(utilisateurDetails.getXp());
+        }
+        if (utilisateurDetails.getHp() != null) {
+            utilisateur.setHp(utilisateurDetails.getHp());
+        }
         utilisateur.setObjectifsPersonnels(utilisateurDetails.getObjectifsPersonnels());
         utilisateur.setNiveauPratiqueSportive(utilisateurDetails.getNiveauPratiqueSportive());
+
+        if (utilisateurDetails.getPrefSportives() != null) {
+            utilisateur.getPrefSportives().clear();
+            for (PrefSportive preference : utilisateurDetails.getPrefSportives()) {
+                if (preference.getId() != null) {
+                    prefSportiveRepository.findById(preference.getId())
+                            .ifPresent(utilisateur.getPrefSportives()::add);
+                }
+            }
+        }
 
         return utilisateurRepository.save(utilisateur);
     }

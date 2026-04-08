@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.jocf.sporttrack.model.Utilisateur;
+import com.jocf.sporttrack.repository.PrefSportiveRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,9 @@ class UtilisateurServiceTest {
     private UtilisateurRepository utilisateurRepository;
 
     @Mock
+    private PrefSportiveRepository prefSportiveRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -50,6 +54,7 @@ class UtilisateurServiceTest {
     void setUp() {
         utilisateurService = new UtilisateurService(
                 utilisateurRepository,
+                prefSportiveRepository,
                 passwordEncoder,
                 authenticationConfiguration);
     }
