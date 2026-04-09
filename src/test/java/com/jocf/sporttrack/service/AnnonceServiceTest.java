@@ -114,7 +114,7 @@ class AnnonceServiceTest {
             return saved;
         });
 
-        Annonce resultat = annonceService.creerAnnonce(1L, "Nouvelle annonce");
+        Annonce resultat = annonceService.creerAnnonce(1L, 2L, "Nouvelle annonce");
 
         assertNotNull(resultat.getId());
         assertEquals("Nouvelle annonce", resultat.getMessage());
@@ -130,7 +130,7 @@ class AnnonceServiceTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> annonceService.creerAnnonce(1L, "Message"));
+                () -> annonceService.creerAnnonce(1L, 2L, "Message"));
 
         assertEquals("Evenement introuvable : 1", exception.getMessage());
         verify(evenementRepository).findById(1L);
@@ -217,7 +217,7 @@ class AnnonceServiceTest {
                 .build())
         );
     
-        Annonce annonce = annonceService.creerAnnonce(1L, "Pensez à apporter vos chaussures de rando !");
+        Annonce annonce = annonceService.creerAnnonce(1L, 2L, "Pensez à apporter vos chaussures de rando !");
     
         assertNotNull(annonce.getId());
     
