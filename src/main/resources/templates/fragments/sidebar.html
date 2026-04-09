@@ -3,7 +3,7 @@
 <body>
 <!-- Barre latérale unique : état actif via le chemin HTTP (solution B). -->
 <nav th:fragment="sidebar"
-     class="slim-sidebar"
+     class="slim-sidebar slim-sidebar--viewport"
      th:with="path=${navRequestPath} ?: '/'">
     <a th:href="@{/home}" class="logo-icon" title="Sport Track">S</a>
 
