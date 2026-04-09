@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>Sport Track | Détail de l'événement</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
         :root {
             --brand-blue: #135077; --brand-orange: #F39434; --brand-light-blue: #21A2D7;
@@ -44,14 +47,60 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
+
+        .participant-item-link {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: #ffffff;
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        text-decoration: none;
+        color: var(--text-main);
+        transition: all 0.2s;
+        margin-bottom: 8px;
+    }
+
+    .participant-item-link:hover {
+        background: var(--bg-app);
+        border-color: var(--brand-light-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .participant-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .avatar-container {
+        width: 40px;
+        height: 40px;
+        overflow: hidden;
+        border-radius: 50%;
+        background: var(--bg-app);
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .user-avatar {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .participant-name {
+        font-weight: 600;
+        font-size: 14px;
+    }
     </style>
 </head>
-<body>
 
-<div class="slim-sidebar">
-    <div class="logo-icon">S</div>
-    <a href="/evenements" class="nav-btn"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></a>
-</div>
+<body class="app-shell event-list-page">
+
+<nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
 <div class="main-wrapper">
 
@@ -104,12 +153,26 @@
             </h2>
 
             <div class="participant-list">
-                <div class="participant-item" th:each="participant : ${evenement.participants}">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span th:text="${participant.nom}" style="font-weight: 600;">Nom Participant</span>
+                <a th:each="participant : ${evenement.participants}"
+                   th:href="@{/profile/{id}(id=${participant.id})}"
+                   class="participant-item-link">
+
+                    <div class="participant-content">
+                        <div class="avatar-container">
+                            <img th:src="${participant.cheminPhotoProfilAffichee()}"
+                                 class="user-avatar"
+                                 alt="Photo de profil">
+                        </div>
+
+                        <span class="participant-name" th:text="${participant.nom}">Nom</span>
                     </div>
-                    <button th:if="${isOrganisateur}" class="btn-action btn-danger" th:attr="onclick=|retirerParticipant(${evenement.id}, ${participant.id})|">Retirer</button>
-                </div>
+
+                    <button th:if="${isOrganisateur}"
+                            class="btn-kick"
+                            th:attr="onclick=|event.preventDefault(); retirerParticipant(${evenement.id}, ${participant.id})|">
+                        ✕
+                    </button>
+                </a>
             </div>
         </div>
 
