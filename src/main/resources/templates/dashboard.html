@@ -87,6 +87,9 @@
         .nav-btn.logout { color: #EF4444; }
         .nav-btn.logout:hover { background-color: rgba(239, 68, 68, 0.1); }
 
+        .nav-btn svg { width: 24px; height: 24px; }
+        .spacer { flex-grow: 1; }
+
         /* --- CONTENU PRINCIPAL --- */
         .main-wrapper {
             flex-grow: 1;
@@ -314,21 +317,21 @@
 
     <nav class="slim-sidebar">
         <div class="logo-icon">S</div>
-        <a href="#" class="nav-btn" title="Accueil">
+        <a th:href="@{/dashboard}" class="nav-btn active" title="Accueil">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
         </a>
-        <a href="#" class="nav-btn" title="Mes Activités">
+        <a th:href="@{/dashboard}" class="nav-btn" title="Mes Activités">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
         </a>
-        
+        <a th:href="@{/search/friend}" class="nav-btn" title="Réseau">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        </a>
         <div class="spacer"></div>
-
-        <a href="#" class="nav-btn active" title="Mon Profil">
+        <a th:href="@{/profile/edit}" class="nav-btn" title="Mon Profil">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </a>
-
-        <form action="/logout" method="POST" style="margin: 0;">
-            <button type="submit" class="nav-btn logout" title="Déconnexion" style="border: none; background: none; padding: 0; width: 50px; height: 50px; margin-bottom: 15px;">
+        <form th:action="@{/logout}" method="post" style="margin: 0;">
+            <button type="submit" class="nav-btn logout" title="Déconnexion" style="border: none; background: none; padding: 0;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 8 20 12 16 16"></polyline><line x1="9" y1="12" x2="20" y2="12"></line></svg>
             </button>
         </form>
@@ -454,7 +457,7 @@
                     </h2>
 
                     <div id="week-chart-shell" class="week-chart-shell">
-                        <canvas id="week-activity-chart" class="week-chart-canvas" aria-label="Graphique de la durée d’activité par jour"></canvas>
+                        <canvas id="week-activity-chart" class="week-chart-canvas" aria-label="Graphique de la durée d'activité par jour"></canvas>
                         <p id="week-chart-empty" class="week-chart-empty">Vous ne vous êtes pas entrainés cette semaine</p>
                         <div id="week-chart-legend" class="week-chart-legend" hidden>
                             <span>Survol : minutes par jour</span>
@@ -465,7 +468,7 @@
                 <div class="dash-card">
                     <h2 class="card-title">Mes derniers entraînements</h2>
                     <div class="challenge-list">
-                        <p th:if="${#lists.isEmpty(dernieresActivites)}" style="margin: 0; font-size: 14px; color: var(--text-muted);">Aucune activité enregistrée pour l’instant.</p>
+                        <p th:if="${#lists.isEmpty(dernieresActivites)}" style="margin: 0; font-size: 14px; color: var(--text-muted);">Aucune activité enregistrée pour l'instant.</p>
                         <div th:each="activite : ${dernieresActivites}" class="challenge-item" style="display: flex; align-items: center; gap: 15px;">
                             <div class="stat-icon blue" style="width: 40px; height: 40px; flex-shrink: 0;">
                                 <span th:switch="${activite.typeSport.name()}">
@@ -579,7 +582,6 @@
                     var targetH = chartH * (minutes / maxVal);
                     var barH = targetH * animProgress;
                     var x = pad.l + gap + i * (barW + gap);
-                    var y = pad.t + chartH - barH;
                     var radius = Math.min(8, barW / 2);
                     var isHover = hoverIndex === i;
                     var scale = isHover ? 1.04 : 1;
