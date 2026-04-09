@@ -10,16 +10,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/evenements")
+// On utilise @Controller au lieu de @RestController pour pouvoir renvoyer des pages HTML
+@Controller
 public class EvenementController {
 
     private final EvenementService evenementService;
-    private final UtilisateurService  utilisateurService;
+    private final UtilisateurService utilisateurService;
 
     @Autowired
     public EvenementController(EvenementService evenementService, UtilisateurService utilisateurService) {
@@ -27,12 +29,48 @@ public class EvenementController {
         this.utilisateurService = utilisateurService;
     }
 
+    // =======================================================
+    // SECTION 1 : VUES (Redirection vers les pages HTML + Thymeleaf)
+    // =======================================================
+
+    @GetMapping("/evenements")
+    public String afficherPageEvenements(Model model) {
+        List<Evenement> listeEvenements = evenementService.obtenirTousLesEvenements();
+        model.addAttribute("evenements", listeEvenements);
+
+        return "evenement/evenement";
+    }
+
+    @GetMapping("/creer-evenement")
+    public String afficherPageCreerEvenement(Model model) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
+        Utilisateur currentUser = utilisateurService.trouverParEmail(email);
+
+        model.addAttribute("amis", currentUser.getAmis());
+
+        return "evenement/creer-evenement";
+    }
+
+
+    // =======================================================
+    // SECTION 2 : API REST (Traitement des données JSON)
+    // =======================================================
+
+    // Endpoint pour récupérer tous les événements
+    @ResponseBody // Indique que cette méthode renvoie du JSON, pas une page HTML
+    @GetMapping("/api/evenements")
+    @Operation(summary = "Récupérer tous les événements")
+    public ResponseEntity<List<Evenement>> getAllEvenements() {
+        List<Evenement> evenements = evenementService.obtenirTousLesEvenements();
+        return ResponseEntity.ok(evenements);
+    }
+
     // Endpoint pour créer un nouvel événement
-    // Exemple de requête POST: /api/evenements/creer?organisateurId=1
-    @PostMapping("/creer")
+    @ResponseBody
+    @PostMapping("/api/evenements/creer")
     @Operation(summary = "Créer un nouvel événement")
     public ResponseEntity<Evenement> creerEvenement(@RequestBody Evenement evenement) {
-
         // 1. Récupérer l'email de l'utilisateur connecté via Spring Security
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email;
@@ -51,9 +89,36 @@ public class EvenementController {
         return new ResponseEntity<>(evenementCree, HttpStatus.CREATED);
     }
 
+    // Endpoint pour rejoindre un événement existant
+    @ResponseBody
+    @PostMapping("/api/evenements/{id}/rejoindre")
+    @Operation(summary = "Rejoindre un événement existant")
+    public ResponseEntity<?> rejoindreEvenement(@PathVariable Long id) {
+        try {
+            // Obtenir l'email de l'utilisateur connecté
+            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            String email;
+            if (principal instanceof UserDetails) {
+                email = ((UserDetails) principal).getUsername();
+            } else {
+                email = principal.toString();
+            }
+
+            // Trouver l'utilisateur et appeler le service
+            Utilisateur utilisateurCourant = utilisateurService.trouverParEmail(email);
+            Evenement evenementMisAJour = evenementService.rejoindreEvenement(id, utilisateurCourant);
+
+            return ResponseEntity.ok(evenementMisAJour);
+
+        } catch (RuntimeException e) {
+            // En cas d'erreur (ex: déjà participant)
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     // Endpoint pour récupérer les événements d'un organisateur
-    // Exemple de requête GET: /api/evenements/organisateur/1
-    @GetMapping("/organisateur/{organisateurId}")
+    @ResponseBody
+    @GetMapping("/api/evenements/organisateur/{organisateurId}")
     public ResponseEntity<List<Evenement>> getEvenementsByOrganisateur(@PathVariable Long organisateurId) {
         List<Evenement> evenements = evenementService.obtenirEvenementsParOrganisateur(organisateurId);
         return ResponseEntity.ok(evenements);

@@ -58,4 +58,30 @@ public class EvenementService {
 
         return evenementRepository.findByOrganisateur(organisateur);
     }
+
+
+
+
+    @Transactional
+    public Evenement rejoindreEvenement(Long evenementId, Utilisateur utilisateur) {
+        // 1. Trouver l'événement par son ID
+        Evenement evenement = evenementRepository.findById(evenementId)
+                .orElseThrow(() -> new RuntimeException("Événement introuvable"));
+
+        // 2. Vérifier si l'utilisateur ne participe pas déjà
+        if (evenement.getParticipants().contains(utilisateur)) {
+            throw new RuntimeException("Vous participez déjà à cet événement");
+        }
+
+        // 3. Ajouter l'utilisateur à la liste des participants
+        evenement.getParticipants().add(utilisateur);
+
+        // 4. Sauvegarder et retourner l'événement mis à jour
+        return evenementRepository.save(evenement);
+    }
+
+    // Récupérer la liste complète de tous les événements
+    public List<Evenement> obtenirTousLesEvenements() {
+        return evenementRepository.findAll(); // Méthode fournie automatiquement par Spring Data JPA
+    }
 }
