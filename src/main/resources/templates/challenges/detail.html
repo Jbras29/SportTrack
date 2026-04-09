@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sport Track | Challenge</title>
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+
+<form th:action="@{/challenges/{id}/rejoindre(id=${challenge.id})}" method="post"
+      th:if="${!challenge.participants.contains(user)}">
+    <button type="submit" class="btn btn-primary">Rejoindre le challenge</button>
+</form>
+
+<div class="level-badge" th:if="${challenge.participants.contains(user)}">
+    ✅ Vous participez à ce challenge
+</div>
+<body class="app-shell">
+
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+
+    <div class="main-wrapper main-wrapper--stack">
+
+        <div class="page-header event-create-header">
+            <div>
+                <h1 class="event-form-title" th:text="${challenge.nom}">Nom du challenge</h1>
+                <p class="event-form-subtitle"
+                   th:text="|${#dates.format(challenge.dateDebut, 'dd/MM/yyyy')} — ${#dates.format(challenge.dateFin, 'dd/MM/yyyy')}|">
+                </p>
+                <p class="defi-meta"
+                   th:text="|Organisé par ${challenge.organisateur.prenom} ${challenge.organisateur.nom}|">
+                </p>
+            </div>
+            <a href="/challenges" class="btn btn-secondary">← Retour</a>
+        </div>
+
+        <div class="dash-card">
+            <h2 class="card-title">Classement</h2>
+
+            <p th:if="${#lists.isEmpty(classement)}" class="empty-copy">
+                Aucun participant pour le moment.
+            </p>
+
+            <div th:each="participant, stat : ${classement}" class="challenge-item">
+                <div class="stat-icon"
+                     th:classappend="${stat.index == 0 ? ' orange' : stat.index == 1 ? ' blue' : ' green'}">
+                    <span th:text="${stat.index + 1}">1</span>
+                </div>
+                <div class="activity-copy">
+                    <div class="challenge-title"
+                         th:text="${participant.prenom + ' ' + participant.nom}">
+                    </div>
+                    <div class="activity-meta"
+                         th:text="|${participant.xp != null ? participant.xp : 0} XP|">
+                    </div>
+                </div>
+                <div class="level-badge"
+                     th:if="${participant.id == user.id}"
+                     style="margin-left: auto;">
+                    Moi
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
