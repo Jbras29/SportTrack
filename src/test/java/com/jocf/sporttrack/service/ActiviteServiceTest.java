@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -173,6 +174,31 @@ class ActiviteServiceTest {
     }
 
     @Test
+    void creerActiviteRefuseDateDansLeFutur() {
+        LocalDate demain = LocalDate.now().plusDays(1);
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> activiteService.creerActivite(1L, "Futur", TypeSport.COURSE, demain));
+
+        assertEquals("La date de l'activité ne peut pas être dans le futur.", exception.getMessage());
+        verify(utilisateurRepository, never()).findById(any());
+    }
+
+    @Test
+    void creerActiviteAvecDetailsRefuseDateDansLeFutur() {
+        LocalDate demain = LocalDate.now().plusDays(1);
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> activiteService.creerActivite(
+                        1L, "Futur", TypeSport.COURSE, demain, 5.0, 30, "Lieu", 3));
+
+        assertEquals("La date de l'activité ne peut pas être dans le futur.", exception.getMessage());
+        verify(utilisateurRepository, never()).findById(any());
+    }
+
+    @Test
     void modifierActiviteMetAJourLesDetails() {
         Activite existante = Activite.builder()
                 .id(1L)
@@ -217,6 +243,31 @@ class ActiviteServiceTest {
 
         assertEquals("Activite introuvable : 1", exception.getMessage());
         verify(activiteRepository).findById(1L);
+    }
+
+    @Test
+    void modifierActiviteRefuseDateDansLeFutur() {
+        Activite existante = Activite.builder()
+                .id(1L)
+                .nom("A")
+                .typeSport(TypeSport.COURSE)
+                .date(LocalDate.now().minusDays(1))
+                .build();
+        Activite updates = Activite.builder()
+                .nom("B")
+                .typeSport(TypeSport.COURSE)
+                .date(LocalDate.now().plusDays(1))
+                .build();
+
+        when(activiteRepository.findById(1L)).thenReturn(Optional.of(existante));
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> activiteService.modifierActivite(1L, updates));
+
+        assertEquals("La date de l'activité ne peut pas être dans le futur.", exception.getMessage());
+        verify(activiteRepository).findById(1L);
+        verify(activiteRepository, never()).save(any());
     }
 
     @Test

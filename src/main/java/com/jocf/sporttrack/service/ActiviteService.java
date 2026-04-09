@@ -60,6 +60,7 @@ public class ActiviteService {
     }
 
     public Activite creerActivite(Long utilisateurId, String nom, TypeSport typeSport, LocalDate date, Double distance, Integer temps, String location, Integer evaluation) {
+        verifierDateActiviteNonFuture(date);
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
 
@@ -86,6 +87,7 @@ public class ActiviteService {
     }
 
     public Activite creerActivite(Long utilisateurId, String nom, TypeSport typeSport, LocalDate date) {
+        verifierDateActiviteNonFuture(date);
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
 
@@ -108,6 +110,10 @@ public class ActiviteService {
         Activite activite = activiteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Activite introuvable : " + id));
 
+        if (activiteDetails.getDate() != null) {
+            verifierDateActiviteNonFuture(activiteDetails.getDate());
+        }
+
         activite.setNom(activiteDetails.getNom());
         activite.setTypeSport(activiteDetails.getTypeSport());
         activite.setDistance(activiteDetails.getDistance());
@@ -124,5 +130,11 @@ public class ActiviteService {
             throw new IllegalArgumentException("Activite introuvable : " + id);
         }
         activiteRepository.deleteById(id);
+    }
+
+    private static void verifierDateActiviteNonFuture(LocalDate date) {
+        if (date.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("La date de l'activité ne peut pas être dans le futur.");
+        }
     }
 }
