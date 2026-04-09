@@ -28,6 +28,8 @@ public interface ActiviteRepository extends JpaRepository<Activite, Long> {
     // Toutes les activités d'un utilisateur
     List<Activite> findByUtilisateur(Utilisateur utilisateur);
 
+    List<Activite> findByUtilisateurOrderByDateDesc(Utilisateur utilisateur);
+
     // Une activité par son id (déjà fourni par JpaRepository via findById)
     Optional<Activite> findById(Long id);
 

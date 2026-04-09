@@ -44,6 +44,13 @@ public class ActiviteService {
         return activiteRepository.findByUtilisateur(utilisateur);
     }
 
+    /**
+     * Activités d’un profil, les plus récentes en premier (affichage identique au fil d’actualité).
+     */
+    public List<Activite> recupererActivitesPourProfil(Utilisateur utilisateur) {
+        return activiteRepository.findByUtilisateurOrderByDateDesc(utilisateur);
+    }
+
     public List<Activite> recupererActivitesParTypeSport(TypeSport typeSport) {
         return activiteRepository.findByTypeSport(typeSport);
     }

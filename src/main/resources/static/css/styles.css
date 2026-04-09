@@ -2745,25 +2745,91 @@ body.profile-page .btn-edit-header:hover {
 
 body.profile-page .profile-content-grid {
     display: grid;
-    grid-template-columns: 300px 1fr 300px;
+    grid-template-columns: minmax(260px, 320px) 1fr;
+    grid-template-rows: auto auto;
+    gap: 25px;
+    align-items: start;
+}
+
+/* Ligne 1 gauche : photo + nom */
+body.profile-page .profile-identity {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+}
+
+body.profile-page .profile-identity-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 24px 20px;
+    margin-bottom: 0;
+}
+
+body.profile-page .profile-identity-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--border-light);
+    box-shadow: 0 4px 14px rgba(19, 80, 119, 0.12);
+}
+
+body.profile-page .profile-identity-name {
+    margin: 16px 0 0 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.3;
+}
+
+/* Ligne 1 droite : amis puis événements (colonne) */
+body.profile-page .profile-top-right {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
     gap: 25px;
 }
 
+body.profile-page .profile-top-right .profile-card {
+    margin-bottom: 0;
+}
+
+body.profile-page .profile-friends,
+body.profile-page .profile-events {
+    min-width: 0;
+}
+
+/* Ligne 2 : à propos | activités */
 body.profile-page .profile-sidebar {
     grid-column: 1;
+    grid-row: 2;
 }
 
 body.profile-page .profile-main {
     grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
 }
 
-body.profile-page .profile-friends {
-    grid-column: 3;
+body.profile-page .profile-section-heading {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 18px 0;
+    color: var(--text-main);
 }
 
-body.profile-page .profile-events {
-    grid-column: 1 / -1;
-    margin-top: 25px;
+body.profile-page .profile-activities-list {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+body.profile-page .profile-empty-activites {
+    margin-bottom: 0;
 }
 
 body.profile-page .profile-card {
@@ -2840,96 +2906,6 @@ body.profile-page .empty-text {
     font-style: italic;
     text-align: center;
     padding: 20px 0;
-}
-
-body.profile-page .activities-feed {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-body.profile-page .activity-post {
-    background-color: #FAFCFD;
-    border: 1px solid var(--border-light);
-    border-radius: 12px;
-    padding: 16px;
-    transition: box-shadow 0.2s;
-}
-
-body.profile-page .activity-post:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-body.profile-page .post-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
-body.profile-page .post-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    overflow: hidden;
-}
-
-body.profile-page .post-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-body.profile-page .post-info {
-    display: flex;
-    flex-direction: column;
-}
-
-body.profile-page .post-author {
-    font-weight: 600;
-    color: var(--text-main);
-    font-size: 14px;
-}
-
-body.profile-page .post-time {
-    color: var(--text-muted);
-    font-size: 12px;
-}
-
-body.profile-page .post-content h4 {
-    margin: 0 0 8px 0;
-    font-size: 16px;
-    color: var(--text-main);
-}
-
-body.profile-page .post-content p {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 14px;
-}
-
-body.profile-page .post-actions {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-light);
-}
-
-body.profile-page .action-btn {
-    background: none;
-    border: none;
-    color: var(--brand-blue);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 0;
-    transition: color 0.2s;
-}
-
-body.profile-page .action-btn:hover {
-    color: var(--brand-light-blue);
 }
 
 body.profile-page .empty-state {
@@ -3067,14 +3043,14 @@ body.profile-page .event-info p {
 @media (max-width: 1024px) {
     body.profile-page .profile-content-grid {
         grid-template-columns: 1fr;
+        grid-template-rows: none;
     }
+    body.profile-page .profile-identity,
+    body.profile-page .profile-top-right,
     body.profile-page .profile-sidebar,
-    body.profile-page .profile-main,
-    body.profile-page .profile-friends {
+    body.profile-page .profile-main {
         grid-column: 1;
-    }
-    body.profile-page .profile-events {
-        margin-top: 0;
+        grid-row: auto;
     }
 }
 
