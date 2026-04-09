@@ -212,4 +212,9 @@ public class UtilisateurService implements UserDetailsService {
                 PrefSportive::getNom,
                 Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
     }
+
+    public Utilisateur findById(Long id) {
+        return utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec id : " + id));
+    }
 }
