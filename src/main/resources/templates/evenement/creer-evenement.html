@@ -1,28 +1,13 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Créer un Événement</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body class="app-shell event-create-page">
-    <nav class="slim-sidebar">
-        <a href="/dashboard" class="logo-icon">S</a>
-        <a href="/dashboard" class="nav-btn" title="Accueil">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        </a>
-        <a href="/activites" class="nav-btn" title="Mes Activités">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-        </a>
-        <a href="/friend/search" class="nav-btn" title="Réseau">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        </a>
-        <div class="spacer"></div>
-        <a href="/profile/edit" class="nav-btn" title="Mon Profil">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        </a>
-    </nav>
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
     <div class="main-wrapper main-wrapper--centered">
         <div class="form-card">
@@ -59,6 +44,6 @@
         </div>
     </div>
 
-    <script src="/js/evenement/creer-evenement.js" defer></script>
+    <script th:src="@{/js/evenement/creer-evenement.js}" defer></script>
 </body>
 </html>

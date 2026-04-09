@@ -67,4 +67,19 @@ public class RootController {
         model.addAttribute("defisEnCours", defis);
         return "home";
     }
+
+    @GetMapping("/evenements/create")
+    public String creerEvenementPage(
+            Authentication authentication,
+            Model model) {
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            return "redirect:/login";
+        }
+        String email = authentication.getName();
+        Utilisateur user = utilisateurService.trouverParEmail(email);
+        model.addAttribute("user", user);
+        return "evenement/creer-evenement";
+    }
 }
