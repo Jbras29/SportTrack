@@ -35,6 +35,11 @@ public class EvenementController {
 
     @GetMapping("/evenements")
     public String afficherPageEvenements(Model model) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
+        Utilisateur currentUser = utilisateurService.trouverParEmail(email);
+        model.addAttribute("user", currentUser);
+
         List<Evenement> listeEvenements = evenementService.obtenirTousLesEvenements();
         model.addAttribute("evenements", listeEvenements);
 
@@ -47,6 +52,7 @@ public class EvenementController {
         String email = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
         Utilisateur currentUser = utilisateurService.trouverParEmail(email);
 
+        model.addAttribute("user", currentUser);
         model.addAttribute("amis", currentUser.getAmis());
 
         return "evenement/creer-evenement";

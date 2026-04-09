@@ -4,126 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion | Sport Track</title>
-    <style>
-        :root {
-            --bleu-principal: #135077;
-            --orange-principal: #F39434;
-            --bleu-clair: #21A2D7;
-            --vert: #8EB445;
-            --blanc-casse: #FCFDFD;
-        }
-        body {
-            background-color: var(--blanc-casse);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: var(--bleu-principal);
-        }
-        .login-card {
-            background-color: #ffffff;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(19, 80, 119, 0.1);
-            width: 100%;
-            max-width: 360px;
-            text-align: center;
-        }
-        .logo {
-            font-size: 32px;
-            font-weight: 800;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .logo .sport { color: var(--bleu-principal); }
-        .logo .track { color: var(--orange-principal); }
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .input-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .input-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e6ed;
-            border-radius: 8px;
-            font-size: 15px;
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-            color: var(--bleu-principal);
-        }
-        .input-group input:focus {
-            border-color: var(--bleu-clair);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(33, 162, 215, 0.15);
-        }
-        .error-msg {
-            background-color: #fff0f0;
-            color: #c0392b;
-            border: 1px solid #f5c6cb;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-        .btn-primary {
-            background-color: var(--orange-principal);
-            color: white;
-            border: none;
-            padding: 14px;
-            width: 100%;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.1s, background-color 0.3s;
-            margin-bottom: 15px;
-            margin-top: 10px;
-        }
-        .btn-primary:hover { background-color: #df8124; }
-        .btn-primary:active { transform: scale(0.98); }
-        .divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            margin: 20px 0;
-            color: #a0aab2;
-            font-size: 14px;
-        }
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #e0e6ed;
-        }
-        .divider:not(:empty)::before { margin-right: .25em; }
-        .divider:not(:empty)::after { margin-left: .25em; }
-        .btn-secondary {
-            background-color: transparent;
-            color: var(--vert);
-            border: 2px solid var(--vert);
-            padding: 12px;
-            width: 100%;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .btn-secondary:hover {
-            background-color: var(--vert);
-            color: white;
-        }
-    </style>
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
-<body>
+<body class="auth-page login-page">
     <div class="login-card">
         <div class="logo">
             <span class="sport">Sport</span><span class="track">Track</span>
@@ -148,9 +32,10 @@
 
         <div class="divider">ou</div>
 
-        <button type="button" class="btn-secondary" onclick="window.location.href='/register'">
+        <button type="button" id="go-register" class="btn-secondary">
             Créer un compte
         </button>
     </div>
+    <script th:src="@{/js/login.js}" defer></script>
 </body>
 </html>

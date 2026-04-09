@@ -2,10 +2,25 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <!-- Barre latérale unique : état actif via le chemin HTTP (solution B). -->
-<nav th:fragment="sidebar"
-     class="slim-sidebar slim-sidebar--viewport"
+<th:block th:fragment="sidebar">
+<nav class="slim-sidebar slim-sidebar--viewport"
      th:with="path=${navRequestPath} ?: '/'">
     <a th:href="@{/home}" class="logo-icon" title="Sport Track">S</a>
+
+    <button type="button"
+            id="theme-toggle"
+            class="theme-toggle"
+            aria-pressed="false"
+            title="Mode sombre"
+            aria-label="Passer en mode sombre">
+        <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+        </svg>
+    </button>
 
     <a th:href="@{/home}"
        class="nav-btn"
@@ -27,7 +42,7 @@
     </a>
     <a th:href="@{/evenements}"
        class="nav-btn"
-       th:classappend="${#strings.startsWith(path, '/evenements')} ? ' active'"
+       th:classappend="${#strings.startsWith(path, '/evenements') or path == '/creer-evenement'} ? ' active'"
        title="Événements">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
     </a>
@@ -62,5 +77,7 @@
         </button>
     </form>
 </nav>
+<script th:src="@{/js/theme.js}" defer></script>
+</th:block>
 </body>
 </html>
