@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Sport Track | Détail de l'événement</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-blue: #135077; --brand-orange: #F39434; --brand-light-blue: #21A2D7;
+            --bg-app: #F3F6F8; --bg-card: #FFFFFF; --text-main: #0F172A;
+            --text-muted: #64748B; --border-light: #E2E8F0; --danger-red: #EF4444;
+        }
+        body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-app); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        .slim-sidebar { width: 80px; background-color: var(--bg-card); border-right: 1px solid var(--border-light); display: flex; flex-direction: column; align-items: center; padding: 20px 0; flex-shrink: 0; z-index: 10; }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--brand-blue), var(--brand-light-blue)); border-radius: 12px; display: flex; justify-content: center; align-items: center; color: white; font-weight: 800; font-size: 20px; margin-bottom: 40px; }
+        .nav-btn { width: 50px; height: 50px; border-radius: 12px; display: flex; justify-content: center; align-items: center; color: var(--text-muted); margin-bottom: 15px; text-decoration: none; transition: 0.2s; }
+        .nav-btn:hover, .nav-btn.active { background-color: rgba(33, 162, 215, 0.1); color: var(--brand-blue); }
+        .main-wrapper { flex-grow: 1; padding: 30px 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+
+        /* Layout Grid */
+        .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .card { background-color: var(--bg-card); padding: 25px; border-radius: 20px; border: 1px solid var(--border-light); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02); }
+
+        .header-title { font-size: 32px; color: var(--brand-blue); font-weight: 800; margin: 0 0 10px 0; }
+        .header-meta { display: flex; gap: 20px; color: var(--text-muted); font-size: 14px; font-weight: 600; margin-bottom: 20px; }
+
+        .section-title { font-size: 18px; color: var(--brand-blue); font-weight: 700; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
+
+        .btn-action { background: var(--brand-light-blue); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; transition: 0.2s; }
+        .btn-action:hover { background: var(--brand-blue); }
+        .btn-danger { background: white; color: var(--danger-red); border: 1px solid var(--danger-red); }
+        .btn-danger:hover { background: var(--danger-red); color: white; }
+
+        .participant-list { display: flex; flex-direction: column; gap: 10px; }
+        .participant-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg-app); border-radius: 10px; }
+
+        .annonce-box { padding: 15px; background: rgba(243, 148, 52, 0.1); border-left: 4px solid var(--brand-orange); border-radius: 8px; margin-bottom: 10px; }
+        .annonce-date { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; display: block;}
+
+        input, textarea { width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; border: 1px solid var(--border-light); font-family: inherit; box-sizing: border-box;}
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="slim-sidebar">
+    <div class="logo-icon">S</div>
+    <a href="/evenements" class="nav-btn"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></a>
+</div>
+
+<div class="main-wrapper">
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div>
+                <h1 class="header-title" th:text="${evenement.nom}">Titre de l'événement</h1>
+                <div class="header-meta">
+                    <span th:text="'📅 ' + ${#temporals.format(evenement.date, 'dd MMM yyyy HH:mm')}">Date</span>
+                    <span th:text="'👑 Organisé par ' + ${evenement.organisateur.nom}">Organisateur</span>
+                </div>
+            </div>
+            <button th:if="${isOrganisateur}" class="btn-action" onclick="activerModeEdition()">✏️ Modifier l'événement</button>
+        </div>
+        <p th:text="${evenement.description}">Description de l'événement...</p>
+    </div>
+
+    <div class="content-grid">
+
+        <div class="card">
+            <h2 class="section-title">📢 Annonces</h2>
+
+            <div th:if="${isOrganisateur}" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-light);">
+                <textarea id="nouvelleAnnonce" rows="2" placeholder="Écrire une annonce à tous les participants..."></textarea>
+                <button class="btn-action" style="margin-top: 10px; background: var(--brand-orange);" th:attr="onclick=|publierAnnonce(${evenement.id})|">Publier l'annonce</button>
+            </div>
+
+            <div id="listeAnnonces">
+                <p th:if="${#lists.isEmpty(evenement.annonces)}" class="text-muted">Aucune annonce pour le moment.</p>
+
+                <div th:each="annonce : ${evenement.annonces}" class="annonce-box" style="position: relative;">
+                    <span class="annonce-date" th:text="${#temporals.format(annonce.date, 'dd/MM HH:mm')}">Date</span>
+
+                    <button th:if="${isOrganisateur}"
+                            class="btn-danger"
+                            style="position: absolute; right: 10px; top: 10px; padding: 2px 8px; font-size: 12px;"
+                            th:attr="onclick=|confirmerSuppressionAnnonce(${evenement.id}, ${annonce.id})|">
+                        🗑️
+                    </button>
+
+                    <p th:text="${annonce.message}" style="margin:0; padding-right: 40px;">Message</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">
+                👥 Participants
+                <span th:text="${#lists.size(evenement.participants)}">0</span>
+            </h2>
+
+            <div class="participant-list">
+                <div class="participant-item" th:each="participant : ${evenement.participants}">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span th:text="${participant.nom}" style="font-weight: 600;">Nom Participant</span>
+                    </div>
+                    <button th:if="${isOrganisateur}" class="btn-action btn-danger" th:attr="onclick=|retirerParticipant(${evenement.id}, ${participant.id})|">Retirer</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div id="modalModifier" th:if="${isOrganisateur}"
+     style="display:none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center;">
+
+    <div class="modal-content-card" style="background: white; width: 500px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: slideIn 0.3s ease-out;">
+
+        <h2 style="color: var(--brand-blue); margin-top: 0; font-weight: 800;">Modifier l'événement</h2>
+
+        <form id="formModifier">
+            <div class="form-group">
+                <label class="form-label">Titre</label>
+                <input type="text" id="editNom" th:value="${evenement.nom}" required style="width: 100%; display: block;">
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label class="form-label">Date & Heure</label>
+                <input type="datetime-local" id="editDate"
+                       th:value="${#temporals.format(evenement.date, 'yyyy-MM-dd HH:mm')}"
+                       required style="width: 100%; display: block;">
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label class="form-label">Description</label>
+                <textarea id="editDescription" rows="4" th:text="${evenement.description}" style="width: 100%; display: block;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px;">
+                <button type="button" class="btn-action btn-danger" onclick="fermerModal()" style="background: #f1f5f9; color: #64748b; border: none;">Annuler</button>
+                <button type="submit" class="btn-action" style="background: var(--brand-blue); color: white; border: none;">Sauvegarder</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Ces fonctions JS feront appel aux API que nous allons créer à l'étape 2
+    // Ouvrir le modal de modification
+    function activerModeEdition() {
+        document.getElementById('modalModifier').style.display = 'flex';
+    }
+
+    // Fermer le modal
+    function fermerModal() {
+        document.getElementById('modalModifier').style.display = 'none';
+    }
+
+    // Gérer la soumission du formulaire de modification
+    document.getElementById('formModifier')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Récupérer l'ID de l'événement depuis l'URL (ex: /evenements/12)
+        const eventId = window.location.pathname.split('/').pop();
+
+        const updatedData = {
+            nom: document.getElementById('editNom').value,
+            date: document.getElementById('editDate').value,
+            description: document.getElementById('editDescription').value
+        };
+
+        try {
+            const response = await fetch(`/api/evenements/${eventId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            });
+
+            if (response.ok) {
+                alert("Événement mis à jour avec succès !");
+                location.reload(); // Rafraîchir pour voir les changements
+            } else {
+                alert("Erreur lors de la mise à jour.");
+            }
+        } catch (error) {
+            console.error("Erreur:", error);
+            alert("Erreur de connexion au serveur.");
+        }
+    });
+
+    async function publierAnnonce(eventId) {
+    const text = document.getElementById('nouvelleAnnonce').value;
+    if(!text) return;
+
+    try {
+        const response = await fetch(`/api/evenements/${eventId}/annonces`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // On envoie un objet avec la clé "message" pour correspondre au Controller
+            body: JSON.stringify({ message: text })
+        });
+
+        if(response.ok) {
+            location.reload(); // Recharge la page pour voir la nouvelle annonce
+        } else {
+            alert("Erreur lors de la publication.");
+        }
+    } catch (error) {
+        console.error("Erreur:", error);
+    }
+}
+
+    function retirerParticipant(eventId, participantId) {
+        if(confirm("Voulez-vous vraiment retirer ce participant ?")) {
+            alert("Retrait en cours... (API à venir)");
+        }
+    }
+
+
+    // Fonction pour supprimer une annonce avec confirmation
+async function confirmerSuppressionAnnonce(eventId, annonceId) {
+    if (confirm("Voulez-vous vraiment supprimer cette annonce ?")) {
+        try {
+            const response = await fetch(`/api/evenements/${eventId}/annonces/${annonceId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                // Si la suppression a réussi, on rafraîchit la page pour mettre à jour la liste
+                location.reload();
+            } else {
+                alert("Erreur lors de la suppression.");
+            }
+        } catch (error) {
+            console.error("Erreur réseau :", error);
+            alert("Impossible de contacter le serveur.");
+        }
+    }
+}
+</script>
+</body>
+</html>

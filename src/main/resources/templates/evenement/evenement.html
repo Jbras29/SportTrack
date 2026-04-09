@@ -90,6 +90,27 @@
         .btn-join:hover { background-color: var(--brand-blue); }
         .btn-join:disabled { background-color: var(--border-light); color: var(--text-muted); cursor: not-allowed; }
 
+        .btn-detail {
+            background-color: var(--hover-bg);
+            color: var(--brand-blue);
+            border: 1px solid var(--brand-blue);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 13px;
+            transition: 0.2s;
+            display: inline-block;
+        }
+        .btn-detail:hover {
+            background-color: var(--brand-blue);
+            color: white;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -128,7 +149,12 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     <span th:text="${#lists.size(evt.participants)} + ' participants'"></span>
                 </span>
-                <button class="btn-join" th:attr="onclick=|rejoindreEvenement(${evt.id}, this)|">Rejoindre</button>
+
+                <div class="card-actions">
+                    <a th:href="@{/evenements/{id}(id=${evt.id})}" class="btn-detail">Détails</a>
+
+                    <button class="btn-join" th:attr="onclick=|rejoindreEvenement(${evt.id}, this)|">Rejoindre</button>
+                </div>
             </div>
         </div>
     </div>
