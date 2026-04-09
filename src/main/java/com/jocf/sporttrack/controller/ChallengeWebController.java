@@ -54,4 +54,10 @@ public class ChallengeWebController {
             return "challenges/creer";
         }
     }
+
+    @GetMapping
+    public String listeDesDefis(Model model) {
+    model.addAttribute("challenges", challengeService.recupererTousLesChallenges());
+    return "challenges/liste"; 
+}
 }
