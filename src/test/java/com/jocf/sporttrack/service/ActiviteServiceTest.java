@@ -352,4 +352,41 @@ void calculerKilocaloriesRefuseActiviteInexistante() {
     assertEquals("Activite introuvable : 1", exception.getMessage());
     verify(activiteRepository).findById(1L);
 }
+
+@Test
+void consultation_activite_affiche_kilocalories_calculees() {
+    Utilisateur utilisateur = Utilisateur.builder()
+        .id(1L).poids(70.0)
+        .build();
+
+    Activite activite = Activite.builder()
+        .id(1L)
+        .nom("Footing")
+        .typeSport(TypeSport.COURSE_A_PIED)
+        .temps(60)
+        .distance(10.0)
+        .date(LocalDate.now())
+        .utilisateur(utilisateur)
+        .build();
+
+    when(activiteRepository.findById(1L)).thenReturn(Optional.of(activite));
+
+    Double kcal = activiteService.calculerKilocalories(1L);
+
+    assertNotNull(kcal);
+    assertEquals(700.0, kcal); // 10.0 (MET) * 70.0 (poids) * 1.0 (heure)
+    verify(activiteRepository).findById(1L);
+}
+
+@Test
+void consultation_kilocalories_sans_activite_retourne_liste_vide() {
+    Utilisateur utilisateur = Utilisateur.builder().id(1L).build();
+    when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+    when(activiteRepository.findByUtilisateur(utilisateur)).thenReturn(List.of());
+
+    List<Activite> activites = activiteService.recupererActivitesParUtilisateur(1L);
+
+    assertTrue(activites.isEmpty());
+    verify(activiteRepository).findByUtilisateur(utilisateur);
+}
 }
