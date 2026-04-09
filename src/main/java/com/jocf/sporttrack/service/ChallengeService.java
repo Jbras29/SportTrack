@@ -30,11 +30,15 @@ public class ChallengeService {
 
     public Challenge creerChallenge(Challenge challenge, Long organisateurId) {
         Utilisateur organisateur = utilisateurRepository.findById(organisateurId)
-                .orElseThrow(() -> new IllegalArgumentException("Organisateur introuvable : " + organisateurId));
-
+            .orElseThrow(() -> new IllegalArgumentException("Organisateur introuvable : " + organisateurId));
+    
+        if (challenge.getDateFin() != null && challenge.getDateDebut() != null
+                && challenge.getDateFin().before(challenge.getDateDebut())) {
+            throw new IllegalArgumentException("La date de fin doit être après la date de début.");
+        }
+    
         challenge.setId(null);
         challenge.setOrganisateur(organisateur);
-
         return challengeRepository.save(challenge);
     }
 
