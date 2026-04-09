@@ -1108,9 +1108,43 @@ body.home-page .comment-composer-input:focus {
 }
 
 body.home-page .comment-composer-post {
+    position: relative;
     flex-shrink: 0;
     align-self: center;
     white-space: nowrap;
+    min-width: 5.5rem;
+}
+
+body.home-page .comment-composer-post-spinner {
+    display: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: -0.55rem 0 0 -0.55rem;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: home-plus-spin 0.65s linear infinite;
+}
+
+body.home-page .comment-composer-post--loading .comment-composer-post-label {
+    visibility: hidden;
+}
+
+body.home-page .comment-composer-post--loading .comment-composer-post-spinner {
+    display: block;
+}
+
+body.home-page .comment-composer-post--loading:disabled {
+    cursor: wait;
+    opacity: 0.92;
+}
+
+body.home-page .comment-composer-input:disabled {
+    opacity: 0.85;
+    cursor: wait;
 }
 
 body.home-page .post-actions-right {

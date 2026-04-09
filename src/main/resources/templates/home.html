@@ -25,7 +25,8 @@
 
             <article class="post-card feed-post"
                      th:each="activite : ${activitesFil}"
-                     th:attr="data-activite-id=${activite.id}">
+                     th:attr="data-activite-id=${activite.id},
+                              data-feed-comment-count=${#lists.size(activite.commentairesMessages)}">
                 <div class="post-header">
                     <img th:src="${activite.utilisateur.cheminPhotoProfilAffichee()}"
                          th:alt="${activite.utilisateur.prenom}"
@@ -101,7 +102,8 @@
                 <div class="post-actions">
                     <div class="action-btn">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                        <span th:text="|${#lists.size(activite.commentairesMessages)} commentaire${#lists.size(activite.commentairesMessages) != 1 ? 's' : ''}|">0 commentaires</span>
+                        <span class="js-feed-comment-count"
+                              th:text="|${#lists.size(activite.commentairesMessages)} commentaire${#lists.size(activite.commentairesMessages) != 1 ? 's' : ''}|">0 commentaires</span>
                     </div>
                     <div class="post-actions-right">
                         <button type="button"
@@ -131,7 +133,10 @@
                            th:aria-label="'Écrire un commentaire'"
                            placeholder="Écrire un commentaire…"
                            autocomplete="off">
-                    <button type="button" class="btn btn-primary comment-composer-post">Poster</button>
+                    <button type="button" class="btn btn-primary comment-composer-post">
+                        <span class="comment-composer-post-label">Poster</span>
+                        <span class="comment-composer-post-spinner" aria-hidden="true"></span>
+                    </button>
                 </div>
 
                 <div class="comments-section" th:if="${!#lists.isEmpty(activite.commentairesMessages)}">

@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"activite"})
 public class Commentaire {
 
     @Id
@@ -50,6 +51,5 @@ public class Commentaire {
 
     @ManyToOne
     @JoinColumn(name = "activite_id", nullable = false)
-    @JsonIgnoreProperties({"commentaires", "utilisateur"})
     private Activite activite;
 }

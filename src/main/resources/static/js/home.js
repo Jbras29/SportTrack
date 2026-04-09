@@ -551,6 +551,167 @@
         return !composer.hidden;
     }
 
+    function urlPhotoProfilAuteur(auteur) {
+        if (!auteur) {
+            return '/images/profile-placeholder.svg';
+        }
+        var p = auteur.photoProfil;
+        if (p != null && String(p).trim() !== '') {
+            return String(p).trim();
+        }
+        return '/images/profile-placeholder.svg';
+    }
+
+    function ensureCommentsSection(card) {
+        var section = card.querySelector('.comments-section');
+        if (section) {
+            return section;
+        }
+        var composer = card.querySelector('.comment-composer');
+        if (!composer) {
+            return null;
+        }
+        section = document.createElement('div');
+        section.className = 'comments-section';
+        composer.insertAdjacentElement('afterend', section);
+        return section;
+    }
+
+    function buildCommentElement(c) {
+        var auteur = c.auteur || {};
+        var wrap = document.createElement('div');
+        wrap.className = 'comment';
+        var img = document.createElement('img');
+        img.className = 'comment-avatar';
+        img.src = urlPhotoProfilAuteur(auteur);
+        img.alt = auteur.prenom || '';
+        var bubble = document.createElement('div');
+        bubble.className = 'comment-bubble';
+        var strong = document.createElement('strong');
+        strong.textContent = ((auteur.prenom || '') + ' ' + (auteur.nom || '')).trim();
+        var span = document.createElement('span');
+        span.textContent = c.message || '';
+        bubble.appendChild(strong);
+        bubble.appendChild(document.createTextNode(' '));
+        bubble.appendChild(span);
+        wrap.appendChild(img);
+        wrap.appendChild(bubble);
+        return wrap;
+    }
+
+    function updateFeedCommentCount(card, delta) {
+        var n = parseInt(card.getAttribute('data-feed-comment-count') || '0', 10);
+        n = Math.max(0, n + delta);
+        card.setAttribute('data-feed-comment-count', String(n));
+        var el = card.querySelector('.js-feed-comment-count');
+        if (el) {
+            el.textContent = n + ' commentaire' + (n !== 1 ? 's' : '');
+        }
+    }
+
+    function setCommentComposerLoading(btn, input, loading) {
+        if (!btn) {
+            return;
+        }
+        if (loading) {
+            btn.classList.add('comment-composer-post--loading');
+            btn.disabled = true;
+            btn.setAttribute('aria-busy', 'true');
+        } else {
+            btn.classList.remove('comment-composer-post--loading');
+            btn.disabled = false;
+            btn.removeAttribute('aria-busy');
+        }
+        if (input) {
+            input.disabled = !!loading;
+        }
+    }
+
+    function posterCommentaireTexte(activiteId, card, composer, btn, input) {
+        var message = (input.value || '').trim();
+        if (!message) {
+            showToastErreur('Le message ne peut pas être vide.');
+            return;
+        }
+        var auteurAttr = document.body.getAttribute('data-current-user-id');
+        if (!auteurAttr) {
+            showToastErreur('Impossible d’identifier l’utilisateur. Rechargez la page.');
+            return;
+        }
+        var auteurId = parseInt(auteurAttr, 10);
+        if (isNaN(auteurId)) {
+            showToastErreur('Session invalide.');
+            return;
+        }
+        setCommentComposerLoading(btn, input, true);
+        fetch(
+            '/api/activites/' + encodeURIComponent(String(activiteId)) + '/commentaires',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ auteurId: auteurId, message: message })
+            }
+        )
+            .then(function (r) {
+                return r.json().catch(function () {
+                    return null;
+                }).then(function (data) {
+                    return { ok: r.ok, status: r.status, data: data };
+                });
+            })
+            .then(function (result) {
+                if (result.data && result.data.success === true && result.data.commentaire) {
+                    var section = ensureCommentsSection(card);
+                    if (section) {
+                        section.appendChild(buildCommentElement(result.data.commentaire));
+                    }
+                    updateFeedCommentCount(card, 1);
+                    input.value = '';
+                    return;
+                }
+                var msg =
+                    result.data && result.data.message
+                        ? result.data.message
+                        : 'Impossible de publier le commentaire.';
+                if (!result.ok && !result.data) {
+                    msg =
+                        result.status === 401 || result.status === 403
+                            ? 'Accès refusé. Reconnectez-vous.'
+                            : 'Erreur serveur (' + result.status + ').';
+                }
+                showToastErreur(msg);
+            })
+            .catch(function () {
+                showToastErreur('Erreur réseau. Vérifiez votre connexion.');
+            })
+            .finally(function () {
+                setCommentComposerLoading(btn, input, false);
+            });
+    }
+
+    document.addEventListener('click', function (e) {
+        var postBtn = e.target.closest('.comment-composer-post');
+        if (!postBtn) {
+            return;
+        }
+        e.preventDefault();
+        var composer = postBtn.closest('.comment-composer');
+        if (!composer || composer.hidden) {
+            return;
+        }
+        var card = composer.closest('.post-card');
+        var activiteId = card && card.getAttribute('data-activite-id');
+        var input = composer.querySelector('.comment-composer-input');
+        if (!activiteId || !input) {
+            return;
+        }
+        posterCommentaireTexte(activiteId, card, composer, postBtn, input);
+    });
+
     document.addEventListener('click', function (e) {
         var toggle = e.target.closest('.comment-composer-toggle');
         if (!toggle) {
