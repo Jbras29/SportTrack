@@ -2,8 +2,10 @@ package com.jocf.sporttrack.controller;
 
 import com.jocf.sporttrack.model.Activite;
 import com.jocf.sporttrack.model.TypeSport;
+import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.ActiviteService;
 import com.jocf.sporttrack.service.PrefSportiveService;
+import com.jocf.sporttrack.service.UtilisateurService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +22,8 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import org.springframework.security.core.Authentication;
+
 
 @Controller
 @RequestMapping("/activites")
@@ -31,6 +35,9 @@ public class ActiviteController {
 
     @Autowired
     private PrefSportiveService prefSportiveService;
+
+    @Autowired
+    private UtilisateurService utilisateurService;
 
     @GetMapping
     @Operation(summary = "Récupérer toutes les activités")
@@ -66,9 +73,13 @@ public class ActiviteController {
     }
 
     @GetMapping("/create")
-    public String createActivite(Model model) {
+    public String createActivite(Model model, Authentication authentication) {
 
         model.addAttribute("typesSportifs", TypeSport.values());
+        if (authentication != null && authentication.isAuthenticated()) {
+            Utilisateur user = utilisateurService.trouverParEmail(authentication.getName());
+            model.addAttribute("user", user);
+        }
 
         return "activity/create";
     }

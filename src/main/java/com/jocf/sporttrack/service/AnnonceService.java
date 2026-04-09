@@ -49,16 +49,20 @@ public class AnnonceService {
         .collect(java.util.stream.Collectors.toList());
 }
 
-    public Annonce creerAnnonce(Long evenementId, String message) {
+    public Annonce creerAnnonce(Long evenementId, Long organisateurId, String message) {
         Evenement evenement = evenementRepository.findById(evenementId)
-                .orElseThrow(() -> new IllegalArgumentException("Evenement introuvable : " + evenementId));
-
+            .orElseThrow(() -> new IllegalArgumentException("Evenement introuvable : " + evenementId));
+    
+        if (!evenement.getOrganisateur().getId().equals(organisateurId)) {
+            throw new IllegalArgumentException("Seul l'organisateur peut publier une annonce.");
+        }
+    
         Annonce annonce = Annonce.builder()
-                .message(message)
-                .date(LocalDateTime.now())
-                .evenement(evenement)
-                .build();
-
+            .message(message)
+            .date(LocalDateTime.now())
+            .evenement(evenement)
+            .build();
+    
         return annonceRepository.save(annonce);
     }
 

@@ -5,336 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Dashboard | Sport Track</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        /* Palette de couleurs Sport Track */
-        :root {
-            --brand-blue: #135077;
-            --brand-orange: #F39434;
-            --brand-light-blue: #21A2D7;
-            --brand-green: #8EB445;
-            
-            --bg-app: #F3F6F8;
-            --bg-card: #FFFFFF;
-            
-            --text-main: #0F172A;
-            --text-muted: #64748B;
-            
-            --border-light: #E2E8F0;
-            --hover-bg: #F1F5F9;
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-app);
-            color: var(--text-main);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* --- MENU COMPACT (Sidebar) --- */
-        .slim-sidebar {
-            width: 80px;
-            background-color: var(--bg-card);
-            border-right: 1px solid var(--border-light);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px 0;
-            flex-shrink: 0;
-            z-index: 10;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--brand-blue), var(--brand-light-blue));
-            border-radius: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-weight: 800;
-            font-size: 20px;
-            margin-bottom: 40px;
-            box-shadow: 0 4px 10px rgba(33, 162, 215, 0.3);
-        }
-
-        .nav-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: var(--text-muted);
-            margin-bottom: 15px;
-            text-decoration: none;
-            transition: all 0.2s ease;
-        }
-
-        .nav-btn:hover {
-            background-color: var(--hover-bg);
-            color: var(--brand-blue);
-        }
-
-        .nav-btn.active {
-            background-color: rgba(33, 162, 215, 0.1);
-            color: var(--brand-blue);
-        }
-
-        .nav-btn.logout { color: #EF4444; }
-        .nav-btn.logout:hover { background-color: rgba(239, 68, 68, 0.1); }
-
-        /* --- CONTENU PRINCIPAL --- */
-        .main-wrapper {
-            flex-grow: 1;
-            padding: 30px 40px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        /* En-tête profil */
-        .profile-header {
-            display: flex;
-            align-items: center;
-            background-color: var(--bg-card);
-            padding: 25px 30px;
-            border-radius: 20px;
-            border: 1px solid var(--border-light);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-            gap: 20px;
-        }
-
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 3px solid var(--brand-blue);
-            object-fit: cover;
-        }
-
-        .profile-info { flex-grow: 1; }
-        .profile-info h1 { margin: 0 0 5px 0; font-size: 24px; color: var(--brand-blue); }
-        .profile-info p { margin: 0; color: var(--text-muted); font-size: 14px; }
-        
-        .level-badge {
-            background-color: var(--brand-orange);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            display: inline-block;
-            margin-top: 8px;
-        }
-
-        .btn-edit {
-            padding: 10px 20px;
-            background-color: var(--hover-bg);
-            border: 1px solid var(--border-light);
-            border-radius: 10px;
-            font-weight: 600;
-            color: var(--text-main);
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-        .btn-edit:hover { background-color: var(--border-light); }
-
-        /* Grille des statistiques clés */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-
-        .stat-card {
-            background-color: var(--bg-card);
-            padding: 20px;
-            border-radius: 20px;
-            border: 1px solid var(--border-light);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .stat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .stat-icon.orange { background-color: rgba(243, 148, 52, 0.1); color: var(--brand-orange); }
-        .stat-icon.blue { background-color: rgba(33, 162, 215, 0.1); color: var(--brand-light-blue); }
-        .stat-icon.green { background-color: rgba(142, 180, 69, 0.1); color: var(--brand-green); }
-
-        .stat-value { font-size: 24px; font-weight: 800; color: var(--text-main); margin: 0; }
-        .stat-label { font-size: 13px; color: var(--text-muted); font-weight: 500; margin: 0; text-transform: uppercase; }
-
-        /* Grille principale (Dashboard 2 colonnes) */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-        }
-
-        .dash-card {
-            background-color: var(--bg-card);
-            padding: 25px;
-            border-radius: 20px;
-            border: 1px solid var(--border-light);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-        }
-
-        .card-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--brand-blue);
-            margin: 0 0 20px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        /* Barres HP/XP */
-        .status-row { margin-bottom: 20px; }
-        .status-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
-        .status-bar-bg { height: 10px; background-color: var(--border-light); border-radius: 10px; overflow: hidden; }
-        .status-bar-fill { height: 100%; border-radius: 10px; }
-        .fill-hp { background: linear-gradient(90deg, var(--brand-green), #A3CC52); min-width: 0; }
-        .fill-xp { background: linear-gradient(90deg, var(--brand-blue), var(--brand-light-blue)); min-width: 0; }
-
-        .xp-level-rail {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            padding: 0 2px;
-        }
-        .xp-level-label {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--brand-blue);
-            letter-spacing: 0.02em;
-        }
-        .xp-level-label--next {
-            font-weight: 600;
-            color: var(--text-muted);
-        }
-        .xp-level-label--max {
-            font-weight: 600;
-            color: var(--text-muted);
-            font-style: italic;
-        }
-
-        /* Liste des challenges */
-        .challenge-list { display: flex; flex-direction: column; gap: 15px; }
-        .challenge-item {
-            padding: 15px;
-            border-radius: 12px;
-            background-color: var(--hover-bg);
-            border: 1px solid var(--border-light);
-        }
-        .challenge-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .challenge-title { font-size: 14px; font-weight: 600; color: var(--text-main); }
-        
-        .daily-task { display: flex; align-items: center; justify-content: space-between; }
-        .task-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--brand-green);
-        }
-        .task-status.pending { color: var(--brand-orange); }
-
-        .week-chart-shell {
-            position: relative;
-            border-radius: 16px;
-            background: linear-gradient(180deg, rgba(33, 162, 215, 0.06) 0%, rgba(19, 80, 119, 0.04) 100%);
-            border: 1px solid var(--border-light);
-            padding: 12px 8px 8px;
-            min-height: 240px;
-        }
-        .week-chart-canvas {
-            width: 100%;
-            height: 200px;
-            display: block;
-            vertical-align: middle;
-        }
-        .week-chart-empty {
-            display: none;
-            text-align: center;
-            padding: 56px 20px;
-            margin: 0;
-            font-size: 15px;
-            font-weight: 500;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-        .week-chart-empty.is-visible { display: block; }
-        .week-chart-shell.is-empty .week-chart-canvas { display: none; }
-        .week-chart-legend {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 8px;
-            padding-right: 4px;
-        }
-        .week-chart-legend span {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 600;
-            letter-spacing: 0.02em;
-        }
-
-        @media (max-width: 1024px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .dashboard-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
-<body>
+<body class="app-shell dashboard-page">
 
-    <nav class="slim-sidebar">
-        <div class="logo-icon">S</div>
-        <a href="#" class="nav-btn" title="Accueil">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        </a>
-        <a href="#" class="nav-btn" title="Mes Activités">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-        </a>
-        
-        <div class="spacer"></div>
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
-        <a href="#" class="nav-btn active" title="Mon Profil">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        </a>
-
-        <form action="/logout" method="POST" style="margin: 0;">
-            <button type="submit" class="nav-btn logout" title="Déconnexion" style="border: none; background: none; padding: 0; width: 50px; height: 50px; margin-bottom: 15px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 8 20 12 16 16"></polyline><line x1="9" y1="12" x2="20" y2="12"></line></svg>
-            </button>
-        </form>
-    </nav>
-
-    <div class="main-wrapper">
+    <div class="main-wrapper main-wrapper--stack">
         
         <div class="profile-header">
             <img th:src="${user.cheminPhotoProfilAffichee()}" alt="Photo de profil" class="profile-avatar" width="80" height="80">
@@ -395,7 +72,7 @@
 
         <div class="dashboard-grid">
             
-            <div style="display: flex; flex-direction: column; gap: 25px;">
+            <div class="dashboard-column">
                 
                 <div class="dash-card">
                     <h2 class="card-title">État de l'athlète</h2>
@@ -403,16 +80,16 @@
                     <div class="status-row">
                         <div class="status-header">
                             <span>Points de Vie (HP)</span>
-                            <span style="color: var(--brand-green);" th:text="|${user.hpNormalise} / 100|">100 / 100</span>
+                            <span class="status-value--hp" th:text="|${user.hpNormalise} / 100|">100 / 100</span>
                         </div>
                         <div class="status-bar-bg"><div class="status-bar-fill fill-hp" th:style="|width: ${hpBarPercent}%|"></div></div>
-                        <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Ne ratez pas vos objectifs pour garder vos HP !</p>
+                        <p class="status-help">Ne ratez pas vos objectifs pour garder vos HP !</p>
                     </div>
 
                     <div class="status-row">
                         <div class="status-header">
                             <span>Expérience (XP)</span>
-                            <span style="color: var(--brand-light-blue);">
+                            <span class="status-value--xp">
                                 <span th:if="${level &lt; 6}" th:text="|${xpDansNiveau} / ${xpMaxNiveau} XP|">0 / 100 XP</span>
                                 <span th:if="${level >= 6}" th:text="|${user.xpEffectif} XP (max)|">5000 XP</span>
                             </span>
@@ -429,32 +106,31 @@
                 <div class="dash-card">
                     <h2 class="card-title">Mes Défis Actifs</h2>
                     <div class="challenge-list">
-                        <p th:if="${#lists.isEmpty(defisEnCours)}" style="margin: 0; font-size: 14px; color: var(--text-muted);">Aucun défi actif pour le moment.</p>
+                        <p th:if="${#lists.isEmpty(defisEnCours)}" class="empty-copy">Aucun défi actif pour le moment.</p>
                         <div th:each="defi : ${defisEnCours}" class="challenge-item">
                             <div class="challenge-title" th:text="${defi.nom}">Nom du défi</div>
                             <div class="defi-meta"
                                  th:if="${defi.dateDebut != null and defi.dateFin != null}"
-                                 style="font-size: 12px; color: var(--text-muted); margin-top: 6px;"
                                  th:text="|${#dates.format(defi.dateDebut, 'dd/MM/yyyy')} — ${#dates.format(defi.dateFin, 'dd/MM/yyyy')}|">
                             </div>
                             <div th:if="${defi.dateDebut != null and defi.dateFin == null}"
-                                 style="font-size: 12px; color: var(--text-muted); margin-top: 6px;"
+                                 class="defi-meta"
                                  th:text="|Début : ${#dates.format(defi.dateDebut, 'dd/MM/yyyy')}|"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 25px;">
+            <div class="dashboard-column">
                 
                 <div class="dash-card">
                     <h2 class="card-title">
                         Activité de la semaine
-                        <span style="font-size: 12px; font-weight: 500; color: var(--text-muted); background: var(--hover-bg); padding: 4px 8px; border-radius: 6px;">Durée (min)</span>
+                        <span class="card-pill">Durée (min)</span>
                     </h2>
 
                     <div id="week-chart-shell" class="week-chart-shell">
-                        <canvas id="week-activity-chart" class="week-chart-canvas" aria-label="Graphique de la durée d’activité par jour"></canvas>
+                        <canvas id="week-activity-chart" class="week-chart-canvas" aria-label="Graphique de la durée d'activité par jour"></canvas>
                         <p id="week-chart-empty" class="week-chart-empty">Vous ne vous êtes pas entrainés cette semaine</p>
                         <div id="week-chart-legend" class="week-chart-legend" hidden>
                             <span>Survol : minutes par jour</span>
@@ -465,9 +141,9 @@
                 <div class="dash-card">
                     <h2 class="card-title">Mes derniers entraînements</h2>
                     <div class="challenge-list">
-                        <p th:if="${#lists.isEmpty(dernieresActivites)}" style="margin: 0; font-size: 14px; color: var(--text-muted);">Aucune activité enregistrée pour l’instant.</p>
-                        <div th:each="activite : ${dernieresActivites}" class="challenge-item" style="display: flex; align-items: center; gap: 15px;">
-                            <div class="stat-icon blue" style="width: 40px; height: 40px; flex-shrink: 0;">
+                        <p th:if="${#lists.isEmpty(dernieresActivites)}" class="empty-copy">Aucune activité enregistrée pour l'instant.</p>
+                        <div th:each="activite : ${dernieresActivites}" class="challenge-item activity-item">
+                            <div class="stat-icon blue stat-icon--fixed">
                                 <span th:switch="${activite.typeSport.name()}">
                                     <span th:case="'CYCLISME'">🚴</span>
                                     <span th:case="'VELO_ROUTE'">🚴</span>
@@ -481,9 +157,9 @@
                                     <span th:case="*">🏃</span>
                                 </span>
                             </div>
-                            <div style="flex-grow: 1;">
+                            <div class="activity-copy">
                                 <div class="challenge-title" th:text="${activite.nom}">Nom</div>
-                                <div style="font-size: 12px; color: var(--text-muted);">
+                                <div class="activity-meta">
                                     <span th:text="${#temporals.format(activite.date, 'dd/MM/yyyy')}">01/01/2026</span>
                                     <span th:if="${activite.distance != null}"> • <span th:text="${#numbers.formatDecimal(activite.distance, 1, 1)} + ' km'">0 km</span></span>
                                     <span th:if="${activite.temps != null}"> • <span th:text="|${activite.temps / 60}h ${activite.temps % 60}m|">0h 0m</span></span>
@@ -499,179 +175,9 @@
     </div>
 
     <script th:inline="javascript">
-        /*<![CDATA[*/
-        (function () {
-            var weekData = /*[[${semaineActivite}]]*/ [];
-            if (!Array.isArray(weekData)) weekData = [];
-
-            var shell = document.getElementById('week-chart-shell');
-            var canvas = document.getElementById('week-activity-chart');
-            var emptyEl = document.getElementById('week-chart-empty');
-            var legend = document.getElementById('week-chart-legend');
-            if (!shell || !canvas || !emptyEl) return;
-
-            var totalMin = weekData.reduce(function (s, d) { return s + (Number(d.minutes) || 0); }, 0);
-            if (totalMin === 0) {
-                shell.classList.add('is-empty');
-                emptyEl.classList.add('is-visible');
-                return;
-            }
-            legend.hidden = false;
-
-            var COLORS = {
-                blue: '#135077',
-                light: '#21A2D7',
-                orange: '#F39434',
-                grid: 'rgba(100, 116, 139, 0.15)',
-                text: '#64748B'
-            };
-
-            var ctx = canvas.getContext('2d');
-            var animProgress = 0;
-            var hoverIndex = -1;
-
-            function layoutSize() {
-                var dpr = window.devicePixelRatio || 1;
-                var rect = canvas.getBoundingClientRect();
-                var w = Math.max(320, rect.width);
-                var h = 200;
-                canvas.width = Math.floor(w * dpr);
-                canvas.height = Math.floor(h * dpr);
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-                return { w: w, h: h };
-            }
-
-            function draw() {
-                var L = layoutSize();
-                var w = L.w, h = L.h;
-                ctx.clearRect(0, 0, w, h);
-
-                var pad = { l: 36, r: 12, t: 16, b: 36 };
-                var chartW = w - pad.l - pad.r;
-                var chartH = h - pad.t - pad.b;
-                var vals = weekData.map(function (d) { return Number(d.minutes) || 0; });
-                var maxVal = Math.max.apply(null, vals);
-                maxVal = Math.max(maxVal, 10);
-                maxVal = Math.ceil(maxVal * 1.05);
-
-                for (var g = 0; g <= 4; g++) {
-                    var gy = pad.t + (chartH * g) / 4;
-                    ctx.beginPath();
-                    ctx.strokeStyle = COLORS.grid;
-                    ctx.lineWidth = 1;
-                    ctx.moveTo(pad.l, gy);
-                    ctx.lineTo(pad.l + chartW, gy);
-                    ctx.stroke();
-                    var labelVal = Math.round(maxVal * (1 - g / 4));
-                    ctx.fillStyle = COLORS.text;
-                    ctx.font = '10px Inter, sans-serif';
-                    ctx.textAlign = 'right';
-                    ctx.fillText(String(labelVal), pad.l - 6, gy + 3);
-                }
-
-                var n = weekData.length;
-                var gap = Math.min(14, chartW / (n * 3));
-                var barW = (chartW - gap * (n + 1)) / n;
-
-                for (var i = 0; i < n; i++) {
-                    var minutes = Number(weekData[i].minutes) || 0;
-                    var label = weekData[i].label || '';
-                    var targetH = chartH * (minutes / maxVal);
-                    var barH = targetH * animProgress;
-                    var x = pad.l + gap + i * (barW + gap);
-                    var y = pad.t + chartH - barH;
-                    var radius = Math.min(8, barW / 2);
-                    var isHover = hoverIndex === i;
-                    var scale = isHover ? 1.04 : 1;
-                    var bx = x + barW * (1 - scale) / 2;
-                    var bw = barW * scale;
-                    var by = pad.t + chartH - barH * scale;
-                    var bh = barH * scale;
-                    var r = Math.min(radius, bw / 2);
-
-                    if (bh > 0) {
-                        var grd = ctx.createLinearGradient(bx, by, bx, pad.t + chartH);
-                        grd.addColorStop(0, COLORS.light);
-                        grd.addColorStop(0.55, COLORS.blue);
-                        grd.addColorStop(1, COLORS.orange);
-                        ctx.fillStyle = grd;
-                        ctx.shadowColor = 'rgba(19, 80, 119, 0.25)';
-                        ctx.shadowBlur = isHover ? 14 : 8;
-                        ctx.shadowOffsetY = 4;
-                        ctx.beginPath();
-                        ctx.moveTo(bx + r, by);
-                        ctx.lineTo(bx + bw - r, by);
-                        ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + r);
-                        ctx.lineTo(bx + bw, pad.t + chartH);
-                        ctx.lineTo(bx, pad.t + chartH);
-                        ctx.lineTo(bx, by + r);
-                        ctx.quadraticCurveTo(bx, by, bx + r, by);
-                        ctx.closePath();
-                        ctx.fill();
-                        ctx.shadowBlur = 0;
-                        ctx.shadowOffsetY = 0;
-                    }
-
-                    ctx.fillStyle = COLORS.text;
-                    ctx.font = '600 11px Inter, sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(label, x + barW / 2, pad.t + chartH + 18);
-
-                    if (minutes > 0 && bh > 12) {
-                        ctx.fillStyle = 'rgba(255,255,255,0.92)';
-                        ctx.font = '700 10px Inter, sans-serif';
-                        ctx.fillText(String(minutes), bx + bw / 2, by + bh / 2 + 4);
-                    }
-                }
-            }
-
-            function animate() {
-                animProgress += 0.08;
-                if (animProgress > 1) animProgress = 1;
-                draw();
-                if (animProgress < 1) requestAnimationFrame(animate);
-            }
-
-            canvas.addEventListener('mousemove', function (ev) {
-                var rect = canvas.getBoundingClientRect();
-                var mx = ev.clientX - rect.left;
-                var L = { w: rect.width, h: rect.height };
-                var pad = { l: 36, r: 12, t: 16, b: 36 };
-                var chartW = L.w - pad.l - pad.r;
-                var n = weekData.length;
-                var gap = Math.min(14, chartW / (n * 3));
-                var barW = (chartW - gap * (n + 1)) / n;
-                var idx = -1;
-                for (var i = 0; i < n; i++) {
-                    var x = pad.l + gap + i * (barW + gap);
-                    if (mx >= x && mx <= x + barW) {
-                        idx = i;
-                        break;
-                    }
-                }
-                if (idx !== hoverIndex) {
-                    hoverIndex = idx;
-                    canvas.title = idx >= 0
-                        ? (weekData[idx].label + ' : ' + (Number(weekData[idx].minutes) || 0) + ' min')
-                        : '';
-                    draw();
-                }
-            });
-            canvas.addEventListener('mouseleave', function () {
-                hoverIndex = -1;
-                canvas.title = '';
-                draw();
-            });
-
-            window.addEventListener('resize', function () {
-                animProgress = 1;
-                draw();
-            });
-
-            requestAnimationFrame(animate);
-        })();
-        /*]]>*/
+        window.dashboardWeekData = /*[[${semaineActivite}]]*/ [];
     </script>
+    <script th:src="@{/js/dashboard.js}" defer></script>
 
 </body>
 </html>

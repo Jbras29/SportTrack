@@ -131,4 +131,43 @@ public class ProfileController {
         }
         return "redirect:/profile/edit?id=" + idSession;
     }
+
+    //1 profile/ et profile/edit
+
+    //Dans profile
+    //Toutes les activités de l'utilisateur,son propre info, ces defis, ces defauts, ces amis,les évènements auxquels il participe
+
+    @GetMapping("/profile")
+    public String viewProfile(HttpSession session, Model model) {
+        Long idSession = (Long) session.getAttribute("utilisateurId");
+        if (idSession == null) {
+            return "redirect:/login";
+        }
+        Utilisateur utilisateur = utilisateurService.trouverParId(idSession)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + idSession));
+        model.addAttribute("utilisateur", utilisateur);
+        //On enregistre les activités, les défis, les défauts, les amis et les événements de l'utilisateur dans le modèle
+        model.addAttribute("activites", utilisateur.getActivites());    
+        //model.addAttribute("defis", utilisateur.getDefis());
+        //model.addAttribute("defauts", utilisateur.getDefauts());
+        model.addAttribute("amis", utilisateur.getAmis());
+        model.addAttribute("evenementsOrganises", utilisateur.getEvenementsOrganises());
+        model.addAttribute("evenementsParticipe", utilisateur.getEvenementsParticipes());
+        return "profile/view";
+    }
+
+    @GetMapping("/profile/{id}")
+    public String viewProfile(@PathVariable Long id, Model model) {
+        Utilisateur utilisateur = utilisateurService.trouverParId(id)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + id));
+        model.addAttribute("utilisateur", utilisateur);
+        //On enregistre les activités, les défis, les défauts, les amis et les événements de l'utilisateur dans le modèle
+        model.addAttribute("activites", utilisateur.getActivites());
+        //model.addAttribute("defis", utilisateur.getDefis());
+        //model.addAttribute("defauts", utilisateur.getDefauts());
+        model.addAttribute("amis", utilisateur.getAmis());
+        model.addAttribute("evenementsOrganises", utilisateur.getEvenementsOrganises());
+        model.addAttribute("evenementsParticipe", utilisateur.getEvenementsParticipes());
+        return "profile/view";
+    }
 }

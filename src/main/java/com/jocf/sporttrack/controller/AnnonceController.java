@@ -59,9 +59,9 @@ public class AnnonceController {
 
     @PostMapping
     @Operation(summary = "Créer une nouvelle annonce")
-    public ResponseEntity<Annonce> createAnnonce(@RequestParam Long evenementId, @RequestParam String message) {
+    public ResponseEntity<Annonce> createAnnonce(@RequestParam Long evenementId, @RequestParam Long organisateurId, @RequestParam String message) {
         try {
-            Annonce created = annonceService.creerAnnonce(evenementId, message);
+            Annonce created = annonceService.creerAnnonce(evenementId, organisateurId, message);
             return ResponseEntity.ok(created);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
