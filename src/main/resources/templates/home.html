@@ -68,15 +68,25 @@
                     </div>
                 </div>
 
+                <div class="reactions-bar" th:if="${!#lists.isEmpty(activite.reactionsGroupees)}">
+                    <button type="button" class="reaction-chip"
+                            th:each="r : ${activite.reactionsGroupees}"
+                            th:attr="data-tooltip=${r.nomsDesReacteurs}"
+                            th:aria-label="|${r.emoji} : ${r.nomsDesReacteurs}|">
+                        <span class="reaction-chip-emoji" th:text="${r.emoji}" role="img" aria-hidden="true">👍</span>
+                        <span class="reaction-chip-count" th:text="${r.nombre}">1</span>
+                    </button>
+                </div>
+
                 <div class="post-actions">
                     <div class="action-btn">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                        <span th:text="|${#lists.size(activite.commentaires)} commentaire${#lists.size(activite.commentaires) != 1 ? 's' : ''}|">0 commentaires</span>
+                        <span th:text="|${#lists.size(activite.commentairesMessages)} commentaire${#lists.size(activite.commentairesMessages) != 1 ? 's' : ''}|">0 commentaires</span>
                     </div>
                 </div>
 
-                <div class="comments-section" th:if="${!#lists.isEmpty(activite.commentaires)}">
-                    <div class="comment" th:each="c : ${activite.commentaires}">
+                <div class="comments-section" th:if="${!#lists.isEmpty(activite.commentairesMessages)}">
+                    <div class="comment" th:each="c : ${activite.commentairesMessages}">
                         <img class="comment-avatar" th:src="${c.auteur.cheminPhotoProfilAffichee()}" th:alt="${c.auteur.prenom}">
                         <div class="comment-bubble">
                             <strong th:text="|${c.auteur.prenom} ${c.auteur.nom}|">Auteur</strong>
@@ -132,5 +142,6 @@
 
     </div>
 
+    <script th:src="@{/js/home-reactions-tooltip.js}" defer></script>
 </body>
 </html>

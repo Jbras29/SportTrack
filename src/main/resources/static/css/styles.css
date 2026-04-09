@@ -843,11 +843,18 @@ body.home-page .value-accent {
 
 body.home-page .post-actions {
     display: flex;
+    align-items: center;
     gap: 20px;
-    padding: 10px 0;
+    padding: 12px 0;
     border-top: 1px solid var(--border-light);
     border-bottom: 1px solid var(--border-light);
     margin-bottom: 15px;
+}
+
+/* Réactions immédiatement au-dessus du compteur de commentaires */
+body.home-page .reactions-bar + .post-actions {
+    border-top: none;
+    padding-top: 14px;
 }
 
 body.home-page .action-btn {
@@ -863,6 +870,85 @@ body.home-page .action-btn {
 body.home-page .action-btn svg {
     width: 20px;
     height: 20px;
+}
+
+/* Barre de réactions (emojis agrégés, style proche Facebook / Discord) */
+body.home-page .reactions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 0;
+    padding: 14px 0 16px;
+    border-top: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
+}
+
+body.home-page .reaction-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px 4px 8px;
+    min-height: 32px;
+    border-radius: 999px;
+    background: var(--hover-bg);
+    border: 1px solid var(--border-light);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    font-size: 13px;
+    line-height: 1;
+    user-select: none;
+}
+
+body.home-page .reaction-chip-emoji {
+    font-size: 1.15rem;
+    line-height: 1;
+    display: inline-block;
+    transform: translateY(0.5px);
+}
+
+body.home-page .reaction-chip-count {
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 1ch;
+}
+
+body.home-page button.reaction-chip {
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: help;
+    text-align: left;
+    appearance: none;
+}
+
+body.home-page button.reaction-chip:focus-visible {
+    outline: 2px solid var(--brand-light-blue);
+    outline-offset: 2px;
+}
+
+/* Tooltip liste des réacteurs (élément fixe sur body, géré par home-reactions-tooltip.js) */
+.reaction-tooltip {
+    position: fixed;
+    z-index: 10050;
+    max-width: min(280px, calc(100vw - 16px));
+    padding: 8px 12px;
+    background: var(--text-main);
+    color: var(--bg-card);
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.18);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.12s ease, visibility 0.12s ease;
+}
+
+.reaction-tooltip.is-visible {
+    opacity: 1;
+    visibility: visible;
 }
 
 body.home-page .comments-section {

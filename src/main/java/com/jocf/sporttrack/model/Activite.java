@@ -22,7 +22,10 @@ import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "activites")
@@ -67,4 +70,43 @@ public class Activite {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Commentaire> commentaires = new ArrayList<>();
+
+    /** Commentaires textuels uniquement, dans l’ordre chronologique de la liste. */
+    public List<Commentaire> getCommentairesMessages() {
+        return commentaires.stream()
+                .filter(c -> c.getType() == TypeCommentaire.MESSAGE)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Réactions par emoji avec prénoms / noms des auteurs (ordre chronologique des réactions).
+     */
+    public List<ReactionGroupee> getReactionsGroupees() {
+        Map<String, List<Utilisateur>> parEmoji = new LinkedHashMap<>();
+        for (Commentaire c : commentaires) {
+            if (c.getType() == TypeCommentaire.REACTION && c.getAuteur() != null) {
+                parEmoji.computeIfAbsent(c.getMessage(), k -> new ArrayList<>()).add(c.getAuteur());
+            }
+        }
+        List<ReactionGroupee> resultat = new ArrayList<>();
+        for (Map.Entry<String, List<Utilisateur>> e : parEmoji.entrySet()) {
+            String noms = e.getValue().stream()
+                    .map(u -> u.getPrenom() + " " + u.getNom())
+                    .collect(Collectors.joining(", "));
+            resultat.add(new ReactionGroupee(e.getKey(), e.getValue().size(), noms));
+        }
+        return resultat;
+    }
+
+    /**
+     * Réactions agrégées par emoji (chaîne stockée en {@link Commentaire#getMessage()}),
+     * ordre d’apparition conservé.
+     */
+    public Map<String, Long> getReactionsParEmoji() {
+        Map<String, Long> counts = new LinkedHashMap<>();
+        for (ReactionGroupee g : getReactionsGroupees()) {
+            counts.put(g.emoji(), g.nombre());
+        }
+        return counts;
+    }
 }
