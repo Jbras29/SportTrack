@@ -18,11 +18,11 @@
                 <h1>Fil d'actualité</h1>
             </div>
 
-            <div class="post-card empty-feed" th:if="${#lists.isEmpty(activitesAmis)}">
-                Ajoutez des amis pour voir leurs activités.
+            <div class="post-card empty-feed" th:if="${#lists.isEmpty(activitesFil)}">
+                Aucune activité pour le moment. Enregistrez une séance ou ajoutez des amis pour voir le fil.
             </div>
 
-            <article class="post-card" th:each="activite : ${activitesAmis}">
+            <article class="post-card" th:each="activite : ${activitesFil}">
                 <div class="post-header">
                     <img th:src="${activite.utilisateur.cheminPhotoProfilAffichee()}"
                          th:alt="${activite.utilisateur.prenom}"
@@ -69,13 +69,21 @@
                 </div>
 
                 <div class="reactions-bar" th:if="${!#lists.isEmpty(activite.reactionsGroupees)}">
-                    <button type="button" class="reaction-chip"
-                            th:each="r : ${activite.reactionsGroupees}"
-                            th:attr="data-tooltip=${r.nomsDesReacteurs}"
-                            th:aria-label="|${r.emoji} : ${r.nomsDesReacteurs}|">
-                        <span class="reaction-chip-emoji" th:text="${r.emoji}" role="img" aria-hidden="true">👍</span>
-                        <span class="reaction-chip-count" th:text="${r.nombre}">1</span>
-                    </button>
+                    <div class="reactions-bar-track">
+                        <button type="button" class="reaction-chip"
+                                th:each="r : ${activite.reactionsGroupeesAffichees}"
+                                th:attr="data-tooltip=${r.nomsDesReacteurs}"
+                                th:aria-label="|${r.emoji} : ${r.nomsDesReacteurs}|">
+                            <span class="reaction-chip-emoji" th:text="${r.emoji}" role="img" aria-hidden="true">👍</span>
+                            <span class="reaction-chip-count" th:text="${r.nombre}">1</span>
+                        </button>
+                        <button type="button" class="reactions-more-btn"
+                                th:if="${activite.reactionsGroupeesMasqueesCount > 0}"
+                                th:aria-label="|${activite.reactionsGroupeesMasqueesCount} autre${activite.reactionsGroupeesMasqueesCount > 1 ? 's' : ''} type${activite.reactionsGroupeesMasqueesCount > 1 ? 's' : ''} de réaction|">
+                            <span class="reactions-more-icon" aria-hidden="true">+</span>
+                            <span class="reactions-more-count" th:text="${activite.reactionsGroupeesMasqueesCount}">2</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="post-actions">
@@ -83,6 +91,26 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         <span th:text="|${#lists.size(activite.commentairesMessages)} commentaire${#lists.size(activite.commentairesMessages) != 1 ? 's' : ''}|">0 commentaires</span>
                     </div>
+                    <button type="button"
+                            class="btn btn-secondary comment-composer-toggle"
+                            aria-expanded="false"
+                            th:aria-controls="|comment-composer-${activite.id}|">
+                        Commenter
+                    </button>
+                </div>
+
+                <div class="comment-composer"
+                     th:id="|comment-composer-${activite.id}|"
+                     hidden>
+                    <input type="text"
+                           class="comment-composer-input"
+                           maxlength="2000"
+                           th:id="|comment-activite-${activite.id}|"
+                           th:name="|comment-activite-${activite.id}|"
+                           th:aria-label="'Écrire un commentaire'"
+                           placeholder="Écrire un commentaire…"
+                           autocomplete="off">
+                    <button type="button" class="btn btn-primary comment-composer-post">Poster</button>
                 </div>
 
                 <div class="comments-section" th:if="${!#lists.isEmpty(activite.commentairesMessages)}">
@@ -143,5 +171,6 @@
     </div>
 
     <script th:src="@{/js/home-reactions-tooltip.js}" defer></script>
+    <script th:src="@{/js/home.js}" defer></script>
 </body>
 </html>

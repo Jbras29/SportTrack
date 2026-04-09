@@ -63,7 +63,7 @@ public class RootController {
         model.addAttribute("xpMaxNiveau", user.getXpSeuilProchainNiveauExperience());
         model.addAttribute("hpBarPercent", (double) user.getHpNormalise());
         model.addAttribute("hp", user.getHpNormalise());
-        model.addAttribute("activitesAmis", activiteService.recupererActivitesDesAmis(user));
+        model.addAttribute("activitesFil", activiteService.recupererActivitesFilActualite(user));
         model.addAttribute("defisEnCours", defis);
         return "home";
     }

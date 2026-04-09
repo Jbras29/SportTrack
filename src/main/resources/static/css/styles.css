@@ -844,11 +844,22 @@ body.home-page .value-accent {
 body.home-page .post-actions {
     display: flex;
     align-items: center;
-    gap: 20px;
+    justify-content: space-between;
+    gap: 12px;
     padding: 12px 0;
     border-top: 1px solid var(--border-light);
     border-bottom: 1px solid var(--border-light);
-    margin-bottom: 15px;
+    margin-bottom: 0;
+}
+
+/* Zone compteur / « Commenter » : pas de marge ni trait sous la ligne si la saisie est repliée */
+body.home-page .post-actions:has(+ .comment-composer[hidden]) {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+body.home-page .post-actions .action-btn {
+    min-width: 0;
 }
 
 /* Réactions immédiatement au-dessus du compteur de commentaires */
@@ -874,14 +885,30 @@ body.home-page .action-btn svg {
 
 /* Barre de réactions (emojis agrégés, style proche Facebook / Discord) */
 body.home-page .reactions-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
     margin-top: 0;
     padding: 14px 0 16px;
     border-top: 1px solid var(--border-light);
     border-bottom: 1px solid var(--border-light);
+}
+
+body.home-page .reactions-bar-track {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+body.home-page .reactions-bar-track::-webkit-scrollbar {
+    height: 4px;
+}
+
+body.home-page .reactions-bar-track::-webkit-scrollbar-thumb {
+    background: var(--border-light);
+    border-radius: 4px;
 }
 
 body.home-page .reaction-chip {
@@ -927,6 +954,87 @@ body.home-page button.reaction-chip:focus-visible {
     outline-offset: 2px;
 }
 
+body.home-page .reactions-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    padding: 4px 10px;
+    min-height: 32px;
+    border-radius: 999px;
+    margin: 0;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--hover-bg);
+    border: 1px dashed var(--border-light);
+    cursor: default;
+    appearance: none;
+}
+
+body.home-page .reactions-more-icon {
+    font-size: 1rem;
+    line-height: 1;
+    font-weight: 700;
+    opacity: 0.85;
+}
+
+body.home-page .reactions-more-count {
+    min-width: 1ch;
+    font-variant-numeric: tabular-nums;
+}
+
+body.home-page .reactions-more-btn:focus-visible {
+    outline: 2px solid var(--brand-light-blue);
+    outline-offset: 2px;
+}
+
+body.home-page .comment-composer {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px 0 0;
+}
+
+body.home-page .comment-composer[hidden] {
+    display: none !important;
+}
+
+body.home-page .comment-composer-input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    background: var(--bg-card);
+    color: var(--text-main);
+    font-size: 14px;
+    font-family: inherit;
+}
+
+body.home-page .comment-composer-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.85;
+}
+
+body.home-page .comment-composer-input:focus {
+    outline: none;
+    border-color: var(--brand-light-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+body.home-page .comment-composer-post {
+    flex-shrink: 0;
+    align-self: center;
+    white-space: nowrap;
+}
+
+body.home-page .comment-composer-toggle {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 /* Tooltip liste des réacteurs (élément fixe sur body, géré par home-reactions-tooltip.js) */
 .reaction-tooltip {
     position: fixed;
@@ -955,6 +1063,7 @@ body.home-page .comments-section {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    margin-top: 12px;
 }
 
 body.home-page .comment {
