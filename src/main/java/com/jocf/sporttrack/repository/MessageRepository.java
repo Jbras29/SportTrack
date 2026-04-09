@@ -13,8 +13,15 @@ import java.util.List;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
-    // Trouver tous les messages entre deux utilisateurs (dans les deux sens)
-    @Query("SELECT m FROM Message m WHERE (m.expediteur = :user1 AND m.destinataire = :user2) OR (m.expediteur = :user2 AND m.destinataire = :user1) ORDER BY m.dateEnvoi ASC")
+    // Tous les messages entre deux utilisateurs (expéditeur / destinataire chargés pour l’UI)
+    @Query("""
+            SELECT m FROM Message m
+            JOIN FETCH m.expediteur
+            JOIN FETCH m.destinataire
+            WHERE (m.expediteur = :user1 AND m.destinataire = :user2)
+               OR (m.expediteur = :user2 AND m.destinataire = :user1)
+            ORDER BY m.dateEnvoi ASC
+            """)
     List<Message> findConversationBetweenUsers(@Param("user1") Utilisateur user1, @Param("user2") Utilisateur user2);
 
     // Trouver les messages reçus par un utilisateur
@@ -34,8 +41,15 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("SELECT DISTINCT m.expediteur FROM Message m WHERE m.destinataire = :user")
     List<Utilisateur> findExpediteursPour(@Param("user") Utilisateur user);
 
-    // Trouver le dernier message entre deux utilisateurs
-    @Query("SELECT m FROM Message m WHERE (m.expediteur = :user1 AND m.destinataire = :user2) OR (m.expediteur = :user2 AND m.destinataire = :user1) ORDER BY m.dateEnvoi DESC")
+    // Dernier message entre deux utilisateurs (expéditeur / destinataire chargés pour l’UI)
+    @Query("""
+            SELECT m FROM Message m
+            JOIN FETCH m.expediteur
+            JOIN FETCH m.destinataire
+            WHERE (m.expediteur = :user1 AND m.destinataire = :user2)
+               OR (m.expediteur = :user2 AND m.destinataire = :user1)
+            ORDER BY m.dateEnvoi DESC
+            """)
     List<Message> findLastMessageBetweenUsers(@Param("user1") Utilisateur user1, @Param("user2") Utilisateur user2, Pageable pageable);
 
 

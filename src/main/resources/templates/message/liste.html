@@ -8,25 +8,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
-<body class="app-shell messages-page">
+<body class="app-shell messages-page messages-list-page"
+      th:attr="data-open-destinataire-id=${openDestinataireId != null ? openDestinataireId : ''}">
 
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
-    <div class="main-wrapper main-wrapper--stack">
-
-        <div class="page-header page-header--messages-list">
-            <div class="page-header-text">
-                <h1>Mes Messages</h1>
-                <p>Discutez avec vos amis et contacts sportifs</p>
-            </div>
-            <button type="button" class="btn btn-primary btn-new-message messages-compose-btn open-friend-picker" title="Écrire à un ami">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <path d="M12 20h9"/>
-                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                </svg>
-                <span class="messages-compose-btn-label">Écrire un message</span>
-            </button>
-        </div>
+    <div class="main-wrapper main-wrapper--stack main-wrapper--messages-full">
 
         <div class="messages-container">
             <div class="messages-list">
@@ -48,33 +35,47 @@
                 </div>
 
                 <div th:if="${not #lists.isEmpty(derniersMessages)}" class="conversations-list">
-                    <a th:each="message : ${derniersMessages}"
-                       th:href="@{/messages/conversation/{id}(id=${message.expediteur.id == utilisateur.id ? message.destinataire.id : message.expediteur.id})}"
-                       class="conversation-link">
-                        <div class="conversation-item">
-                            <div class="conversation-avatar">
-                                <img th:src="${message.expediteur.id == utilisateur.id ? message.destinataire.cheminPhotoProfilAffichee() : message.expediteur.cheminPhotoProfilAffichee()}"
-                                     alt="Photo de profil">
-                            </div>
-                            <div class="conversation-info">
-                                <div class="conversation-header">
-                                    <h4 th:text="${message.expediteur.id == utilisateur.id ? message.destinataire.prenom + ' ' + message.destinataire.nom : message.expediteur.prenom + ' ' + message.expediteur.nom}"></h4>
-                                    <span class="conversation-time" th:text="${#temporals.format(message.dateEnvoi, 'dd/MM/yyyy HH:mm')}"></span>
+                    <th:block th:each="message : ${derniersMessages}">
+                        <th:block th:if="${message.expediteur != null and message.destinataire != null and utilisateur != null}">
+                            <th:block th:with="peerId=${message.expediteur.id == utilisateur.id ? message.destinataire.id : message.expediteur.id}">
+                            <a th:href="@{/messages(open=${peerId})}"
+                               class="conversation-link js-conversation-trigger"
+                               th:attr="data-destinataire-id=${peerId}">
+                                <div class="conversation-item"
+                                     th:classappend="${openDestinataireId != null and openDestinataireId == peerId} ? ' active'">
+                                    <div class="conversation-avatar">
+                                        <img th:src="${message.expediteur.id == utilisateur.id ? message.destinataire.cheminPhotoProfilAffichee() : message.expediteur.cheminPhotoProfilAffichee()}"
+                                             alt="Photo de profil">
+                                    </div>
+                                    <div class="conversation-info">
+                                        <div class="conversation-header">
+                                            <h4 th:text="${message.expediteur.id == utilisateur.id ? message.destinataire.prenom + ' ' + message.destinataire.nom : message.expediteur.prenom + ' ' + message.expediteur.nom}"></h4>
+                                            <span class="conversation-time" th:text="${#temporals.format(message.dateEnvoi, 'dd/MM/yyyy HH:mm')}"></span>
+                                        </div>
+                                        <p class="last-message" th:text="${message.contenu.length() > 50 ? message.contenu.substring(0, 50) + '...' : message.contenu}"></p>
+                                    </div>
+                                    <div th:if="${message.destinataire.id == utilisateur.id and not message.lu}" class="unread-indicator"></div>
                                 </div>
-                                <p class="last-message" th:text="${message.contenu.length() > 50 ? message.contenu.substring(0, 50) + '...' : message.contenu}"></p>
-                            </div>
-                            <div th:if="${message.destinataire.id == utilisateur.id and not message.lu}" class="unread-indicator"></div>
-                        </div>
-                    </a>
+                            </a>
+                            </th:block>
+                        </th:block>
+                    </th:block>
                 </div>
             </div>
 
-            <div class="messages-content">
-                <div class="empty-chat-state">
-                    <div class="empty-icon">👋</div>
-                    <h3>Sélectionnez une conversation</h3>
-                    <p>Cliquez sur une conversation pour commencer à discuter</p>
-                </div>
+            <div id="messagesPanelMount">
+                <th:block th:if="${openDestinataireId != null}">
+                    <th:block th:replace="~{message/fragments/chat-panel :: chatPanel}"></th:block>
+                </th:block>
+                <th:block th:if="${openDestinataireId == null}">
+                    <div class="messages-content messages-content--placeholder" id="messagesPanel">
+                        <div class="empty-chat-state">
+                            <div class="empty-icon">👋</div>
+                            <h3>Sélectionnez une conversation</h3>
+                            <p>Cliquez sur une conversation pour commencer à discuter</p>
+                        </div>
+                    </div>
+                </th:block>
             </div>
         </div>
     </div>
@@ -89,14 +90,18 @@
                 Vous n’avez pas encore d’amis. <a th:href="@{/friend}">Ajoutez des contacts</a> pour discuter.
             </p>
             <ul th:if="${not #lists.isEmpty(amis)}" class="friend-picker-list">
-                <li th:each="ami : ${amis}">
-                    <a th:href="@{/messages/conversation/{id}(id=${ami.id})}" class="friend-picker-item">
+                <th:block th:each="ami : ${amis}">
+                <li th:if="${ami != null}">
+                    <a th:href="@{/messages(open=${ami.id})}"
+                       class="friend-picker-item js-conversation-trigger"
+                       th:attr="data-destinataire-id=${ami.id}">
                         <span class="friend-picker-avatar">
                             <img th:src="${ami.cheminPhotoProfilAffichee()}" alt="">
                         </span>
                         <span class="friend-picker-name" th:text="${ami.prenom + ' ' + ami.nom}">Nom</span>
                     </a>
                 </li>
+                </th:block>
             </ul>
         </div>
     </dialog>

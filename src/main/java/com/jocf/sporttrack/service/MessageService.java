@@ -127,6 +127,8 @@ public class MessageService {
                 m2.getDateEnvoi().compareTo(m1.getDateEnvoi())
         );
 
-        return derniersMessages;
+        return derniersMessages.stream()
+                .filter(m -> m.getExpediteur() != null && m.getDestinataire() != null)
+                .toList();
     }
 }

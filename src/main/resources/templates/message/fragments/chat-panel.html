@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Fragment : panneau conversation (fil + formulaire). Utilisé par liste (XHR) et rendu serveur si ?open= -->
+<div th:fragment="chatPanel" class="messages-content" id="messagesPanel">
+    <div class="chat-messages" id="chatMessages">
+        <th:block th:each="msg : ${conversation}">
+            <div th:if="${msg.expediteur != null and utilisateur != null}"
+                 class="message"
+                 th:classappend="${msg.expediteur.id == utilisateur.id} ? 'message-sent' : 'message-received'">
+                <div class="message-avatar">
+                    <img th:src="${msg.expediteur.cheminPhotoProfilAffichee()}" alt="Photo de profil">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <p th:text="${msg.contenu}"></p>
+                    </div>
+                    <div class="message-time" th:text="${#temporals.format(msg.dateEnvoi, 'dd/MM/yyyy HH:mm')}"></div>
+                </div>
+            </div>
+        </th:block>
+    </div>
+
+    <div class="message-input-container" th:if="${destinataire != null}">
+        <form class="message-form" id="messageSendForm" method="post" th:action="@{/messages/envoyer}">
+            <input type="hidden" name="destinataireId" th:value="${destinataire.id}">
+            <div class="message-input-group">
+                <textarea name="contenu" placeholder="Tapez votre message..." rows="1" maxlength="2000" required></textarea>
+                <button type="submit" class="btn btn-primary send-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
