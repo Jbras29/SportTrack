@@ -1,5 +1,6 @@
 package com.jocf.sporttrack.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -41,9 +42,14 @@ public class Commentaire {
 
     @ManyToOne
     @JoinColumn(name = "auteur_id", nullable = false)
+    @JsonIgnoreProperties({
+            "motdepasse", "activites", "amis", "demandesAmisEnvoyees",
+            "prefSportives", "badges", "evenementsOrganises", "evenementsParticipes"
+    })
     private Utilisateur auteur;
 
     @ManyToOne
     @JoinColumn(name = "activite_id", nullable = false)
+    @JsonIgnoreProperties({"commentaires", "utilisateur"})
     private Activite activite;
 }
