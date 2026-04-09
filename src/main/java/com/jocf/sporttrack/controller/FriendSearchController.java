@@ -25,15 +25,15 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.nio.charset.StandardCharsets;
 
 @Controller
-@RequestMapping("/search/friend")
-public class FriendController {
+@RequestMapping("/friend/search")
+public class FriendSearchController {
 
     private static final int NOMBRE_MAX_SUGGESTIONS = 5;
 
     private final UtilisateurService utilisateurService;
     private final UtilisateurRepository utilisateurRepository;
 
-    public FriendController(UtilisateurService utilisateurService, UtilisateurRepository utilisateurRepository) {
+    public FriendSearchController(UtilisateurService utilisateurService, UtilisateurRepository utilisateurRepository) {
         this.utilisateurService = utilisateurService;
         this.utilisateurRepository = utilisateurRepository;
     }
