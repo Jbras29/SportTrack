@@ -225,4 +225,37 @@ class AnnonceServiceTest {
         assertFalse(annonces.isEmpty());
         assertEquals("Pensez à apporter vos chaussures de rando !", annonces.get(0).getMessage());
     }
+
+    @Test
+void participant_voit_annonce_sur_dashboard() {
+    Utilisateur participant = Utilisateur.builder()
+        .id(2L).nom("Martin").prenom("Bob")
+        .email("bob@mail.com").motdepasse("1234")
+        .build();
+
+    Evenement evenement = Evenement.builder()
+        .id(1L)
+        .nom("Trail du dimanche")
+        .description("Un trail sympa")
+        .date(LocalDateTime.now().plusDays(7))
+        .organisateur(Utilisateur.builder().id(1L).build())
+        .participants(List.of(participant))
+        .build();
+
+    Annonce annonce = Annonce.builder()
+        .id(1L)
+        .message("Pensez à apporter vos chaussures de rando !")
+        .evenement(evenement)
+        .date(LocalDateTime.now())
+        .build();
+
+    when(evenementRepository.findById(1L)).thenReturn(Optional.of(evenement));
+    when(annonceRepository.findByEvenement(evenement)).thenReturn(List.of(annonce));
+
+    List<Annonce> annonces = annonceService.recupererAnnoncesParEvenement(1L);
+
+    assertFalse(annonces.isEmpty());
+    assertEquals("Pensez à apporter vos chaussures de rando !", annonces.get(0).getMessage());
+    assertEquals(evenement, annonces.get(0).getEvenement());
+}
 }
