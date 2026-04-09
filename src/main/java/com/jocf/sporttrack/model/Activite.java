@@ -22,7 +22,10 @@ import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "activites")
@@ -31,6 +34,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Activite {
+
+    /** Nombre maximal de types de réaction (emojis distincts) affichés dans le fil d’actualité. */
+    private static final int LIMITE_REACTIONS_AFFICHEES = 5;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -67,4 +73,88 @@ public class Activite {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Commentaire> commentaires = new ArrayList<>();
+
+    /** Commentaires textuels uniquement, dans l’ordre chronologique de la liste. */
+    public List<Commentaire> getCommentairesMessages() {
+        return commentaires.stream()
+                .filter(c -> c.getType() == TypeCommentaire.MESSAGE)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Réactions par emoji avec prénoms / noms des auteurs (ordre chronologique des réactions).
+     */
+    public List<ReactionGroupee> getReactionsGroupees() {
+        Map<String, List<Utilisateur>> parEmoji = new LinkedHashMap<>();
+        for (Commentaire c : commentaires) {
+            if (c.getType() == TypeCommentaire.REACTION && c.getAuteur() != null) {
+                parEmoji.computeIfAbsent(c.getMessage(), k -> new ArrayList<>()).add(c.getAuteur());
+            }
+        }
+        List<ReactionGroupee> resultat = new ArrayList<>();
+        for (Map.Entry<String, List<Utilisateur>> e : parEmoji.entrySet()) {
+            String noms = e.getValue().stream()
+                    .map(u -> u.getPrenom() + " " + u.getNom())
+                    .collect(Collectors.joining(", "));
+            resultat.add(new ReactionGroupee(e.getKey(), e.getValue().size(), noms));
+        }
+        return resultat;
+    }
+
+    /**
+     * Sous-ensemble des réactions groupées pour l’affichage (évite une barre trop longue).
+     */
+    public List<ReactionGroupee> getReactionsGroupeesAffichees() {
+        List<ReactionGroupee> toutes = getReactionsGroupees();
+        if (toutes.size() <= LIMITE_REACTIONS_AFFICHEES) {
+            return toutes;
+        }
+        return new ArrayList<>(toutes.subList(0, LIMITE_REACTIONS_AFFICHEES));
+    }
+
+    /**
+     * Nombre de types de réaction non affichés (au-delà de la limite d’affichage du fil).
+     */
+    public int getReactionsGroupeesMasqueesCount() {
+        int total = getReactionsGroupees().size();
+        return Math.max(0, total - LIMITE_REACTIONS_AFFICHEES);
+    }
+
+    /**
+     * Indique si l’utilisateur a déjà réagi avec cet emoji sur cette activité (une entrée par auteur et par emoji).
+     */
+    public boolean utilisateurAEmitReactionAvecEmoji(Long utilisateurId, String emoji) {
+        return getIdCommentaireReactionUtilisateur(utilisateurId, emoji) != null;
+    }
+
+    /**
+     * Identifiant du commentaire de réaction pour cet utilisateur et cet emoji, s’il existe.
+     */
+    public Long getIdCommentaireReactionUtilisateur(Long utilisateurId, String emoji) {
+        if (utilisateurId == null || emoji == null) {
+            return null;
+        }
+        for (Commentaire c : commentaires) {
+            if (c.getType() == TypeCommentaire.REACTION
+                    && emoji.equals(c.getMessage())
+                    && c.getAuteur() != null
+                    && utilisateurId.equals(c.getAuteur().getId())) {
+                return c.getId();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Réactions agrégées par emoji (chaîne stockée en {@link Commentaire#getMessage()}),
+     * ordre d’apparition conservé.
+     */
+    public Map<String, Long> getReactionsParEmoji() {
+        Map<String, Long> counts = new LinkedHashMap<>();
+        for (ReactionGroupee g : getReactionsGroupees()) {
+            counts.put(g.emoji(), g.nombre());
+        }
+        return counts;
+    }
+    
 }

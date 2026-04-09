@@ -1,5 +1,6 @@
 package com.jocf.sporttrack.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"activite"})
 public class Commentaire {
 
     @Id
@@ -41,6 +43,10 @@ public class Commentaire {
 
     @ManyToOne
     @JoinColumn(name = "auteur_id", nullable = false)
+    @JsonIgnoreProperties({
+            "motdepasse", "activites", "amis", "demandesAmisEnvoyees",
+            "prefSportives", "badges", "evenementsOrganises", "evenementsParticipes"
+    })
     private Utilisateur auteur;
 
     @ManyToOne

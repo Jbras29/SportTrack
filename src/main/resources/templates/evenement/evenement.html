@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sport Track | Événements</title>
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="app-shell event-list-page">
+
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+
+    <div class="main-wrapper main-wrapper--stack">
+        <div class="page-header">
+            <div>
+                <h1>Événements disponibles</h1>
+                <p>Rejoignez des défis et pratiquez avec la communauté.</p>
+            </div>
+            <a th:href="@{/creer-evenement}" class="btn-create">+ NOUVEAU</a>
+        </div>
+
+        <div class="events-grid">
+            <p th:if="${#lists.isEmpty(evenements)}" class="event-list-empty text-muted">
+                Aucun événement disponible pour le moment.
+            </p>
+
+            <div class="event-card" th:each="evt : ${evenements}">
+                <div class="card-header">
+                    <h3 class="event-title" th:text="${evt.nom}">Titre</h3>
+                    <span class="event-date" th:text="'📅 ' + ${#temporals.format(evt.date, 'dd MMM yyyy HH:mm')}">Date</span>
+                </div>
+                <p class="event-desc" th:text="${evt.description} ? ${evt.description} : 'Aucune description'">Description</p>
+
+                <div class="card-footer">
+                    <span class="participants-count">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span th:text="${#lists.size(evt.participants)} + ' participants'"></span>
+                    </span>
+                    <div class="card-actions">
+                        <a th:href="@{/evenements/{id}(id=${evt.id})}" class="btn-detail">Détails</a>
+                        <button type="button" class="btn-join" th:attr="onclick=|rejoindreEvenement(${evt.id}, this)|">Rejoindre</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function rejoindreEvenement(evenementId, btnElement) {
+            btnElement.disabled = true;
+            btnElement.innerText = "Traitement...";
+
+            try {
+                const response = await fetch("/api/evenements/" + evenementId + "/rejoindre", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                if (response.ok) {
+                    alert("Félicitations ! Vous avez rejoint l'événement.");
+                    location.reload();
+                } else {
+                    const erreurMsg = await response.text();
+                    alert("Impossible de rejoindre : " + erreurMsg);
+                    btnElement.disabled = false;
+                    btnElement.innerText = "Rejoindre";
+                }
+            } catch (error) {
+                alert("Erreur de connexion au serveur.");
+                btnElement.disabled = false;
+                btnElement.innerText = "Rejoindre";
+            }
+        }
+    </script>
+</body>
+</html>

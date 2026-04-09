@@ -47,5 +47,6 @@ public class Challenge {
             joinColumns = @JoinColumn(name = "challenge_id"),
             inverseJoinColumns = @JoinColumn(name = "utilisateur_id")
     )
+    @Builder.Default
     private Set<Utilisateur> participants = new HashSet<>();
 }

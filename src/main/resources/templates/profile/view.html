@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil | Sport Track</title>
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="app-shell profile-page home-page"
+      th:attr="data-current-user-id=${user.id}">
+
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+
+    <div class="main-wrapper main-wrapper--stack main-wrapper--profile-split">
+
+        <div class="profile-split">
+            <aside class="profile-split-left" aria-label="Informations du profil">
+            <!-- Photo + nom -->
+            <div class="profile-identity">
+                <div class="profile-card profile-identity-card">
+                    <img class="profile-identity-avatar"
+                         th:src="${utilisateur.cheminPhotoProfilAffichee()}"
+                         th:alt="|${utilisateur.prenom} ${utilisateur.nom}|"
+                         width="120" height="120">
+                    <p class="profile-identity-name" th:text="|${utilisateur.prenom} ${utilisateur.nom}|">Prénom Nom</p>
+                </div>
+            </div>
+
+            <!-- À propos + préférences -->
+            <div class="profile-sidebar">
+                <div class="profile-card">
+                    <h3 class="card-title">À propos</h3>
+                    <div class="about-grid">
+                        <div class="about-item">
+                            <span class="about-label">Email</span>
+                            <span class="about-value" th:text="${utilisateur.email}">email@example.com</span>
+                        </div>
+                        <div class="about-item">
+                            <span class="about-label">Âge</span>
+                            <span class="about-value" th:text="${utilisateur.age != null ? utilisateur.age + ' ans' : 'Non spécifié'}">Non spécifié</span>
+                        </div>
+                        <div class="about-item">
+                            <span class="about-label">Sexe</span>
+                            <span class="about-value" th:text="${utilisateur.sexe != null ? utilisateur.sexe : 'Non spécifié'}">Non spécifié</span>
+                        </div>
+                        <div class="about-item">
+                            <span class="about-label">Poids</span>
+                            <span class="about-value" th:text="${utilisateur.poids != null ? utilisateur.poids + ' kg' : 'Non spécifié'}">Non spécifié</span>
+                        </div>
+                        <div class="about-item">
+                            <span class="about-label">Taille</span>
+                            <span class="about-value" th:text="${utilisateur.taille != null ? utilisateur.taille + ' cm' : 'Non spécifié'}">Non spécifié</span>
+                        </div>
+                        <div class="about-item">
+                            <span class="about-label">Niveau sportif</span>
+                            <span class="about-value" th:text="${utilisateur.niveauPratiqueSportive != null ? utilisateur.niveauPratiqueSportive.name() : 'Non spécifié'}">Non spécifié</span>
+                        </div>
+
+                        <div class="about-item" th:if="${utilisateur.id == user.id}">
+                            <a th:href="@{/profile/edit}" class="btn btn-primary btn-edit">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                Modifier
+                            </a>
+                        </div>
+
+                        <div class="about-item" th:if="${utilisateur.id != user.id}">
+                            <a th:href="@{'/messages/conversation/' + ${utilisateur.id}}" class="btn btn-primary btn-message">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                Envoyer un message
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-card">
+                    <h3 class="card-title">Préférences sportives</h3>
+                    <div class="preferences-tags" th:if="${utilisateur.prefSportives != null and !#lists.isEmpty(utilisateur.prefSportives)}">
+                        <span class="tag" th:each="pref : ${utilisateur.prefSportives}" th:text="${pref.nom}">Sport</span>
+                    </div>
+                    <p class="empty-text" th:if="${utilisateur.prefSportives == null or #lists.isEmpty(utilisateur.prefSportives)}">
+                        Aucune préférence sportive ajoutée.
+                    </p>
+                </div>
+            </div>
+            </aside>
+
+            <div class="profile-split-right">
+            <!-- Amis : fixe en haut de la colonne droite (ne défile pas) -->
+            <div class="profile-right-fixed">
+                <div class="profile-friends">
+                    <div class="profile-card">
+                        <h3 class="card-title">Amis <span class="count">(<span th:text="${amis != null ? amis.size() : 0}">0</span>)</span></h3>
+                        <div class="friends-grid" th:if="${amis != null and !#lists.isEmpty(amis)}">
+                            <a th:href="@{/profile/{id}(id=${ami.id})}"
+                               class="friend-item"
+                               th:each="ami : ${amis}"
+                               th:attr="aria-label=|Profil de ${ami.prenom} ${ami.nom}|">
+                                <img th:src="${ami.cheminPhotoProfilAffichee()}" alt="" class="friend-avatar">
+                                <span class="friend-name" th:text="${ami.prenom + ' ' + ami.nom}">Prénom Nom</span>
+                            </a>
+                        </div>
+                        <div class="empty-state" th:if="${amis == null or #lists.isEmpty(amis)}">
+                            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                            <p>Aucun ami ajouté.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Événements + activités : zone défilante -->
+            <div class="profile-split-right-scroll">
+                <div class="profile-events">
+                    <div class="profile-card">
+                        <h3 class="card-title">Événements</h3>
+
+                        <div class="events-tabs">
+                            <button class="tab-btn active" data-tab="organized">Organisés</button>
+                            <button class="tab-btn" data-tab="participated">Participés</button>
+                        </div>
+
+                        <div class="events-content">
+                            <div class="events-list active" data-tab="organized">
+                                <div th:if="${evenementsOrganises != null and !#lists.isEmpty(evenementsOrganises)}">
+                                    <div class="event-item" th:each="event : ${evenementsOrganises}">
+                                        <div class="event-icon">
+                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3"></path><path d="M15 2H9a2 2 0 0 0-2 2v2h10V4a2 2 0 0 0-2-2z"></path><path d="M12 11v6"></path><path d="M9 14h6"></path></svg>
+                                        </div>
+                                        <div class="event-info">
+                                            <h4 th:text="${event.nom}">Nom de l'événement</h4>
+                                            <p th:text="${event.date} + ' • ' + event.lieu">Détails</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="empty-state" th:if="${evenementsOrganises == null or #lists.isEmpty(evenementsOrganises)}">
+                                    <p>Aucun événement organisé.</p>
+                                </div>
+                            </div>
+
+                            <div class="events-list" data-tab="participated">
+                                <div th:if="${evenementsParticipe != null and !#lists.isEmpty(evenementsParticipe)}">
+                                    <div class="event-item" th:each="event : ${evenementsParticipe}">
+                                        <div class="event-icon">
+                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3"></path><path d="M15 2H9a2 2 0 0 0-2 2v2h10V4a2 2 0 0 0-2-2z"></path><path d="M12 11v6"></path><path d="M9 14h6"></path></svg>
+                                        </div>
+                                        <div class="event-info">
+                                            <h4 th:text="${event.nom}">Nom de l'événement</h4>
+                                            <p th:text="${event.date} + ' • ' + event.lieu">Détails</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="empty-state" th:if="${evenementsParticipe == null or #lists.isEmpty(evenementsParticipe)}">
+                                    <p>Aucun événement participé.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-main">
+                <h2 class="profile-section-heading">Activités récentes</h2>
+                <div class="profile-activities-list" th:if="${activites != null and !#lists.isEmpty(activites)}">
+                    <th:block th:each="activite : ${activites}">
+                        <article th:replace="~{fragments/feed-activite :: carteActivite(activite=${activite}, user=${user})}"></article>
+                    </th:block>
+                </div>
+                <div class="post-card empty-feed profile-empty-activites" th:if="${activites == null or #lists.isEmpty(activites)}">
+                    Aucune activité enregistrée pour le moment.
+                </div>
+                </div>
+            </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="home-feedback-toast"
+         class="home-feedback-toast"
+         hidden
+         role="alert"
+         aria-live="polite"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js" defer></script>
+    <script th:src="@{/js/home-reactions-tooltip.js}" defer></script>
+    <script th:src="@{/js/home.js}" defer></script>
+    <script th:src="@{/js/profile/view.js}" defer></script>
+</body>
+</html>

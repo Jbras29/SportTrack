@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Amis | Sport Track</title>
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
@@ -82,9 +83,13 @@
                         </div>
 
                         <div class="card-actions">
-                            <a th:href="@{/profile/edit(id=${ami.id})}" class="btn-profile-link">
+                            <a th:href="@{/profile/{id}(id=${ami.id})}" class="btn-profile-link">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                                 Voir le profil
+                            </a>
+                            <a th:href="@{/messages/conversation/{id}(id=${ami.id})}" class="btn-profile-link btn-message-link">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                Message
                             </a>
                         </div>
                     </div>

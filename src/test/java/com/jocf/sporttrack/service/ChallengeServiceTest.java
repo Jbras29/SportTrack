@@ -180,4 +180,52 @@ class ChallengeServiceTest {
         verify(challengeRepository).existsById(1L);
         verify(challengeRepository, org.mockito.Mockito.never()).deleteById(1L);
     }
+
+    @Test
+void creerChallengeAvecDonneesValides() {
+    Utilisateur organisateur = Utilisateur.builder().id(1L).build();
+    Challenge challenge = Challenge.builder()
+        .nom("Trail Challenge")
+        .dateDebut(Date.valueOf("2026-05-01"))
+        .dateFin(Date.valueOf("2026-05-31"))
+        .build();
+
+    when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(organisateur));
+    when(challengeRepository.save(any(Challenge.class))).thenAnswer(invocation -> {
+        Challenge saved = invocation.getArgument(0);
+        return Challenge.builder()
+            .id(1L)
+            .nom(saved.getNom())
+            .dateDebut(saved.getDateDebut())
+            .dateFin(saved.getDateFin())
+            .organisateur(saved.getOrganisateur())
+            .build();
+    });
+
+    Challenge result = challengeService.creerChallenge(challenge, 1L);
+
+    assertNotNull(result.getId());
+    assertEquals("Trail Challenge", result.getNom());
+    assertEquals(organisateur, result.getOrganisateur());
+    verify(challengeRepository).save(any(Challenge.class));
+}
+
+@Test
+void creerChallengeRefuseDateFinAvantDateDebut() {
+    Utilisateur organisateur = Utilisateur.builder().id(1L).build();
+    Challenge challenge = Challenge.builder()
+        .nom("Trail Challenge")
+        .dateDebut(Date.valueOf("2026-05-31"))
+        .dateFin(Date.valueOf("2026-05-01"))
+        .build();
+
+    when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(organisateur));
+
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> challengeService.creerChallenge(challenge, 1L)
+    );
+
+    assertEquals("La date de fin doit être après la date de début.", exception.getMessage());
+}
 }

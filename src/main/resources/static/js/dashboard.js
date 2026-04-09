@@ -24,17 +24,25 @@
 
     legend.hidden = false;
 
-    var COLORS = {
-        blue: "#135077",
-        light: "#21A2D7",
-        orange: "#F39434",
-        grid: "rgba(100, 116, 139, 0.15)",
-        text: "#64748B"
-    };
-
     var ctx = canvas.getContext("2d");
     var animProgress = 0;
     var hoverIndex = -1;
+
+    function cssVar(name, fallback) {
+        var value = getComputedStyle(document.documentElement).getPropertyValue(name);
+        value = value ? value.trim() : "";
+        return value || fallback;
+    }
+
+    function getThemeColors() {
+        return {
+            blue: cssVar("--brand-blue", "#135077"),
+            light: cssVar("--brand-light-blue", "#21A2D7"),
+            orange: cssVar("--brand-orange", "#F39434"),
+            text: cssVar("--text-muted", "#64748B"),
+            border: cssVar("--border-light", "#E2E8F0")
+        };
+    }
 
     function layoutSize() {
         var dpr = window.devicePixelRatio || 1;
@@ -48,6 +56,7 @@
     }
 
     function draw() {
+        var colors = getThemeColors();
         var size = layoutSize();
         var w = size.w;
         var h = size.h;
@@ -66,13 +75,13 @@
         for (var g = 0; g <= 4; g++) {
             var gy = pad.t + (chartH * g) / 4;
             ctx.beginPath();
-            ctx.strokeStyle = COLORS.grid;
+            ctx.strokeStyle = colors.border;
             ctx.lineWidth = 1;
             ctx.moveTo(pad.l, gy);
             ctx.lineTo(pad.l + chartW, gy);
             ctx.stroke();
             var labelVal = Math.round(maxVal * (1 - g / 4));
-            ctx.fillStyle = COLORS.text;
+            ctx.fillStyle = colors.text;
             ctx.font = "10px Inter, sans-serif";
             ctx.textAlign = "right";
             ctx.fillText(String(labelVal), pad.l - 6, gy + 3);
@@ -99,11 +108,11 @@
 
             if (bh > 0) {
                 var grd = ctx.createLinearGradient(bx, by, bx, pad.t + chartH);
-                grd.addColorStop(0, COLORS.light);
-                grd.addColorStop(0.55, COLORS.blue);
-                grd.addColorStop(1, COLORS.orange);
+                grd.addColorStop(0, colors.light);
+                grd.addColorStop(0.55, colors.blue);
+                grd.addColorStop(1, colors.orange);
                 ctx.fillStyle = grd;
-                ctx.shadowColor = "rgba(19, 80, 119, 0.25)";
+                ctx.shadowColor = colors.blue;
                 ctx.shadowBlur = isHover ? 14 : 8;
                 ctx.shadowOffsetY = 4;
                 ctx.beginPath();
@@ -120,7 +129,7 @@
                 ctx.shadowOffsetY = 0;
             }
 
-            ctx.fillStyle = COLORS.text;
+            ctx.fillStyle = colors.text;
             ctx.font = "600 11px Inter, sans-serif";
             ctx.textAlign = "center";
             ctx.fillText(label, x + barW / 2, pad.t + chartH + 18);
@@ -179,6 +188,24 @@
     });
 
     window.addEventListener("resize", function () {
+        animProgress = 1;
+        draw();
+    });
+
+    if (window.matchMedia) {
+        var media = window.matchMedia("(prefers-color-scheme: dark)");
+        var redraw = function () {
+            animProgress = 1;
+            draw();
+        };
+        if (typeof media.addEventListener === "function") {
+            media.addEventListener("change", redraw);
+        } else if (typeof media.addListener === "function") {
+            media.addListener(redraw);
+        }
+    }
+
+    window.addEventListener("sporttrack-theme-change", function () {
         animProgress = 1;
         draw();
     });

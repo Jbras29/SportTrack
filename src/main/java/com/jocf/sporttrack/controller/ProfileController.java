@@ -2,6 +2,7 @@ package com.jocf.sporttrack.controller;
 
 import com.jocf.sporttrack.model.NiveauPratiqueSportive;
 import com.jocf.sporttrack.model.Utilisateur;
+import com.jocf.sporttrack.service.ActiviteService;
 import com.jocf.sporttrack.service.PhotoProfilStorageService;
 import com.jocf.sporttrack.service.UtilisateurService;
 import jakarta.servlet.http.HttpSession;
@@ -22,12 +23,15 @@ public class ProfileController {
 
     private final UtilisateurService utilisateurService;
     private final PhotoProfilStorageService photoProfilStorageService;
+    private final ActiviteService activiteService;
 
     public ProfileController(
             UtilisateurService utilisateurService,
-            PhotoProfilStorageService photoProfilStorageService) {
+            PhotoProfilStorageService photoProfilStorageService,
+            ActiviteService activiteService) {
         this.utilisateurService = utilisateurService;
         this.photoProfilStorageService = photoProfilStorageService;
+        this.activiteService = activiteService;
     }
 
     @GetMapping("/profile/edit")
@@ -146,8 +150,8 @@ public class ProfileController {
         Utilisateur utilisateur = utilisateurService.trouverParId(idSession)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + idSession));
         model.addAttribute("utilisateur", utilisateur);
-        //On enregistre les activités, les défis, les défauts, les amis et les événements de l'utilisateur dans le modèle
-        model.addAttribute("activites", utilisateur.getActivites());    
+        model.addAttribute("user", utilisateur);
+        model.addAttribute("activites", activiteService.recupererActivitesPourProfil(utilisateur));
         //model.addAttribute("defis", utilisateur.getDefis());
         //model.addAttribute("defauts", utilisateur.getDefauts());
         model.addAttribute("amis", utilisateur.getAmis());
@@ -157,12 +161,18 @@ public class ProfileController {
     }
 
     @GetMapping("/profile/{id}")
-    public String viewProfile(@PathVariable Long id, Model model) {
+    public String viewProfile(@PathVariable Long id, HttpSession session, Model model) {
+        Long idSession = (Long) session.getAttribute("utilisateurId");
+        if (idSession == null) {
+            return "redirect:/login";
+        }
         Utilisateur utilisateur = utilisateurService.trouverParId(id)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + id));
+        Utilisateur connecte = utilisateurService.trouverParId(idSession)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + idSession));
         model.addAttribute("utilisateur", utilisateur);
-        //On enregistre les activités, les défis, les défauts, les amis et les événements de l'utilisateur dans le modèle
-        model.addAttribute("activites", utilisateur.getActivites());
+        model.addAttribute("user", connecte);
+        model.addAttribute("activites", activiteService.recupererActivitesPourProfil(utilisateur));
         //model.addAttribute("defis", utilisateur.getDefis());
         //model.addAttribute("defauts", utilisateur.getDefauts());
         model.addAttribute("amis", utilisateur.getAmis());

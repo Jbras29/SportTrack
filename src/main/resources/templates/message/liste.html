@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Messages | Sport Track</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="app-shell messages-page">
+
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+
+    <div class="main-wrapper main-wrapper--stack">
+
+        <div class="page-header">
+            <h1>Mes Messages</h1>
+            <p>Discutez avec vos amis et contacts sportifs</p>
+        </div>
+
+        <div class="messages-container">
+            <div class="messages-list">
+                <h2>Conversations</h2>
+
+                <div th:if="${#lists.isEmpty(derniersMessages)}" class="empty-state">
+                    <div class="empty-icon">💬</div>
+                    <h3>Aucun message</h3>
+                    <p>Commencez une conversation avec vos amis !</p>
+                </div>
+
+                <div th:if="${not #lists.isEmpty(derniersMessages)}" class="conversations-list">
+                    <div th:each="message : ${derniersMessages}" class="conversation-item">
+                        <div class="conversation-avatar">
+                            <img th:src="${message.expediteur.id == utilisateur.id ? message.destinataire.cheminPhotoProfilAffichee() : message.expediteur.cheminPhotoProfilAffichee()}"
+                                 alt="Photo de profil">
+                        </div>
+                        <div class="conversation-info">
+                            <div class="conversation-header">
+                                <h4 th:text="${message.expediteur.id == utilisateur.id ? message.destinataire.prenom + ' ' + message.destinataire.nom : message.expediteur.prenom + ' ' + message.expediteur.nom}"></h4>
+                                <span class="conversation-time" th:text="${#temporals.format(message.dateEnvoi, 'dd/MM/yyyy HH:mm')}"></span>
+                            </div>
+                            <p class="last-message" th:text="${message.contenu.length() > 50 ? message.contenu.substring(0, 50) + '...' : message.contenu}"></p>
+                        </div>
+                        <div th:if="${message.destinataire.id == utilisateur.id and not message.lu}" class="unread-indicator"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="messages-content">
+                <div class="empty-chat-state">
+                    <div class="empty-icon">👋</div>
+                    <h3>Sélectionnez une conversation</h3>
+                    <p>Cliquez sur une conversation pour commencer à discuter</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/messages.js}"></script>
+</body>
+</html>

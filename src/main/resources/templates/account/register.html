@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Créer un compte | Sport Track</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body class="auth-page register-page">
 
@@ -16,7 +17,6 @@
 
         <form id="register-form" action="/utilisateurs/create" method="POST">
             <div class="form-grid">
-                
                 <div class="input-group">
                     <label for="prenom">Prénom</label>
                     <input type="text" id="prenom" name="prenom" placeholder="Ousmane" required>
@@ -61,7 +61,6 @@
                     <label for="taille">Taille (cm)</label>
                     <input type="number" step="1" id="taille" name="taille" placeholder="ex: 175">
                 </div>
-
             </div>
 
             <button type="submit" class="btn-primary">Rejoindre l'aventure</button>
@@ -72,6 +71,6 @@
         </div>
     </div>
 
-    <script src="/js/account/register.js" defer></script>
+    <script th:src="@{/js/account/register.js}" defer></script>
 </body>
 </html>

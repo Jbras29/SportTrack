@@ -3,47 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Créer un Événement</title>
+    <title>Sport Track | Créer un Événement</title>
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body class="app-shell event-create-page">
+
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
-    <div class="main-wrapper main-wrapper--centered">
+    <div class="main-wrapper main-wrapper--stack">
+        <div class="page-header event-create-header">
+            <h1 class="event-form-title">Nouvel événement</h1>
+            <p class="event-form-subtitle">Organisez un événement et invitez votre communauté.</p>
+        </div>
+
         <div class="form-card">
-            <div class="form-header">
-                <h1 class="event-form-title">Créer un nouvel événement</h1>
-                <p class="event-form-subtitle">Planifiez une sortie sportive et invitez votre réseau en quelques secondes.</p>
-            </div>
+            <form id="formEvenement">
+                <div class="form-group">
+                    <label for="nom">Titre de l'événement</label>
+                    <input type="text" id="nom" placeholder="Ex: Course matinale au parc" required>
+                </div>
 
-            <form id="formCreationEvenement">
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label for="nom">Nom de l'événement</label>
-                        <input type="text" id="nom" placeholder="Ex: Marathon du dimanche" required>
-                    </div>
+                <div class="form-group">
+                    <label for="date">Date &amp; Heure</label>
+                    <input type="datetime-local" id="date" required>
+                </div>
 
-                    <div class="form-group full-width">
-                        <label for="date">Date et heure</label>
-                        <input type="datetime-local" id="date" required>
-                    </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" rows="3" placeholder="Quels sont les objectifs de cette séance ?"></textarea>
+                </div>
 
-                    <div class="form-group full-width">
-                        <label for="listeAmisContainer">Inviter des amis (optionnel)</label>
-                        <div id="listeAmisContainer" class="invite-list scroll-panel">
-                            <p class="invite-loading">Chargement des amis...</p>
-                        </div>
+                <div class="form-group">
+                    <span class="form-group-heading">Inviter des amis</span>
+                    <div id="listeAmis" class="friend-selector">
+                        <p th:if="${#lists.isEmpty(amis)}" class="text-muted friend-selector-empty">Aucun ami trouvé.</p>
+
+                        <label th:each="ami : ${amis}" class="friend-checkbox-card">
+                            <input type="checkbox" class="ami-check" th:value="${ami.id}">
+                            <div class="friend-info">
+                                <div class="mini-avatar" th:text="${#strings.toUpperCase(#strings.substring(ami.nom, 0, 1))}">A</div>
+                                <span th:text="${ami.nom}">Nom de l'ami</span>
+                            </div>
+                        </label>
                     </div>
                 </div>
 
-                <div class="action-buttons">
-                    <button type="button" id="event-cancel-btn" class="btn btn-secondary">Annuler</button>
-                    <button type="submit" class="btn btn-primary event-submit">Créer et inviter</button>
+                <div class="event-form-actions">
+                    <button type="submit" id="btnSubmit" class="btn btn-primary event-submit">Créer l'événement</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script th:src="@{/js/evenement/creer-evenement.js}" defer></script>
+    <script>
+        document.getElementById("formEvenement").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            var btn = document.getElementById("btnSubmit");
+            var selected = Array.from(document.querySelectorAll(".ami-check:checked")).map(function (c) {
+                return { id: parseInt(c.value, 10) };
+            });
+
+            var data = {
+                nom: document.getElementById("nom").value,
+                date: document.getElementById("date").value,
+                description: document.getElementById("description").value,
+                participants: selected
+            };
+
+            btn.disabled = true;
+            btn.innerText = "Patientez…";
+
+            try {
+                var res = await fetch("/api/evenements/creer", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    alert("Événement créé !");
+                    window.location.href = "/evenements";
+                } else {
+                    alert("Erreur lors de la création.");
+                }
+            } catch (err) {
+                console.error("Erreur détaillée:", err);
+                alert("Erreur serveur.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Créer l'événement";
+            }
+        });
+    </script>
 </body>
 </html>

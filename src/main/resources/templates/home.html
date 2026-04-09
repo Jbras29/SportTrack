@@ -4,87 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accueil | Sport Track</title>
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
-<body class="app-shell home-page">
+<body class="app-shell home-page"
+      th:attr="data-current-user-id=${user.id}">
 
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
     <div class="main-wrapper main-wrapper--split">
         
-        <div class="timeline">
+        <div class="timeline timeline--scroll">
             <div class="page-header">
                 <h1>Fil d'actualité</h1>
             </div>
 
-            <div class="post-card empty-feed" th:if="${#lists.isEmpty(activitesAmis)}">
-                Ajoutez des amis pour voir leurs activités.
+            <div class="post-card empty-feed" th:if="${#lists.isEmpty(activitesFil)}">
+                Aucune activité pour le moment. Enregistrez une séance ou ajoutez des amis pour voir le fil.
             </div>
 
-            <article class="post-card" th:each="activite : ${activitesAmis}">
-                <div class="post-header">
-                    <img th:src="${activite.utilisateur.cheminPhotoProfilAffichee()}"
-                         th:alt="${activite.utilisateur.prenom}"
-                         class="post-avatar">
-                    <div class="post-meta">
-                        <h3 th:text="|${activite.utilisateur.prenom} ${activite.utilisateur.nom} — ${activite.nom}|">
-                            Prénom Nom — Activité
-                        </h3>
-                        <p>
-                            <span th:text="${#temporals.format(activite.date, 'dd/MM/yyyy')}">01/01/2025</span>
-                            <span th:if="${activite.location != null and !activite.location.isBlank()}"
-                                  th:text="| • ${activite.location}|"></span>
-                            <span th:text="| • ${#strings.replace(activite.typeSport.name(), '_', ' ')}|"></span>
-                        </p>
-                    </div>
-                </div>
-
-                <div class="activity-stats">
-                    <div class="stat-item" th:if="${activite.distance != null}">
-                        <div class="value" th:text="${#numbers.formatDecimal(activite.distance, 1, 1)}">0</div>
-                        <div class="label">Kilomètres</div>
-                    </div>
-                    <div class="stat-item" th:unless="${activite.distance != null}">
-                        <div class="value">—</div>
-                        <div class="label">Kilomètres</div>
-                    </div>
-                    <div class="stat-item" th:if="${activite.temps != null}">
-                        <div class="value" th:text="|${activite.temps / 60}h ${activite.temps % 60}m|">0h 0m</div>
-                        <div class="label">Durée</div>
-                    </div>
-                    <div class="stat-item" th:unless="${activite.temps != null}">
-                        <div class="value">—</div>
-                        <div class="label">Durée</div>
-                    </div>
-                    <div class="stat-item" th:if="${activite.distance != null and activite.distance > 0 and activite.temps != null and activite.temps > 0}">
-                        <div class="value value-accent"
-                             th:text="${#numbers.formatDecimal(activite.temps / activite.distance, 1, 1)}">0</div>
-                        <div class="label">Allure (min/km)</div>
-                    </div>
-                    <div class="stat-item" th:unless="${activite.distance != null and activite.distance > 0 and activite.temps != null and activite.temps > 0}">
-                        <div class="value">—</div>
-                        <div class="label">Allure</div>
-                    </div>
-                </div>
-
-                <div class="post-actions">
-                    <div class="action-btn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                        <span th:text="|${#lists.size(activite.commentaires)} commentaire${#lists.size(activite.commentaires) != 1 ? 's' : ''}|">0 commentaires</span>
-                    </div>
-                </div>
-
-                <div class="comments-section" th:if="${!#lists.isEmpty(activite.commentaires)}">
-                    <div class="comment" th:each="c : ${activite.commentaires}">
-                        <img class="comment-avatar" th:src="${c.auteur.cheminPhotoProfilAffichee()}" th:alt="${c.auteur.prenom}">
-                        <div class="comment-bubble">
-                            <strong th:text="|${c.auteur.prenom} ${c.auteur.nom}|">Auteur</strong>
-                            <span th:text="${c.message}">Message</span>
-                        </div>
-                    </div>
-                </div>
-            </article>
+            <th:block th:each="activite : ${activitesFil}">
+                <article th:replace="~{fragments/feed-activite :: carteActivite(activite=${activite}, user=${user})}"></article>
+            </th:block>
 
         </div>
 
@@ -132,5 +74,14 @@
 
     </div>
 
+    <div id="home-feedback-toast"
+         class="home-feedback-toast"
+         hidden
+         role="alert"
+         aria-live="polite"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js" defer></script>
+    <script th:src="@{/js/home-reactions-tooltip.js}" defer></script>
+    <script th:src="@{/js/home.js}" defer></script>
 </body>
 </html>
