@@ -1,5 +1,6 @@
 package com.jocf.sporttrack.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -162,6 +163,20 @@ public class Utilisateur {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Evenement> evenementsParticipes = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "expediteur", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Message> messagesEnvoyes = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "destinataire", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Message> messagesRecus = new ArrayList<>();
 
     /** URL de l'image à afficher : photo utilisateur ou image par défaut sous /static. */
     public String cheminPhotoProfilAffichee() {

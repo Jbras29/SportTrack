@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sport Track | Challenges</title>
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="app-shell">
+
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+
+    <div class="main-wrapper main-wrapper--stack">
+
+        <div class="page-header event-create-header">
+            <div>
+                <h1 class="event-form-title">Challenges</h1>
+                <p class="event-form-subtitle">Rejoignez un challenge ou créez le vôtre !</p>
+            </div>
+            <a href="/challenges/creer" class="btn btn-primary">+ Créer un challenge</a>
+        </div>
+
+        <div class="dashboard-grid">
+            <p th:if="${#lists.isEmpty(challenges)}" class="empty-copy">
+                Aucun challenge disponible pour le moment.
+            </p>
+
+            <div th:each="challenge : ${challenges}" class="dash-card challenge-card">
+                <div class="challenge-title" th:text="${challenge.nom}">Nom du challenge</div>
+
+                <div class="defi-meta"
+                     th:if="${challenge.dateDebut != null and challenge.dateFin != null}"
+                     th:text="|${#dates.format(challenge.dateDebut, 'dd/MM/yyyy')} — ${#dates.format(challenge.dateFin, 'dd/MM/yyyy')}|">
+                </div>
+
+                <div class="defi-meta"
+                     th:text="|${challenge.participants.size()} participant(s)|">
+                </div>
+
+                <div class="defi-meta"
+                     th:text="|Organisé par ${challenge.organisateur.prenom} ${challenge.organisateur.nom}|">
+                </div>
+
+                <div class="event-form-actions">
+                    <a th:href="@{/challenges/{id}(id=${challenge.id})}"
+                       class="btn btn-secondary">Voir le classement</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

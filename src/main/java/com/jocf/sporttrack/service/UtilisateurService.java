@@ -1,5 +1,7 @@
 package com.jocf.sporttrack.service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,7 +19,6 @@ import com.jocf.sporttrack.model.PrefSportive;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.PrefSportiveRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
-import java.util.Comparator;
 
 @Service
 public class UtilisateurService implements UserDetailsService {
@@ -211,5 +212,22 @@ public class UtilisateurService implements UserDetailsService {
         utilisateur.getPrefSportives().sort(Comparator.comparing(
                 PrefSportive::getNom,
                 Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
+    }
+
+    public Utilisateur findById(Long id) {
+        return utilisateurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec id : " + id));
+    }
+
+    public Utilisateur findByIdWithAmis(Long id) {
+        return utilisateurRepository.findByIdWithAmis(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec id : " + id));
+    }
+
+    public List<Utilisateur> listerAmisTries(Utilisateur utilisateur) {
+        List<Utilisateur> amis = new ArrayList<>(utilisateur.getAmis());
+        amis.sort(Comparator.comparing(Utilisateur::getPrenom, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+                .thenComparing(Utilisateur::getNom, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
+        return amis;
     }
 }

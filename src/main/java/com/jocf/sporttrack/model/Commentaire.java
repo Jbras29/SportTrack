@@ -45,7 +45,8 @@ public class Commentaire {
     @JoinColumn(name = "auteur_id", nullable = false)
     @JsonIgnoreProperties({
             "motdepasse", "activites", "amis", "demandesAmisEnvoyees",
-            "prefSportives", "badges", "evenementsOrganises", "evenementsParticipes"
+            "prefSportives", "badges", "evenementsOrganises", "evenementsParticipes",
+            "messagesEnvoyes", "messagesRecus"
     })
     private Utilisateur auteur;
 
