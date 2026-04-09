@@ -35,6 +35,9 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class Activite {
 
+    /** Nombre maximal de types de réaction (emojis distincts) affichés dans le fil d’actualité. */
+    private static final int LIMITE_REACTIONS_AFFICHEES = 5;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -96,6 +99,25 @@ public class Activite {
             resultat.add(new ReactionGroupee(e.getKey(), e.getValue().size(), noms));
         }
         return resultat;
+    }
+
+    /**
+     * Sous-ensemble des réactions groupées pour l’affichage (évite une barre trop longue).
+     */
+    public List<ReactionGroupee> getReactionsGroupeesAffichees() {
+        List<ReactionGroupee> toutes = getReactionsGroupees();
+        if (toutes.size() <= LIMITE_REACTIONS_AFFICHEES) {
+            return toutes;
+        }
+        return new ArrayList<>(toutes.subList(0, LIMITE_REACTIONS_AFFICHEES));
+    }
+
+    /**
+     * Nombre de types de réaction non affichés (au-delà de la limite d’affichage du fil).
+     */
+    public int getReactionsGroupeesMasqueesCount() {
+        int total = getReactionsGroupees().size();
+        return Math.max(0, total - LIMITE_REACTIONS_AFFICHEES);
     }
 
     /**
