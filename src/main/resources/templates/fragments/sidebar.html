@@ -5,7 +5,9 @@
 <th:block th:fragment="sidebar">
 <nav class="slim-sidebar slim-sidebar--viewport"
      th:with="path=${navRequestPath} ?: '/'">
-    <a th:href="@{/home}" class="logo-icon" title="Sport Track">S</a>
+    <a th:href="@{/home}" class="logo-icon logo-icon--brand" title="Sport Track">
+        <img th:src="@{/images/sporttrack.png}" width="40" height="40" alt="" class="logo-icon-img">
+    </a>
 
     <button type="button"
             id="theme-toggle"
