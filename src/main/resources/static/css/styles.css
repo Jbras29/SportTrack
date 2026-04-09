@@ -914,7 +914,7 @@ body.home-page .reactions-bar-track::-webkit-scrollbar-thumb {
 body.home-page .reaction-chip {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     padding: 4px 10px 4px 8px;
     min-height: 32px;
     border-radius: 999px;
@@ -924,6 +924,14 @@ body.home-page .reaction-chip {
     font-size: 13px;
     line-height: 1;
     user-select: none;
+}
+
+body.home-page .reaction-chip-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+    min-height: 1.2rem;
 }
 
 body.home-page .reaction-chip-emoji {
@@ -952,6 +960,81 @@ body.home-page button.reaction-chip {
 body.home-page button.reaction-chip:focus-visible {
     outline: 2px solid var(--brand-light-blue);
     outline-offset: 2px;
+}
+
+/* Réaction déjà posée par l’utilisateur connecté (fond teinté --brand-orange #F39434) */
+body.home-page button.reaction-chip.reaction-chip--mine {
+    cursor: default;
+    background: rgba(243, 148, 52, 0.2);
+    border-color: rgba(243, 148, 52, 0.55);
+    box-shadow: 0 1px 3px rgba(243, 148, 52, 0.16);
+}
+
+body.home-page button.reaction-chip.reaction-chip--mine:focus-visible {
+    outline-color: var(--brand-orange);
+}
+
+body.home-page .reaction-chip-loading {
+    display: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1rem;
+    height: 1rem;
+    margin: -0.5rem 0 0 -0.5rem;
+    border: 2px solid rgba(15, 23, 42, 0.1);
+    border-top-color: var(--brand-orange);
+    border-radius: 50%;
+    animation: home-plus-spin 0.65s linear infinite;
+}
+
+body.home-page .reaction-chip--pending .reaction-chip-emoji,
+body.home-page .reaction-chip--pending .reaction-chip-count {
+    visibility: hidden;
+}
+
+body.home-page .reaction-chip--pending .reaction-chip-loading {
+    display: block;
+}
+
+body.home-page .reaction-chip--pending .reaction-chip-remove {
+    opacity: 0 !important;
+    max-width: 0 !important;
+    pointer-events: none;
+}
+
+body.home-page .reaction-chip-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: 2px;
+    padding: 0 2px;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text-muted);
+    cursor: pointer;
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+    transform: translateX(4px);
+    transition:
+        opacity 0.12s ease,
+        transform 0.2s ease,
+        max-width 0.2s ease;
+    pointer-events: none;
+}
+
+body.home-page .reaction-chip--mine:hover .reaction-chip-remove {
+    opacity: 1;
+    max-width: 1.5rem;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+body.home-page .reaction-chip--mine:hover {
+    padding-right: 6px;
 }
 
 body.home-page .reactions-more-btn {
@@ -1049,6 +1132,39 @@ body.home-page .post-actions-plus-btn {
     justify-content: center;
     gap: 4px;
     line-height: 1;
+    position: relative;
+    min-width: 3.25rem;
+}
+
+body.home-page .post-actions-plus-spinner {
+    display: none;
+    width: 1.15rem;
+    height: 1.15rem;
+    flex-shrink: 0;
+    border: 2px solid rgba(15, 23, 42, 0.12);
+    border-top-color: var(--brand-blue);
+    border-radius: 50%;
+    animation: home-plus-spin 0.65s linear infinite;
+}
+
+body.home-page .post-actions-plus-btn--loading .post-actions-plus-char,
+body.home-page .post-actions-plus-btn--loading .post-actions-plus-emoji {
+    display: none;
+}
+
+body.home-page .post-actions-plus-btn--loading .post-actions-plus-spinner {
+    display: block;
+}
+
+body.home-page .post-actions-plus-btn--loading:disabled {
+    cursor: wait;
+    opacity: 0.92;
+}
+
+@keyframes home-plus-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 body.home-page .post-actions-plus-char {
@@ -1076,6 +1192,43 @@ body.home-page .comment-composer-toggle {
 
 .emoji-mart-popover[hidden] {
     display: none !important;
+}
+
+/* Toast erreur (réactions / API) */
+.home-feedback-toast {
+    position: fixed;
+    z-index: 10070;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    max-width: min(420px, calc(100vw - 32px));
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #fff;
+    background: #b91c1c;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
+}
+
+.home-feedback-toast[hidden] {
+    display: none !important;
+}
+
+.home-feedback-toast.is-visible {
+    animation: home-toast-in 0.2s ease;
+}
+
+@keyframes home-toast-in {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
 
 /* Tooltip liste des réacteurs (élément fixe sur body, géré par home-reactions-tooltip.js) */

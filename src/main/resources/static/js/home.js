@@ -6,6 +6,382 @@
     var emojiDataPromise = null;
     var emojiPickerWrap = null;
     var emojiPickerAnchor = null;
+    var toastHideTimer = null;
+
+    function showToastErreur(message) {
+        var el = document.getElementById('home-feedback-toast');
+        if (!el) {
+            window.alert(message);
+            return;
+        }
+        el.textContent = message || 'Une erreur est survenue.';
+        el.hidden = false;
+        el.classList.add('is-visible');
+        if (toastHideTimer) {
+            clearTimeout(toastHideTimer);
+        }
+        toastHideTimer = setTimeout(function () {
+            el.hidden = true;
+            el.classList.remove('is-visible');
+            toastHideTimer = null;
+        }, 6000);
+    }
+
+    function extraireEmojiNatif(emoji) {
+        if (!emoji) {
+            return '';
+        }
+        if (emoji.native) {
+            return emoji.native;
+        }
+        if (emoji.skins && emoji.skins.length && emoji.skins[0].native) {
+            return emoji.skins[0].native;
+        }
+        return '';
+    }
+
+    /** Aligné sur {@code Activite.LIMITE_REACTIONS_AFFICHEES} côté serveur */
+    var LIMITE_REACTIONS_AFFICHEES = 5;
+
+    /**
+     * Regroupe les réactions comme {@code Activite#getReactionsGroupees} (ordre d’apparition, ASC).
+     */
+    function groupReactionsFromCommentaires(commentaires) {
+        if (!commentaires || !commentaires.length) {
+            return [];
+        }
+        var reactions = commentaires.filter(function (c) {
+            return c.type === 'REACTION' && c.auteur && c.message;
+        });
+        reactions.sort(function (a, b) {
+            var da = a.dateCreation ? new Date(a.dateCreation).getTime() : 0;
+            var db = b.dateCreation ? new Date(b.dateCreation).getTime() : 0;
+            return da - db;
+        });
+        var order = [];
+        var byEmoji = {};
+        reactions.forEach(function (c) {
+            var e = c.message;
+            var nom = ((c.auteur.prenom || '') + ' ' + (c.auteur.nom || '')).trim();
+            if (!byEmoji[e]) {
+                byEmoji[e] = [];
+                order.push(e);
+            }
+            byEmoji[e].push(nom);
+        });
+        return order.map(function (emoji) {
+            var names = byEmoji[emoji];
+            return {
+                emoji: emoji,
+                nombre: names.length,
+                nomsDesReacteurs: names.join(', ')
+            };
+        });
+    }
+
+    function utilisateurAEmitReactionAvecEmoji(commentaires, utilisateurId, emoji) {
+        return idCommentaireReactionUtilisateur(commentaires, utilisateurId, emoji) != null;
+    }
+
+    function idCommentaireReactionUtilisateur(commentaires, utilisateurId, emoji) {
+        if (utilisateurId == null || utilisateurId === '' || !emoji || !commentaires) {
+            return null;
+        }
+        var uid = String(utilisateurId);
+        for (var i = 0; i < commentaires.length; i++) {
+            var c = commentaires[i];
+            if (
+                c.type === 'REACTION' &&
+                c.message === emoji &&
+                c.auteur &&
+                String(c.auteur.id) === uid
+            ) {
+                return c.id;
+            }
+        }
+        return null;
+    }
+
+    function renderReactionsBarIntoCard(card, commentaires) {
+        var activiteId = card.getAttribute('data-activite-id');
+        var groupes = groupReactionsFromCommentaires(commentaires);
+        var stats = card.querySelector('.activity-stats');
+        var existingBar = card.querySelector('.reactions-bar');
+
+        if (groupes.length === 0) {
+            if (existingBar) {
+                existingBar.remove();
+            }
+            return;
+        }
+
+        var affichees = groupes.slice(0, LIMITE_REACTIONS_AFFICHEES);
+        var masquees = Math.max(0, groupes.length - LIMITE_REACTIONS_AFFICHEES);
+        var currentUserId = document.body.getAttribute('data-current-user-id');
+
+        var track = document.createElement('div');
+        track.className = 'reactions-bar-track';
+
+        affichees.forEach(function (g) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'reaction-chip';
+            var isMine = utilisateurAEmitReactionAvecEmoji(commentaires, currentUserId, g.emoji);
+            if (isMine) {
+                btn.classList.add('reaction-chip--mine');
+            }
+            btn.setAttribute('data-tooltip', g.nomsDesReacteurs);
+            btn.setAttribute('data-emoji', g.emoji);
+            btn.setAttribute('aria-label', g.emoji + ' : ' + g.nomsDesReacteurs);
+            if (isMine) {
+                var cid = idCommentaireReactionUtilisateur(commentaires, currentUserId, g.emoji);
+                if (cid != null) {
+                    btn.setAttribute('data-commentaire-id', String(cid));
+                }
+            }
+
+            var main = document.createElement('span');
+            main.className = 'reaction-chip-main';
+            var spanE = document.createElement('span');
+            spanE.className = 'reaction-chip-emoji';
+            spanE.setAttribute('role', 'img');
+            spanE.setAttribute('aria-hidden', 'true');
+            spanE.textContent = g.emoji;
+            var spanC = document.createElement('span');
+            spanC.className = 'reaction-chip-count';
+            spanC.textContent = String(g.nombre);
+            var loading = document.createElement('span');
+            loading.className = 'reaction-chip-loading';
+            loading.setAttribute('aria-hidden', 'true');
+            main.appendChild(spanE);
+            main.appendChild(spanC);
+            main.appendChild(loading);
+            btn.appendChild(main);
+
+            if (isMine) {
+                var rem = document.createElement('span');
+                rem.className = 'reaction-chip-remove';
+                rem.setAttribute('aria-label', 'Retirer la réaction');
+                rem.setAttribute('title', 'Retirer la réaction');
+                rem.textContent = '\u00D7';
+                btn.appendChild(rem);
+            }
+
+            track.appendChild(btn);
+        });
+
+        if (masquees > 0) {
+            var moreBtn = document.createElement('button');
+            moreBtn.type = 'button';
+            moreBtn.className = 'reactions-more-btn';
+            var autrePart = masquees > 1 ? 'autres' : 'autre';
+            var typePart = masquees > 1 ? 'types' : 'type';
+            moreBtn.setAttribute(
+                'aria-label',
+                masquees + ' ' + autrePart + ' ' + typePart + ' de réaction'
+            );
+            var spanPlus = document.createElement('span');
+            spanPlus.className = 'reactions-more-icon';
+            spanPlus.setAttribute('aria-hidden', 'true');
+            spanPlus.textContent = '+';
+            var spanCnt = document.createElement('span');
+            spanCnt.className = 'reactions-more-count';
+            spanCnt.textContent = String(masquees);
+            moreBtn.appendChild(spanPlus);
+            moreBtn.appendChild(spanCnt);
+            track.appendChild(moreBtn);
+        }
+
+        var bar = document.createElement('div');
+        bar.className = 'reactions-bar';
+        if (activiteId) {
+            bar.setAttribute('data-activite-id', activiteId);
+        }
+        bar.appendChild(track);
+
+        if (existingBar) {
+            existingBar.replaceWith(bar);
+        } else if (stats) {
+            stats.insertAdjacentElement('afterend', bar);
+        }
+    }
+
+    /**
+     * Met à jour la barre de réactions d’une carte à partir de l’API (sans recharger la page).
+     */
+    function syncReactionsBarForActivite(activiteId) {
+        return fetch(
+            '/api/commentaires/activite/' + encodeURIComponent(String(activiteId)),
+            {
+                credentials: 'same-origin',
+                headers: { Accept: 'application/json' }
+            }
+        ).then(function (r) {
+            if (!r.ok) {
+                throw new Error('commentaires');
+            }
+            return r.json();
+        }).then(function (commentaires) {
+            var card = document.querySelector(
+                '.post-card[data-activite-id="' + String(activiteId) + '"]'
+            );
+            if (!card) {
+                return;
+            }
+            renderReactionsBarIntoCard(card, commentaires);
+        });
+    }
+
+    function supprimerMaReaction(activiteId, commentaireId, utilisateurId, chip) {
+        var url =
+            '/api/activites/' +
+            encodeURIComponent(String(activiteId)) +
+            '/reactions/' +
+            encodeURIComponent(String(commentaireId)) +
+            '?utilisateurId=' +
+            encodeURIComponent(String(utilisateurId));
+        chip.classList.add('reaction-chip--pending');
+        return fetch(url, {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' }
+        })
+            .then(function (r) {
+                return r.json().catch(function () {
+                    return null;
+                }).then(function (data) {
+                    return { ok: r.ok, status: r.status, data: data };
+                });
+            })
+            .then(function (result) {
+                if (result.data && result.data.success === true) {
+                    return syncReactionsBarForActivite(activiteId).catch(function () {
+                        showToastErreur(
+                            'Réaction supprimée, mais le fil n’a pas pu être mis à jour.'
+                        );
+                    });
+                }
+                var msg =
+                    result.data && result.data.message
+                        ? result.data.message
+                        : 'Impossible de retirer la réaction.';
+                if (!result.ok && !result.data) {
+                    msg =
+                        result.status === 401 || result.status === 403
+                            ? 'Accès refusé. Reconnectez-vous.'
+                            : 'Erreur serveur (' + result.status + ').';
+                }
+                showToastErreur(msg);
+            })
+            .catch(function () {
+                showToastErreur('Erreur réseau. Vérifiez votre connexion.');
+            })
+            .finally(function () {
+                if (chip && chip.parentNode) {
+                    chip.classList.remove('reaction-chip--pending');
+                }
+            });
+    }
+
+    document.addEventListener(
+        'click',
+        function (e) {
+            var removeBtn = e.target.closest('.reaction-chip-remove');
+            if (!removeBtn) {
+                return;
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            var chip = removeBtn.closest('.reaction-chip');
+            if (!chip || !chip.classList.contains('reaction-chip--mine')) {
+                return;
+            }
+            var card = chip.closest('.post-card');
+            var activiteId = card && card.getAttribute('data-activite-id');
+            var commentaireId = chip.getAttribute('data-commentaire-id');
+            var userAttr = document.body.getAttribute('data-current-user-id');
+            if (!activiteId || !commentaireId || !userAttr) {
+                return;
+            }
+            var utilisateurId = parseInt(userAttr, 10);
+            if (isNaN(utilisateurId)) {
+                return;
+            }
+            supprimerMaReaction(activiteId, commentaireId, utilisateurId, chip);
+        },
+        true
+    );
+
+    function setPlusButtonLoading(btn, loading) {
+        if (!btn) {
+            return;
+        }
+        if (loading) {
+            btn.classList.add('post-actions-plus-btn--loading');
+            btn.disabled = true;
+            btn.setAttribute('aria-busy', 'true');
+        } else {
+            btn.classList.remove('post-actions-plus-btn--loading');
+            btn.disabled = false;
+            btn.removeAttribute('aria-busy');
+        }
+    }
+
+    function posterReaction(activiteId, emojiNatif, plusBtn) {
+        var auteurAttr = document.body.getAttribute('data-current-user-id');
+        if (!auteurAttr) {
+            showToastErreur('Impossible d’identifier l’utilisateur. Rechargez la page.');
+            return;
+        }
+        var auteurId = parseInt(auteurAttr, 10);
+        if (isNaN(auteurId)) {
+            showToastErreur('Session invalide.');
+            return;
+        }
+        setPlusButtonLoading(plusBtn, true);
+        fetch('/api/activites/' + encodeURIComponent(String(activiteId)) + '/reactions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ auteurId: auteurId, emoji: emojiNatif })
+        })
+            .then(function (r) {
+                return r.json().catch(function () {
+                    return null;
+                }).then(function (data) {
+                    return { ok: r.ok, status: r.status, data: data };
+                });
+            })
+            .then(function (result) {
+                if (result.data && result.data.success === true) {
+                    return syncReactionsBarForActivite(activiteId).catch(function () {
+                        showToastErreur(
+                            'Réaction enregistrée, mais le fil n’a pas pu être mis à jour.'
+                        );
+                    });
+                }
+                var msg =
+                    result.data && result.data.message
+                        ? result.data.message
+                        : 'Impossible d’enregistrer la réaction.';
+                if (!result.ok && !result.data) {
+                    msg =
+                        result.status === 401 || result.status === 403
+                            ? 'Accès refusé. Reconnectez-vous.'
+                            : 'Erreur serveur (' + result.status + ').';
+                }
+                showToastErreur(msg);
+            })
+            .catch(function () {
+                showToastErreur('Erreur réseau. Vérifiez votre connexion.');
+            })
+            .finally(function () {
+                setPlusButtonLoading(plusBtn, false);
+            });
+    }
 
     function getEmojiData() {
         if (!emojiDataPromise) {
@@ -76,8 +452,17 @@
                     locale: 'fr',
                     theme: 'light',
                     onEmojiSelect: function (emoji) {
-                        console.log(emoji);
+                        var plusBtn = emojiPickerAnchor;
+                        var card =
+                            plusBtn && plusBtn.closest('.post-card');
+                        var activiteId =
+                            card && card.getAttribute('data-activite-id');
+                        var natif = extraireEmojiNatif(emoji);
                         hideEmojiPicker();
+                        if (!activiteId || !natif) {
+                            return;
+                        }
+                        posterReaction(activiteId, natif, plusBtn);
                     }
                 });
                 emojiPickerWrap.appendChild(picker);

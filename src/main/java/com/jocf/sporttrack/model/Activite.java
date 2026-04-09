@@ -121,6 +121,31 @@ public class Activite {
     }
 
     /**
+     * Indique si l’utilisateur a déjà réagi avec cet emoji sur cette activité (une entrée par auteur et par emoji).
+     */
+    public boolean utilisateurAEmitReactionAvecEmoji(Long utilisateurId, String emoji) {
+        return getIdCommentaireReactionUtilisateur(utilisateurId, emoji) != null;
+    }
+
+    /**
+     * Identifiant du commentaire de réaction pour cet utilisateur et cet emoji, s’il existe.
+     */
+    public Long getIdCommentaireReactionUtilisateur(Long utilisateurId, String emoji) {
+        if (utilisateurId == null || emoji == null) {
+            return null;
+        }
+        for (Commentaire c : commentaires) {
+            if (c.getType() == TypeCommentaire.REACTION
+                    && emoji.equals(c.getMessage())
+                    && c.getAuteur() != null
+                    && utilisateurId.equals(c.getAuteur().getId())) {
+                return c.getId();
+            }
+        }
+        return null;
+    }
+
+    /**
      * Réactions agrégées par emoji (chaîne stockée en {@link Commentaire#getMessage()}),
      * ordre d’apparition conservé.
      */

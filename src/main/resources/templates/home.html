@@ -7,7 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
-<body class="app-shell home-page">
+<body class="app-shell home-page"
+      th:attr="data-current-user-id=${user.id}">
 
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
@@ -22,7 +23,9 @@
                 Aucune activité pour le moment. Enregistrez une séance ou ajoutez des amis pour voir le fil.
             </div>
 
-            <article class="post-card" th:each="activite : ${activitesFil}">
+            <article class="post-card feed-post"
+                     th:each="activite : ${activitesFil}"
+                     th:attr="data-activite-id=${activite.id}">
                 <div class="post-header">
                     <img th:src="${activite.utilisateur.cheminPhotoProfilAffichee()}"
                          th:alt="${activite.utilisateur.prenom}"
@@ -72,10 +75,19 @@
                     <div class="reactions-bar-track">
                         <button type="button" class="reaction-chip"
                                 th:each="r : ${activite.reactionsGroupeesAffichees}"
-                                th:attr="data-tooltip=${r.nomsDesReacteurs}"
+                                th:classappend="${activite.utilisateurAEmitReactionAvecEmoji(user.id, r.emoji)} ? 'reaction-chip--mine' : ''"
+                                th:data-commentaire-id="${activite.utilisateurAEmitReactionAvecEmoji(user.id, r.emoji) ? activite.getIdCommentaireReactionUtilisateur(user.id, r.emoji) : null}"
+                                th:attr="data-tooltip=${r.nomsDesReacteurs},
+                                          data-emoji=${r.emoji}"
                                 th:aria-label="|${r.emoji} : ${r.nomsDesReacteurs}|">
-                            <span class="reaction-chip-emoji" th:text="${r.emoji}" role="img" aria-hidden="true">👍</span>
-                            <span class="reaction-chip-count" th:text="${r.nombre}">1</span>
+                            <span class="reaction-chip-main">
+                                <span class="reaction-chip-emoji" th:text="${r.emoji}" role="img" aria-hidden="true">👍</span>
+                                <span class="reaction-chip-count" th:text="${r.nombre}">1</span>
+                                <span class="reaction-chip-loading" aria-hidden="true"></span>
+                            </span>
+                            <span class="reaction-chip-remove"
+                                  th:if="${activite.utilisateurAEmitReactionAvecEmoji(user.id, r.emoji)}"
+                                  th:attr="aria-label='Retirer la réaction',title='Retirer la réaction'">×</span>
                         </button>
                         <button type="button" class="reactions-more-btn"
                                 th:if="${activite.reactionsGroupeesMasqueesCount > 0}"
@@ -97,6 +109,7 @@
                                 aria-label="Plus d'options">
                             <span class="post-actions-plus-char" aria-hidden="true">+</span>
                             <span class="post-actions-plus-emoji" aria-hidden="true">😊</span>
+                            <span class="post-actions-plus-spinner" aria-hidden="true"></span>
                         </button>
                         <button type="button"
                                 class="btn btn-secondary comment-composer-toggle"
@@ -177,6 +190,12 @@
         </div>
 
     </div>
+
+    <div id="home-feedback-toast"
+         class="home-feedback-toast"
+         hidden
+         role="alert"
+         aria-live="polite"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js" defer></script>
     <script th:src="@{/js/home-reactions-tooltip.js}" defer></script>
