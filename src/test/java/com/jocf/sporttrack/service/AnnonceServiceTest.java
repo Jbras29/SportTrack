@@ -1,6 +1,7 @@
 package com.jocf.sporttrack.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -10,8 +11,11 @@ import static org.mockito.Mockito.when;
 
 import com.jocf.sporttrack.model.Annonce;
 import com.jocf.sporttrack.model.Evenement;
+import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.AnnonceRepository;
 import com.jocf.sporttrack.repository.EvenementRepository;
+import com.jocf.sporttrack.repository.UtilisateurRepository;
+
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +34,9 @@ class AnnonceServiceTest {
 
     @Mock
     private EvenementRepository evenementRepository;
+
+    @Mock
+    private UtilisateurRepository utilisateurRepository;
 
     private AnnonceService annonceService;
 
@@ -178,5 +185,44 @@ class AnnonceServiceTest {
 
         assertEquals("Annonce introuvable : 1", exception.getMessage());
         verify(annonceRepository).existsById(1L);
+    }
+
+    @Test
+    void createur_peut_publier_annonce_sur_evenement() {
+        Utilisateur organisateur = Utilisateur.builder()
+            .id(1L).nom("Dupont").prenom("Alice")
+            .email("alice@mail.com").motdepasse("1234")
+            .build();
+    
+        Evenement evenement = Evenement.builder()
+            .id(1L)
+            .nom("Trail du dimanche")
+            .description("Un trail sympa")
+            .date(LocalDateTime.now().plusDays(7))
+            .organisateur(organisateur)
+            .build();
+    
+        when(evenementRepository.findById(1L)).thenReturn(Optional.of(evenement));
+        when(annonceRepository.save(any(Annonce.class))).thenAnswer(invocation -> {
+            Annonce saved = invocation.getArgument(0);
+            saved.setId(1L);
+            return saved;
+        });
+        when(annonceRepository.findByEvenement(evenement)).thenReturn(
+            List.of(Annonce.builder()
+                .id(1L)
+                .message("Pensez à apporter vos chaussures de rando !")
+                .evenement(evenement)
+                .date(LocalDateTime.now())
+                .build())
+        );
+    
+        Annonce annonce = annonceService.creerAnnonce(1L, "Pensez à apporter vos chaussures de rando !");
+    
+        assertNotNull(annonce.getId());
+    
+        List<Annonce> annonces = annonceService.recupererAnnoncesParEvenement(1L);
+        assertFalse(annonces.isEmpty());
+        assertEquals("Pensez à apporter vos chaussures de rando !", annonces.get(0).getMessage());
     }
 }
