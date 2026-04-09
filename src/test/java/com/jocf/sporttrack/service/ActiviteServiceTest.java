@@ -291,4 +291,65 @@ class ActiviteServiceTest {
         assertEquals("Activite introuvable : 1", exception.getMessage());
         verify(activiteRepository).existsById(1L);
     }
+
+    @Test
+void calculerKilocaloriesAvecActiviteValide() {
+    Utilisateur utilisateur = Utilisateur.builder()
+        .id(1L).poids(70.0)
+        .build();
+
+    Activite activite = Activite.builder()
+        .id(1L)
+        .nom("Footing matinal")
+        .typeSport(TypeSport.COURSE_A_PIED)
+        .temps(60) // 60 minutes = 1 heure
+        .date(LocalDate.now())
+        .utilisateur(utilisateur)
+        .build();
+
+    when(activiteRepository.findById(1L)).thenReturn(Optional.of(activite));
+
+    Double kcal = activiteService.calculerKilocalories(1L);
+
+    assertNotNull(kcal);
+    assertEquals(700.0, kcal); // 10.0 * 70.0 * 1.0
+    verify(activiteRepository).findById(1L);
+}
+
+@Test
+void calculerKilocaloriesAvecPoidsParDefaut() {
+    Utilisateur utilisateur = Utilisateur.builder()
+        .id(1L).poids(null)
+        .build();
+
+    Activite activite = Activite.builder()
+        .id(1L)
+        .nom("Natation")
+        .typeSport(TypeSport.NATATION)
+        .temps(30) // 30 minutes = 0.5 heure
+        .date(LocalDate.now())
+        .utilisateur(utilisateur)
+        .build();
+
+    when(activiteRepository.findById(1L)).thenReturn(Optional.of(activite));
+
+    Double kcal = activiteService.calculerKilocalories(1L);
+
+    assertNotNull(kcal);
+    assertEquals(245.0, kcal); // 7.0 * 70.0 * 0.5
+    verify(activiteRepository).findById(1L);
+}
+
+@Test
+void calculerKilocaloriesRefuseActiviteInexistante() {
+    when(activiteRepository.findById(1L)).thenReturn(Optional.empty());
+
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> activiteService.calculerKilocalories(1L)
+    );
+
+    assertEquals("Activite introuvable : 1", exception.getMessage());
+    verify(activiteRepository).findById(1L);
+}
 }

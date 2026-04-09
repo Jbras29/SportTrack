@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import org.springframework.security.core.Authentication;
 
@@ -123,4 +121,16 @@ public class ActiviteController {
             return ResponseEntity.notFound().build();
         }
     }
+
+
+    @GetMapping("/{id}/kilocalories")
+@Operation(summary = "Calculer les kilocalories dépensées pour une activité")
+public ResponseEntity<Double> getKilocalories(@PathVariable Long id) {
+    try {
+        Double kcal = activiteService.calculerKilocalories(id);
+        return ResponseEntity.ok(kcal);
+    } catch (IllegalArgumentException e) {
+        return ResponseEntity.notFound().build();
+    }
+}
 }
