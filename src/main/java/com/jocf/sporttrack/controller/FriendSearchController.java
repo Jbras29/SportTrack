@@ -251,9 +251,9 @@ public class FriendSearchController {
                     + UriUtils.encodeQueryParam(recherche.trim(), StandardCharsets.UTF_8);
         }
         if (recherche == null || recherche.isBlank()) {
-            return "redirect:/search/friend";
+            return "redirect:/friend/search";
         }
-        return "redirect:/search/friend?recherche="
+        return "redirect:/friend/search?recherche="
                 + UriUtils.encodeQueryParam(recherche.trim(), StandardCharsets.UTF_8);
     }
 
