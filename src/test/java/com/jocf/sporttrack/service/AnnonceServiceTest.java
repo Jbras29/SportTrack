@@ -104,25 +104,27 @@ class AnnonceServiceTest {
     }
 
     @Test
-    void creerAnnonceAvecEvenementValide() {
-        Evenement evenement = Evenement.builder().id(1L).build();
+void creerAnnonceAvecEvenementValide() {
+    Utilisateur organisateur = Utilisateur.builder().id(1L).build();
+    Evenement evenement = Evenement.builder().id(1L).organisateur(organisateur).build();
 
-        when(evenementRepository.findById(1L)).thenReturn(Optional.of(evenement));
-        when(annonceRepository.save(any(Annonce.class))).thenAnswer(invocation -> {
-            Annonce saved = invocation.getArgument(0);
-            saved.setId(1L);
-            return saved;
-        });
+    when(evenementRepository.findById(1L)).thenReturn(Optional.of(evenement));
+    when(annonceRepository.save(any(Annonce.class))).thenAnswer(invocation -> {
+        Annonce saved = invocation.getArgument(0);
+        saved.setId(1L);
+        return saved;
+    });
 
-        Annonce resultat = annonceService.creerAnnonce(1L, 2L, "Nouvelle annonce");
+    Annonce resultat = annonceService.creerAnnonce(1L, 1L, "Nouvelle annonce");
 
-        assertNotNull(resultat.getId());
-        assertEquals("Nouvelle annonce", resultat.getMessage());
-        assertEquals(evenement, resultat.getEvenement());
-        assertNotNull(resultat.getDate());
-        verify(evenementRepository).findById(1L);
-        verify(annonceRepository).save(any(Annonce.class));
-    }
+    assertNotNull(resultat.getId());
+    assertEquals("Nouvelle annonce", resultat.getMessage());
+    assertEquals(evenement, resultat.getEvenement());
+    assertNotNull(resultat.getDate());
+    verify(evenementRepository).findById(1L);
+    verify(annonceRepository).save(any(Annonce.class));
+}
+
 
     @Test
     void creerAnnonceRefuseEvenementInexistant() {
@@ -217,7 +219,7 @@ class AnnonceServiceTest {
                 .build())
         );
     
-        Annonce annonce = annonceService.creerAnnonce(1L, 2L, "Pensez à apporter vos chaussures de rando !");
+        Annonce annonce = annonceService.creerAnnonce(1L, 1L, "Pensez à apporter vos chaussures de rando !");
     
         assertNotNull(annonce.getId());
     
