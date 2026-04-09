@@ -295,6 +295,23 @@ body.home-page .nav-btn.active {
     background-color: rgba(239, 68, 68, 0.1);
 }
 
+.nav-btn--create {
+    background-color: var(--brand-orange);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(243, 148, 52, 0.35);
+}
+
+.nav-btn--create:hover {
+    background-color: var(--brand-orange-hover);
+    color: #fff;
+}
+
+body.app-shell .nav-btn--create.active,
+body.home-page .nav-btn--create.active {
+    background-color: var(--brand-orange-hover);
+    color: #fff;
+}
+
 .nav-btn svg {
     width: 24px;
     height: 24px;
