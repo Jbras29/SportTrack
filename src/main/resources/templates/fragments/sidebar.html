@@ -36,10 +36,10 @@
        title="Mes activités">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
     </a>
-    <a th:href="@{/dashboard}"
-       class="nav-btn"
-       th:classappend="${path == '/dashboard'} ? ' active'"
-       title="Défis">
+    <a th:href="@{/challenges}"
+    class="nav-btn"
+    th:classappend="${#strings.startsWith(path, '/challenges')} ? ' active'"
+    title="Défis">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
     </a>
     <a th:href="@{/evenements}"
