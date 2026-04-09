@@ -8,6 +8,7 @@ import com.jocf.sporttrack.repository.UtilisateurRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -56,6 +57,21 @@ public class ActiviteService {
             return Collections.emptyList();
         }
         List<Long> ids = amis.stream().map(Utilisateur::getId).collect(Collectors.toList());
+        return activiteRepository.findByUtilisateurIdsWithUtilisateurOrderByDateDesc(ids);
+    }
+
+    /**
+     * Fil d’accueil : activités de l’utilisateur et de ses amis, les plus récentes en premier.
+     */
+    public List<Activite> recupererActivitesFilActualite(Utilisateur utilisateur) {
+        List<Long> ids = new ArrayList<>();
+        ids.add(utilisateur.getId());
+        List<Utilisateur> amis = utilisateur.getAmis();
+        if (amis != null) {
+            for (Utilisateur ami : amis) {
+                ids.add(ami.getId());
+            }
+        }
         return activiteRepository.findByUtilisateurIdsWithUtilisateurOrderByDateDesc(ids);
     }
 
