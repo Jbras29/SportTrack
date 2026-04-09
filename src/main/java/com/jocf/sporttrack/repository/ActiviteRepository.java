@@ -70,6 +70,16 @@ public interface ActiviteRepository extends JpaRepository<Activite, Long> {
             LocalDate dateFin
     );
 
+    long countByUtilisateur(Utilisateur utilisateur);
+
+    @Query("SELECT COALESCE(SUM(a.distance), 0) FROM Activite a WHERE a.utilisateur = :utilisateur")
+    Double sumDistanceByUtilisateur(@Param("utilisateur") Utilisateur utilisateur);
+
+    @Query("SELECT COALESCE(SUM(a.temps), 0) FROM Activite a WHERE a.utilisateur = :utilisateur")
+    Integer sumTempsMinutesByUtilisateur(@Param("utilisateur") Utilisateur utilisateur);
+
+    List<Activite> findTop5ByUtilisateurOrderByDateDesc(Utilisateur utilisateur);
+
     // Filtrage avancé multi-critères via JPQL
     @Query("""
             SELECT a FROM Activite a

@@ -211,8 +211,8 @@
         .status-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
         .status-bar-bg { height: 10px; background-color: var(--border-light); border-radius: 10px; overflow: hidden; }
         .status-bar-fill { height: 100%; border-radius: 10px; }
-        .fill-hp { background: linear-gradient(90deg, var(--brand-green), #A3CC52); width: 85%; }
-        .fill-xp { background: linear-gradient(90deg, var(--brand-blue), var(--brand-light-blue)); width: 65%; }
+        .fill-hp { background: linear-gradient(90deg, var(--brand-green), #A3CC52); min-width: 0; }
+        .fill-xp { background: linear-gradient(90deg, var(--brand-blue), var(--brand-light-blue)); min-width: 0; }
 
         /* Liste des challenges */
         .challenge-list { display: flex; flex-direction: column; gap: 15px; }
@@ -241,30 +241,45 @@
         }
         .task-status.pending { color: var(--brand-orange); }
 
-        .chart-container {
-            height: 150px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            padding-top: 20px;
-            gap: 10px;
+        .week-chart-shell {
+            position: relative;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(33, 162, 215, 0.06) 0%, rgba(19, 80, 119, 0.04) 100%);
+            border: 1px solid var(--border-light);
+            padding: 12px 8px 8px;
+            min-height: 240px;
         }
-        .bar-wrapper {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-        .chart-bar {
+        .week-chart-canvas {
             width: 100%;
-            max-width: 40px;
-            background-color: var(--brand-light-blue);
-            border-radius: 6px 6px 0 0;
-            transition: 0.3s;
+            height: 200px;
+            display: block;
+            vertical-align: middle;
         }
-        .chart-bar:hover { background-color: var(--brand-blue); }
-        .bar-label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+        .week-chart-empty {
+            display: none;
+            text-align: center;
+            padding: 56px 20px;
+            margin: 0;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .week-chart-empty.is-visible { display: block; }
+        .week-chart-shell.is-empty .week-chart-canvas { display: none; }
+        .week-chart-legend {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 8px;
+            padding-right: 4px;
+        }
+        .week-chart-legend span {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
 
         @media (max-width: 1024px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -322,8 +337,8 @@
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19c2.5 0 4.5-2 4.5-4.5a4.5 4.5 0 0 0-4.5-4.5c-1.5 0-2.5.5-3.5 1.5-1-1-2-1.5-3.5-1.5a4.5 4.5 0 0 0-4.5 4.5C6 17 8 19 10.5 19h7z"></path></svg>
                 </div>
                 <div>
-                    <p class="stat-value">3450</p>
-                    <p class="stat-label">Kcal brûlées</p>
+                    <p class="stat-value" th:text="${kcalEstime}">0</p>
+                    <p class="stat-label">Kcal estimées (durée)</p>
                 </div>
             </div>
             <div class="stat-card">
@@ -331,7 +346,7 @@
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 </div>
                 <div>
-                    <p class="stat-value">42.5 km</p>
+                    <p class="stat-value" th:text="${#numbers.formatDecimal(totalDistanceKm, 1, 1)} + ' km'">0 km</p>
                     <p class="stat-label">Distance totale</p>
                 </div>
             </div>
@@ -340,7 +355,7 @@
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                 </div>
                 <div>
-                    <p class="stat-value">12h 30</p>
+                    <p class="stat-value" th:text="|${totalTempsMinutes / 60}h ${totalTempsMinutes % 60}m|">0h 0m</p>
                     <p class="stat-label">Temps d'activité</p>
                 </div>
             </div>
@@ -349,7 +364,7 @@
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 </div>
                 <div>
-                    <p class="stat-value">15</p>
+                    <p class="stat-value" th:text="${nombreActivites}">0</p>
                     <p class="stat-label">Activités</p>
                 </div>
             </div>
@@ -365,58 +380,39 @@
                     <div class="status-row">
                         <div class="status-header">
                             <span>Points de Vie (HP)</span>
-                            <span style="color: var(--brand-green);" th:text="${user.hp ?: 100} + ' / 100'">85 / 100</span>
+                            <span style="color: var(--brand-green);" th:text="|${user.hpNormalise} / 100|">100 / 100</span>
                         </div>
-                        <div class="status-bar-bg"><div class="status-bar-fill fill-hp"></div></div>
+                        <div class="status-bar-bg"><div class="status-bar-fill fill-hp" th:style="|width: ${hpBarPercent}%|"></div></div>
                         <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Ne ratez pas vos objectifs pour garder vos HP !</p>
                     </div>
 
                     <div class="status-row">
                         <div class="status-header">
                             <span>Expérience (XP)</span>
-                            <span style="color: var(--brand-light-blue);" th:text="${user.xp ?: 0} + ' / 1000 XP'">650 / 1000 XP</span>
+                            <span style="color: var(--brand-light-blue);">
+                                <span th:if="${level &lt; 6}" th:text="|${xpDansNiveau} / ${xpMaxNiveau} XP|">0 / 100 XP</span>
+                                <span th:if="${level >= 6}" th:text="|${user.xpEffectif} XP (max)|">5000 XP</span>
+                            </span>
                         </div>
-                        <div class="status-bar-bg"><div class="status-bar-fill fill-xp"></div></div>
+                        <div class="status-bar-bg"><div class="status-bar-fill fill-xp" th:style="|width: ${xpBarPercent}%|"></div></div>
                     </div>
                 </div>
 
                 <div class="dash-card">
                     <h2 class="card-title">Mes Défis Actifs</h2>
                     <div class="challenge-list">
-                        
-                        <div class="challenge-item">
-                            <div class="daily-task">
-                                <div>
-                                    <div class="challenge-title">Faire 50 pompes par jour</div>
-                                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Série : 4 jours 🔥</div>
-                                </div>
-                                <div class="task-status">
-                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                                    Fait
-                                </div>
+                        <p th:if="${#lists.isEmpty(defisEnCours)}" style="margin: 0; font-size: 14px; color: var(--text-muted);">Aucun défi actif pour le moment.</p>
+                        <div th:each="defi : ${defisEnCours}" class="challenge-item">
+                            <div class="challenge-title" th:text="${defi.nom}">Nom du défi</div>
+                            <div class="defi-meta"
+                                 th:if="${defi.dateDebut != null and defi.dateFin != null}"
+                                 style="font-size: 12px; color: var(--text-muted); margin-top: 6px;"
+                                 th:text="|${#dates.format(defi.dateDebut, 'dd/MM/yyyy')} — ${#dates.format(defi.dateFin, 'dd/MM/yyyy')}|">
                             </div>
+                            <div th:if="${defi.dateDebut != null and defi.dateFin == null}"
+                                 style="font-size: 12px; color: var(--text-muted); margin-top: 6px;"
+                                 th:text="|Début : ${#dates.format(defi.dateDebut, 'dd/MM/yyyy')}|"></div>
                         </div>
-
-                        <div class="challenge-item">
-                            <div class="daily-task">
-                                <div>
-                                    <div class="challenge-title">Boire 2L d'eau</div>
-                                </div>
-                                <div class="task-status pending">
-                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                    En attente
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="challenge-item">
-                            <div class="challenge-header">
-                                <span class="challenge-title">Courir 50 km ce mois-ci</span>
-                                <span style="font-size: 12px; font-weight: 600; color: var(--brand-blue);">32 / 50 km</span>
-                            </div>
-                            <div class="status-bar-bg"><div class="status-bar-fill" style="background-color: var(--brand-orange); width: 64%;"></div></div>
-                        </div>
-
                     </div>
                 </div>
             </div>
@@ -428,37 +424,43 @@
                         Activité de la semaine
                         <span style="font-size: 12px; font-weight: 500; color: var(--text-muted); background: var(--hover-bg); padding: 4px 8px; border-radius: 6px;">Durée (min)</span>
                     </h2>
-                    
-                    <div class="chart-container">
-                        <div class="bar-wrapper"><div class="chart-bar" style="height: 40%;"></div><div class="bar-label">Lun</div></div>
-                        <div class="bar-wrapper"><div class="chart-bar" style="height: 80%; background-color: var(--brand-orange);"></div><div class="bar-label">Mar</div></div>
-                        <div class="bar-wrapper"><div class="chart-bar" style="height: 20%;"></div><div class="bar-label">Mer</div></div>
-                        <div class="bar-wrapper"><div class="chart-bar" style="height: 60%;"></div><div class="bar-label">Jeu</div></div>
-                        <div class="bar-wrapper"><div class="chart-bar" style="height: 0%;"></div><div class="bar-label">Ven</div></div>
-                        <div class="bar-wrapper"><div class="chart-bar" style="height: 100%; background-color: var(--brand-blue);"></div><div class="bar-label">Sam</div></div>
-                        <div class="bar-wrapper"><div class="chart-bar" style="height: 50%;"></div><div class="bar-label">Dim</div></div>
+
+                    <div id="week-chart-shell" class="week-chart-shell">
+                        <canvas id="week-activity-chart" class="week-chart-canvas" aria-label="Graphique de la durée d’activité par jour"></canvas>
+                        <p id="week-chart-empty" class="week-chart-empty">Vous ne vous êtes pas entrainés cette semaine</p>
+                        <div id="week-chart-legend" class="week-chart-legend" hidden>
+                            <span>Survol : minutes par jour</span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="dash-card">
                     <h2 class="card-title">Mes derniers entraînements</h2>
                     <div class="challenge-list">
-                        <div class="challenge-item" style="display: flex; align-items: center; gap: 15px;">
-                            <div class="stat-icon blue" style="width: 40px; height: 40px; flex-shrink: 0;">🏃‍♂️</div>
-                            <div style="flex-grow: 1;">
-                                <div class="challenge-title">Course matinale</div>
-                                <div style="font-size: 12px; color: var(--text-muted);">Hier • 10.2 km • 52 min</div>
+                        <p th:if="${#lists.isEmpty(dernieresActivites)}" style="margin: 0; font-size: 14px; color: var(--text-muted);">Aucune activité enregistrée pour l’instant.</p>
+                        <div th:each="activite : ${dernieresActivites}" class="challenge-item" style="display: flex; align-items: center; gap: 15px;">
+                            <div class="stat-icon blue" style="width: 40px; height: 40px; flex-shrink: 0;">
+                                <span th:switch="${activite.typeSport.name()}">
+                                    <span th:case="'CYCLISME'">🚴</span>
+                                    <span th:case="'VELO_ROUTE'">🚴</span>
+                                    <span th:case="'VTT'">🚵</span>
+                                    <span th:case="'NATATION'">🏊</span>
+                                    <span th:case="'FOOTBALL'">⚽</span>
+                                    <span th:case="'COURSE_A_PIED'">🏃</span>
+                                    <span th:case="'MARATHON'">🏃</span>
+                                    <span th:case="'TRAIL'">🏃</span>
+                                    <span th:case="'TRIATHLON'">🏊</span>
+                                    <span th:case="*">🏃</span>
+                                </span>
                             </div>
-                            <div style="font-weight: 600; color: var(--brand-blue);">+120 XP</div>
-                        </div>
-
-                        <div class="challenge-item" style="display: flex; align-items: center; gap: 15px;">
-                            <div class="stat-icon orange" style="width: 40px; height: 40px; flex-shrink: 0;">🚴‍♂️</div>
                             <div style="flex-grow: 1;">
-                                <div class="challenge-title">Sortie Vélo</div>
-                                <div style="font-size: 12px; color: var(--text-muted);">Mardi • 32 km • 1h 15 min</div>
+                                <div class="challenge-title" th:text="${activite.nom}">Nom</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">
+                                    <span th:text="${#temporals.format(activite.date, 'dd/MM/yyyy')}">01/01/2026</span>
+                                    <span th:if="${activite.distance != null}"> • <span th:text="${#numbers.formatDecimal(activite.distance, 1, 1)} + ' km'">0 km</span></span>
+                                    <span th:if="${activite.temps != null}"> • <span th:text="|${activite.temps / 60}h ${activite.temps % 60}m|">0h 0m</span></span>
+                                </div>
                             </div>
-                            <div style="font-weight: 600; color: var(--brand-blue);">+200 XP</div>
                         </div>
                     </div>
                 </div>
@@ -467,6 +469,181 @@
         </div>
 
     </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        (function () {
+            var weekData = /*[[${semaineActivite}]]*/ [];
+            if (!Array.isArray(weekData)) weekData = [];
+
+            var shell = document.getElementById('week-chart-shell');
+            var canvas = document.getElementById('week-activity-chart');
+            var emptyEl = document.getElementById('week-chart-empty');
+            var legend = document.getElementById('week-chart-legend');
+            if (!shell || !canvas || !emptyEl) return;
+
+            var totalMin = weekData.reduce(function (s, d) { return s + (Number(d.minutes) || 0); }, 0);
+            if (totalMin === 0) {
+                shell.classList.add('is-empty');
+                emptyEl.classList.add('is-visible');
+                return;
+            }
+            legend.hidden = false;
+
+            var COLORS = {
+                blue: '#135077',
+                light: '#21A2D7',
+                orange: '#F39434',
+                grid: 'rgba(100, 116, 139, 0.15)',
+                text: '#64748B'
+            };
+
+            var ctx = canvas.getContext('2d');
+            var animProgress = 0;
+            var hoverIndex = -1;
+
+            function layoutSize() {
+                var dpr = window.devicePixelRatio || 1;
+                var rect = canvas.getBoundingClientRect();
+                var w = Math.max(320, rect.width);
+                var h = 200;
+                canvas.width = Math.floor(w * dpr);
+                canvas.height = Math.floor(h * dpr);
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                return { w: w, h: h };
+            }
+
+            function draw() {
+                var L = layoutSize();
+                var w = L.w, h = L.h;
+                ctx.clearRect(0, 0, w, h);
+
+                var pad = { l: 36, r: 12, t: 16, b: 36 };
+                var chartW = w - pad.l - pad.r;
+                var chartH = h - pad.t - pad.b;
+                var vals = weekData.map(function (d) { return Number(d.minutes) || 0; });
+                var maxVal = Math.max.apply(null, vals);
+                maxVal = Math.max(maxVal, 10);
+                maxVal = Math.ceil(maxVal * 1.05);
+
+                for (var g = 0; g <= 4; g++) {
+                    var gy = pad.t + (chartH * g) / 4;
+                    ctx.beginPath();
+                    ctx.strokeStyle = COLORS.grid;
+                    ctx.lineWidth = 1;
+                    ctx.moveTo(pad.l, gy);
+                    ctx.lineTo(pad.l + chartW, gy);
+                    ctx.stroke();
+                    var labelVal = Math.round(maxVal * (1 - g / 4));
+                    ctx.fillStyle = COLORS.text;
+                    ctx.font = '10px Inter, sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(String(labelVal), pad.l - 6, gy + 3);
+                }
+
+                var n = weekData.length;
+                var gap = Math.min(14, chartW / (n * 3));
+                var barW = (chartW - gap * (n + 1)) / n;
+
+                for (var i = 0; i < n; i++) {
+                    var minutes = Number(weekData[i].minutes) || 0;
+                    var label = weekData[i].label || '';
+                    var targetH = chartH * (minutes / maxVal);
+                    var barH = targetH * animProgress;
+                    var x = pad.l + gap + i * (barW + gap);
+                    var y = pad.t + chartH - barH;
+                    var radius = Math.min(8, barW / 2);
+                    var isHover = hoverIndex === i;
+                    var scale = isHover ? 1.04 : 1;
+                    var bx = x + barW * (1 - scale) / 2;
+                    var bw = barW * scale;
+                    var by = pad.t + chartH - barH * scale;
+                    var bh = barH * scale;
+                    var r = Math.min(radius, bw / 2);
+
+                    if (bh > 0) {
+                        var grd = ctx.createLinearGradient(bx, by, bx, pad.t + chartH);
+                        grd.addColorStop(0, COLORS.light);
+                        grd.addColorStop(0.55, COLORS.blue);
+                        grd.addColorStop(1, COLORS.orange);
+                        ctx.fillStyle = grd;
+                        ctx.shadowColor = 'rgba(19, 80, 119, 0.25)';
+                        ctx.shadowBlur = isHover ? 14 : 8;
+                        ctx.shadowOffsetY = 4;
+                        ctx.beginPath();
+                        ctx.moveTo(bx + r, by);
+                        ctx.lineTo(bx + bw - r, by);
+                        ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + r);
+                        ctx.lineTo(bx + bw, pad.t + chartH);
+                        ctx.lineTo(bx, pad.t + chartH);
+                        ctx.lineTo(bx, by + r);
+                        ctx.quadraticCurveTo(bx, by, bx + r, by);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                        ctx.shadowOffsetY = 0;
+                    }
+
+                    ctx.fillStyle = COLORS.text;
+                    ctx.font = '600 11px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, x + barW / 2, pad.t + chartH + 18);
+
+                    if (minutes > 0 && bh > 12) {
+                        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+                        ctx.font = '700 10px Inter, sans-serif';
+                        ctx.fillText(String(minutes), bx + bw / 2, by + bh / 2 + 4);
+                    }
+                }
+            }
+
+            function animate() {
+                animProgress += 0.08;
+                if (animProgress > 1) animProgress = 1;
+                draw();
+                if (animProgress < 1) requestAnimationFrame(animate);
+            }
+
+            canvas.addEventListener('mousemove', function (ev) {
+                var rect = canvas.getBoundingClientRect();
+                var mx = ev.clientX - rect.left;
+                var L = { w: rect.width, h: rect.height };
+                var pad = { l: 36, r: 12, t: 16, b: 36 };
+                var chartW = L.w - pad.l - pad.r;
+                var n = weekData.length;
+                var gap = Math.min(14, chartW / (n * 3));
+                var barW = (chartW - gap * (n + 1)) / n;
+                var idx = -1;
+                for (var i = 0; i < n; i++) {
+                    var x = pad.l + gap + i * (barW + gap);
+                    if (mx >= x && mx <= x + barW) {
+                        idx = i;
+                        break;
+                    }
+                }
+                if (idx !== hoverIndex) {
+                    hoverIndex = idx;
+                    canvas.title = idx >= 0
+                        ? (weekData[idx].label + ' : ' + (Number(weekData[idx].minutes) || 0) + ' min')
+                        : '';
+                    draw();
+                }
+            });
+            canvas.addEventListener('mouseleave', function () {
+                hoverIndex = -1;
+                canvas.title = '';
+                draw();
+            });
+
+            window.addEventListener('resize', function () {
+                animProgress = 1;
+                draw();
+            });
+
+            requestAnimationFrame(animate);
+        })();
+        /*]]>*/
+    </script>
 
 </body>
 </html>
