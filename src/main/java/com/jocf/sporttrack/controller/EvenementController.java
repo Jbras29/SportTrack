@@ -53,6 +53,25 @@ public class EvenementController {
     }
 
 
+    // Afficher la page de détail d'un événement
+    @GetMapping("/evenements/{id}")
+    public String afficherDetailEvenement(@PathVariable Long id, Model model) {
+        Evenement evenement = evenementService.trouverParId(id);
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
+        Utilisateur currentUser = utilisateurService.trouverParEmail(email);
+
+        boolean isOrganisateur = evenement.getOrganisateur().getId().equals(currentUser.getId());
+
+        model.addAttribute("evenement", evenement);
+        model.addAttribute("isOrganisateur", isOrganisateur);
+        model.addAttribute("currentUser", currentUser);
+
+        return "evenement/detail";
+    }
+
+
     // =======================================================
     // SECTION 2 : API REST (Traitement des données JSON)
     // =======================================================
@@ -122,5 +141,68 @@ public class EvenementController {
     public ResponseEntity<List<Evenement>> getEvenementsByOrganisateur(@PathVariable Long organisateurId) {
         List<Evenement> evenements = evenementService.obtenirEvenementsParOrganisateur(organisateurId);
         return ResponseEntity.ok(evenements);
+    }
+
+
+    // Modifier les informations d'un événement
+    @ResponseBody
+    @PutMapping("/api/evenements/{id}")
+    public ResponseEntity<?> modifierEvenement(@PathVariable Long id, @RequestBody Evenement nouveauxDetails) {
+        // Sécurité : Vérifier si c'est bien l'organisateur qui demande la modif
+        if (verifierSiOrganisateur(id)) {
+            // On appelle le service pour mettre à jour
+            return ResponseEntity.ok(evenementService.modifierEvenement(id, nouveauxDetails));
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Action non autorisée");
+    }
+
+    // Publier une annonce
+    @ResponseBody
+    @PostMapping("/api/evenements/{id}/annonces")
+    public ResponseEntity<?> creerAnnonce(@PathVariable Long id, @RequestBody java.util.Map<String, String> payload) {
+        if (!verifierSiOrganisateur(id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Non autorisé");
+        }
+
+        // On récupère le champ "message" envoyé par le front
+        String message = payload.get("message");
+        return ResponseEntity.ok(evenementService.ajouterAnnonce(id, message));
+    }
+
+    // Endpoint pour supprimer une annonce
+    @ResponseBody
+    @DeleteMapping("/api/evenements/{id}/annonces/{annonceId}")
+    public ResponseEntity<?> supprimerAnnonce(@PathVariable Long id, @PathVariable Long annonceId) {
+        // Sécurité : Seul l'organisateur peut supprimer les annonces de son événement
+        if (verifierSiOrganisateur(id)) {
+            evenementService.supprimerAnnonce(annonceId);
+            return ResponseEntity.ok().build(); // On renvoie un succès 200 sans corps
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Action non autorisée");
+    }
+
+
+    // =======================================================
+    // MÉTHODES PRIVÉES (Aide à la sécurité)
+    // =======================================================
+
+    private boolean verifierSiOrganisateur(Long evenementId) {
+        // 1. On récupère l'événement concerné
+        Evenement evenement = evenementService.trouverParId(evenementId);
+
+        // 2. On récupère l'email de l'utilisateur actuellement connecté (Spring Security)
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email;
+        if (principal instanceof UserDetails) {
+            email = ((UserDetails) principal).getUsername();
+        } else {
+            email = principal.toString();
+        }
+
+        // 3. On récupère l'objet Utilisateur correspondant
+        Utilisateur currentUser = utilisateurService.trouverParEmail(email);
+
+        // 4. On compare les ID : si c'est le même, c'est bien l'organisateur !
+        return evenement.getOrganisateur().getId().equals(currentUser.getId());
     }
 }
