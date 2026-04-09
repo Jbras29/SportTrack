@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un challenge | Sport Track</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="app-shell">
+
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+
+    <div class="main-wrapper main-wrapper--stack">
+
+        <div class="profile-header">
+            <div class="profile-info">
+                <h1>Créer un challenge</h1>
+                <p>Lancez un défi à la communauté et motivez les participants !</p>
+            </div>
+        </div>
+
+        <div class="dash-card" style="max-width: 600px;">
+
+            <p th:if="${erreur}" class="error-message" th:text="${erreur}"></p>
+
+            <form th:action="@{/challenges/creer}" method="post">
+                <div class="form-group">
+                    <label for="nom">Nom du challenge</label>
+                    <input type="text" id="nom" name="nom" placeholder="Ex: Trail de mai" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dateDebut">Date de début</label>
+                    <input type="date" id="dateDebut" name="dateDebut" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dateFin">Date de fin</label>
+                    <input type="date" id="dateFin" name="dateFin" required>
+                </div>
+
+                <div class="form-actions">
+                    <a href="/challenges" class="btn-secondary">Annuler</a>
+                    <button type="submit" class="btn-primary">Créer le challenge</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+</body>
+</html>
