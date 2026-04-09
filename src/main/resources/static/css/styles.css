@@ -1030,9 +1030,52 @@ body.home-page .comment-composer-post {
     white-space: nowrap;
 }
 
+body.home-page .post-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+body.home-page .post-actions-right .btn {
+    padding: 8px 14px;
+    min-height: 40px;
+    font-size: 14px;
+}
+
+body.home-page .post-actions-plus-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    line-height: 1;
+}
+
+body.home-page .post-actions-plus-char {
+    font-weight: 700;
+    font-size: 1.1em;
+    margin-top: -1px;
+}
+
+body.home-page .post-actions-plus-emoji {
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
 body.home-page .comment-composer-toggle {
     flex-shrink: 0;
     white-space: nowrap;
+}
+
+/* Popover emoji-mart (injecté sur body par home.js) */
+.emoji-mart-popover {
+    position: fixed;
+    z-index: 10060;
+    max-width: calc(100vw - 16px);
+}
+
+.emoji-mart-popover[hidden] {
+    display: none !important;
 }
 
 /* Tooltip liste des réacteurs (élément fixe sur body, géré par home-reactions-tooltip.js) */

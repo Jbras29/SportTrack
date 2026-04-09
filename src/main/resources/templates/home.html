@@ -91,12 +91,20 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         <span th:text="|${#lists.size(activite.commentairesMessages)} commentaire${#lists.size(activite.commentairesMessages) != 1 ? 's' : ''}|">0 commentaires</span>
                     </div>
-                    <button type="button"
-                            class="btn btn-secondary comment-composer-toggle"
-                            aria-expanded="false"
-                            th:aria-controls="|comment-composer-${activite.id}|">
-                        Commenter
-                    </button>
+                    <div class="post-actions-right">
+                        <button type="button"
+                                class="btn btn-secondary post-actions-plus-btn"
+                                aria-label="Plus d'options">
+                            <span class="post-actions-plus-char" aria-hidden="true">+</span>
+                            <span class="post-actions-plus-emoji" aria-hidden="true">😊</span>
+                        </button>
+                        <button type="button"
+                                class="btn btn-secondary comment-composer-toggle"
+                                aria-expanded="false"
+                                th:aria-controls="|comment-composer-${activite.id}|">
+                            Commenter
+                        </button>
+                    </div>
                 </div>
 
                 <div class="comment-composer"
@@ -170,6 +178,7 @@
 
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js" defer></script>
     <script th:src="@{/js/home-reactions-tooltip.js}" defer></script>
     <script th:src="@{/js/home.js}" defer></script>
 </body>
