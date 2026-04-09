@@ -32,10 +32,12 @@
                          th:alt="${activite.utilisateur.prenom}"
                          class="post-avatar">
                     <div class="post-meta">
-                        <h3 th:text="|${activite.utilisateur.prenom} ${activite.utilisateur.nom} — ${activite.nom}|">
-                            Prénom Nom — Activité
-                        </h3>
-                        <p>
+                        <p class="post-author"
+                           th:text="|${activite.utilisateur.prenom} ${activite.utilisateur.nom}|">
+                            Prénom Nom
+                        </p>
+                        <h2 class="post-activity-title" th:text="${activite.nom}">Nom de l’activité</h2>
+                        <p class="post-meta-details">
                             <span th:text="${#temporals.format(activite.date, 'dd/MM/yyyy')}">01/01/2025</span>
                             <span th:if="${activite.location != null and !activite.location.isBlank()}"
                                   th:text="| • ${activite.location}|"></span>

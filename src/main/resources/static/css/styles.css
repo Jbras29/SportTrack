@@ -784,7 +784,7 @@ body.home-page .empty-feed {
 
 body.home-page .post-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 15px;
 }
 
@@ -797,16 +797,33 @@ body.home-page .post-avatar {
     object-fit: cover;
 }
 
-body.home-page .post-meta h3 {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 600;
+body.home-page .post-meta {
+    min-width: 0;
+    flex: 1;
 }
 
-body.home-page .post-meta p {
-    margin: 2px 0 0 0;
+body.home-page .post-author {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    line-height: 1.35;
+}
+
+body.home-page .post-activity-title {
+    margin: 6px 0 0 0;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: var(--text-main);
+}
+
+body.home-page .post-meta-details {
+    margin: 6px 0 0 0;
     font-size: 13px;
     color: var(--text-muted);
+    line-height: 1.4;
 }
 
 body.home-page .activity-stats {
