@@ -42,7 +42,7 @@ class AnnonceServiceTest {
 
     @BeforeEach
     void setUp() {
-        annonceService = new AnnonceService(annonceRepository, evenementRepository);
+        annonceService = new AnnonceService(annonceRepository, evenementRepository, utilisateurRepository);
     }
 
     @Test

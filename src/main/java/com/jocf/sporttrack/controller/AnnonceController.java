@@ -46,6 +46,17 @@ public class AnnonceController {
         }
     }
 
+    @GetMapping("/dashboard/{utilisateurId}")
+    @Operation(summary = "Récupérer les annonces du dashboard d'un utilisateur")
+    public ResponseEntity<List<Annonce>> getAnnoncesDashboard(@PathVariable Long utilisateurId) {
+        try {
+            List<Annonce> annonces = annonceService.recupererAnnoncesParParticipant(utilisateurId);
+            return ResponseEntity.ok(annonces);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @PostMapping
     @Operation(summary = "Créer une nouvelle annonce")
     public ResponseEntity<Annonce> createAnnonce(@RequestParam Long evenementId, @RequestParam String message) {
