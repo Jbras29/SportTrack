@@ -17,6 +17,9 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
     @Query("SELECT DISTINCT u FROM Utilisateur u LEFT JOIN FETCH u.amis WHERE u.email = :email")
     Optional<Utilisateur> findByEmailWithAmis(@Param("email") String email);
 
+    @Query("SELECT DISTINCT u FROM Utilisateur u LEFT JOIN FETCH u.amis WHERE u.id = :id")
+    Optional<Utilisateur> findByIdWithAmis(@Param("id") Long id);
+
     @Query("""
             SELECT DISTINCT u
             FROM Utilisateur u

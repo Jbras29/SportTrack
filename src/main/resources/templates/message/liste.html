@@ -14,14 +14,32 @@
 
     <div class="main-wrapper main-wrapper--stack">
 
-        <div class="page-header">
-            <h1>Mes Messages</h1>
-            <p>Discutez avec vos amis et contacts sportifs</p>
+        <div class="page-header page-header--messages-list">
+            <div class="page-header-text">
+                <h1>Mes Messages</h1>
+                <p>Discutez avec vos amis et contacts sportifs</p>
+            </div>
+            <button type="button" class="btn btn-primary btn-new-message messages-compose-btn open-friend-picker" title="Écrire à un ami">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M12 20h9"/>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+                <span class="messages-compose-btn-label">Écrire un message</span>
+            </button>
         </div>
 
         <div class="messages-container">
             <div class="messages-list">
-                <h2>Conversations</h2>
+                <div class="messages-list-header messages-list-header--solo">
+                    <h2>Conversations</h2>
+                    <button type="button" class="btn btn-primary btn-new-message open-friend-picker" title="Écrire à un ami">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M12 20h9"/>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                        </svg>
+                        Écrire
+                    </button>
+                </div>
 
                 <div th:if="${#lists.isEmpty(derniersMessages)}" class="empty-state">
                     <div class="empty-icon">💬</div>
@@ -30,20 +48,24 @@
                 </div>
 
                 <div th:if="${not #lists.isEmpty(derniersMessages)}" class="conversations-list">
-                    <div th:each="message : ${derniersMessages}" class="conversation-item">
-                        <div class="conversation-avatar">
-                            <img th:src="${message.expediteur.id == utilisateur.id ? message.destinataire.cheminPhotoProfilAffichee() : message.expediteur.cheminPhotoProfilAffichee()}"
-                                 alt="Photo de profil">
-                        </div>
-                        <div class="conversation-info">
-                            <div class="conversation-header">
-                                <h4 th:text="${message.expediteur.id == utilisateur.id ? message.destinataire.prenom + ' ' + message.destinataire.nom : message.expediteur.prenom + ' ' + message.expediteur.nom}"></h4>
-                                <span class="conversation-time" th:text="${#temporals.format(message.dateEnvoi, 'dd/MM/yyyy HH:mm')}"></span>
+                    <a th:each="message : ${derniersMessages}"
+                       th:href="@{/messages/conversation/{id}(id=${message.expediteur.id == utilisateur.id ? message.destinataire.id : message.expediteur.id})}"
+                       class="conversation-link">
+                        <div class="conversation-item">
+                            <div class="conversation-avatar">
+                                <img th:src="${message.expediteur.id == utilisateur.id ? message.destinataire.cheminPhotoProfilAffichee() : message.expediteur.cheminPhotoProfilAffichee()}"
+                                     alt="Photo de profil">
                             </div>
-                            <p class="last-message" th:text="${message.contenu.length() > 50 ? message.contenu.substring(0, 50) + '...' : message.contenu}"></p>
+                            <div class="conversation-info">
+                                <div class="conversation-header">
+                                    <h4 th:text="${message.expediteur.id == utilisateur.id ? message.destinataire.prenom + ' ' + message.destinataire.nom : message.expediteur.prenom + ' ' + message.expediteur.nom}"></h4>
+                                    <span class="conversation-time" th:text="${#temporals.format(message.dateEnvoi, 'dd/MM/yyyy HH:mm')}"></span>
+                                </div>
+                                <p class="last-message" th:text="${message.contenu.length() > 50 ? message.contenu.substring(0, 50) + '...' : message.contenu}"></p>
+                            </div>
+                            <div th:if="${message.destinataire.id == utilisateur.id and not message.lu}" class="unread-indicator"></div>
                         </div>
-                        <div th:if="${message.destinataire.id == utilisateur.id and not message.lu}" class="unread-indicator"></div>
-                    </div>
+                    </a>
                 </div>
             </div>
 
@@ -56,6 +78,28 @@
             </div>
         </div>
     </div>
+
+    <dialog id="friendPickerDialog" class="friend-picker-dialog" aria-labelledby="friendPickerTitle">
+        <div class="friend-picker-header">
+            <h3 id="friendPickerTitle">Choisir un ami</h3>
+            <button type="button" class="friend-picker-close" id="closeFriendPicker" aria-label="Fermer">&times;</button>
+        </div>
+        <div class="friend-picker-body">
+            <p th:if="${#lists.isEmpty(amis)}" class="friend-picker-empty">
+                Vous n’avez pas encore d’amis. <a th:href="@{/friend}">Ajoutez des contacts</a> pour discuter.
+            </p>
+            <ul th:if="${not #lists.isEmpty(amis)}" class="friend-picker-list">
+                <li th:each="ami : ${amis}">
+                    <a th:href="@{/messages/conversation/{id}(id=${ami.id})}" class="friend-picker-item">
+                        <span class="friend-picker-avatar">
+                            <img th:src="${ami.cheminPhotoProfilAffichee()}" alt="">
+                        </span>
+                        <span class="friend-picker-name" th:text="${ami.prenom + ' ' + ami.nom}">Nom</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </dialog>
 
     <script th:src="@{/js/messages.js}"></script>
 </body>

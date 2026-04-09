@@ -29,11 +29,12 @@ public class MessageController {
             return "redirect:/login";
         }
 
-        Utilisateur utilisateur = utilisateurService.findById(utilisateurId);
+        Utilisateur utilisateur = utilisateurService.findByIdWithAmis(utilisateurId);
         List<Message> derniersMessages = messageService.getDerniersMessagesAvecChaqueUtilisateur(utilisateur);
         long messagesNonLus = messageService.compterMessagesNonLus(utilisateur);
 
         model.addAttribute("utilisateur", utilisateur);
+        model.addAttribute("amis", utilisateurService.listerAmisTries(utilisateur));
         model.addAttribute("derniersMessages", derniersMessages);
         model.addAttribute("messagesNonLus", messagesNonLus);
 
@@ -49,7 +50,7 @@ public class MessageController {
             return "redirect:/login";
         }
 
-        Utilisateur utilisateur = utilisateurService.findById(utilisateurId);
+        Utilisateur utilisateur = utilisateurService.findByIdWithAmis(utilisateurId);
         Utilisateur destinataire = utilisateurService.findById(destinataireId);
 
         List<Message> conversation = messageService.getConversation(utilisateur, destinataire);
@@ -60,6 +61,7 @@ public class MessageController {
                 .forEach(messageService::marquerCommeLu);
 
         model.addAttribute("utilisateur", utilisateur);
+        model.addAttribute("amis", utilisateurService.listerAmisTries(utilisateur));
         model.addAttribute("destinataire", destinataire);
         model.addAttribute("conversation", conversation);
         model.addAttribute("nouveauMessage", new Message());

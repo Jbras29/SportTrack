@@ -14,7 +14,7 @@
 
     <div class="main-wrapper main-wrapper--stack">
 
-        <div class="page-header">
+        <div class="page-header page-header--conversation">
             <a href="/messages" class="btn btn-secondary back-btn">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -28,11 +28,27 @@
                     <p>Conversation privée</p>
                 </div>
             </div>
+            <button type="button" class="btn btn-primary btn-new-message messages-compose-btn open-friend-picker" title="Écrire à un ami">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M12 20h9"/>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+                <span class="messages-compose-btn-label">Écrire un message</span>
+            </button>
         </div>
 
         <div class="messages-container">
             <div class="messages-list">
-                <h2>Conversations</h2>
+                <div class="messages-list-header">
+                    <h2>Conversations</h2>
+                    <button type="button" class="btn btn-primary btn-new-message open-friend-picker" title="Écrire à un ami">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M12 20h9"/>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                        </svg>
+                        Écrire un message
+                    </button>
+                </div>
                 <!-- Liste des conversations serait ici, mais pour simplifier on garde juste le lien retour -->
                 <a href="/messages" class="conversation-link">
                     <div class="conversation-item active">
@@ -88,6 +104,31 @@
             </div>
         </div>
     </div>
+
+    <dialog id="friendPickerDialog" class="friend-picker-dialog" aria-labelledby="friendPickerTitle">
+        <div class="friend-picker-header">
+            <h3 id="friendPickerTitle">Choisir un ami</h3>
+            <button type="button" class="friend-picker-close" id="closeFriendPicker" aria-label="Fermer">&times;</button>
+        </div>
+        <div class="friend-picker-body">
+            <p th:if="${#lists.isEmpty(amis)}" class="friend-picker-empty">
+                Vous n’avez pas encore d’amis. <a th:href="@{/friend}">Ajoutez des contacts</a> pour discuter.
+            </p>
+            <ul th:if="${not #lists.isEmpty(amis)}" class="friend-picker-list">
+                <li th:each="ami : ${amis}">
+                    <a th:href="@{/messages/conversation/{id}(id=${ami.id})}"
+                       class="friend-picker-item"
+                       th:classappend="${ami.id == destinataire.id} ? ' friend-picker-item--current'">
+                        <span class="friend-picker-avatar">
+                            <img th:src="${ami.cheminPhotoProfilAffichee()}" alt="">
+                        </span>
+                        <span class="friend-picker-name" th:text="${ami.prenom + ' ' + ami.nom}">Nom</span>
+                        <span th:if="${ami.id == destinataire.id}" class="friend-picker-badge">Conversation actuelle</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </dialog>
 
     <script th:src="@{/js/messages.js}"></script>
 </body>
