@@ -788,6 +788,27 @@ body.home-page .post-header {
     margin-bottom: 15px;
 }
 
+body.home-page .post-profile-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+body.home-page .post-profile-link--avatar {
+    display: inline-block;
+    flex-shrink: 0;
+    margin-right: 15px;
+    border-radius: 50%;
+    line-height: 0;
+}
+body.home-page .post-profile-link--avatar:focus-visible {
+    outline: 2px solid var(--brand-light-blue);
+    outline-offset: 2px;
+}
+
+body.home-page .post-profile-link--avatar .post-avatar {
+    margin-right: 0;
+}
+
 body.home-page .post-avatar {
     width: 48px;
     height: 48px;
@@ -808,6 +829,10 @@ body.home-page .post-author {
     font-weight: 500;
     color: var(--text-muted);
     line-height: 1.35;
+}
+
+body.home-page a.post-author.post-profile-link:hover {
+    color: var(--brand-blue);
 }
 
 body.home-page .post-activity-title {
@@ -2743,18 +2768,68 @@ body.profile-page .btn-edit-header:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-body.profile-page .profile-content-grid {
-    display: grid;
-    grid-template-columns: minmax(260px, 320px) 1fr;
-    grid-template-rows: auto auto;
-    gap: 25px;
-    align-items: start;
+/* Deux volets : gauche (scroll indépendant si contenu long), droite (zone principale défilante) */
+body.profile-page .main-wrapper.main-wrapper--profile-split {
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+    gap: 0;
 }
 
-/* Ligne 1 gauche : photo + nom */
+body.profile-page .profile-split {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    gap: 25px;
+    align-items: stretch;
+}
+
+body.profile-page .profile-split-left {
+    flex: 0 0 clamp(260px, 30vw, 320px);
+    max-width: 320px;
+    min-width: 0;
+    min-height: 0;
+    max-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    scrollbar-gutter: stable;
+}
+
+body.profile-page .profile-split-right {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+body.profile-page .profile-right-fixed {
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+body.profile-page .profile-right-fixed .profile-card {
+    margin-bottom: 0;
+}
+
+body.profile-page .profile-split-right-scroll {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    scrollbar-gutter: stable;
+}
+
 body.profile-page .profile-identity {
-    grid-column: 1;
-    grid-row: 1;
     min-width: 0;
 }
 
@@ -2784,34 +2859,17 @@ body.profile-page .profile-identity-name {
     line-height: 1.3;
 }
 
-/* Ligne 1 droite : amis puis événements (colonne) */
-body.profile-page .profile-top-right {
-    grid-column: 2;
-    grid-row: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-}
-
-body.profile-page .profile-top-right .profile-card {
-    margin-bottom: 0;
-}
 
 body.profile-page .profile-friends,
 body.profile-page .profile-events {
     min-width: 0;
 }
 
-/* Ligne 2 : à propos | activités */
 body.profile-page .profile-sidebar {
-    grid-column: 1;
-    grid-row: 2;
+    min-width: 0;
 }
 
 body.profile-page .profile-main {
-    grid-column: 2;
-    grid-row: 2;
     min-width: 0;
 }
 
@@ -2930,7 +2988,7 @@ body.profile-page .friends-grid {
     gap: 12px;
 }
 
-body.profile-page .friend-item {
+body.profile-page a.friend-item {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -2939,10 +2997,17 @@ body.profile-page .friend-item {
     border-radius: 8px;
     transition: background-color 0.2s;
     cursor: pointer;
+    text-decoration: none;
+    color: inherit;
 }
 
-body.profile-page .friend-item:hover {
+body.profile-page a.friend-item:hover {
     background-color: #FAFCFD;
+}
+
+body.profile-page a.friend-item:focus-visible {
+    outline: 2px solid var(--brand-light-blue);
+    outline-offset: 2px;
 }
 
 body.profile-page .friend-avatar {
@@ -3039,18 +3104,39 @@ body.profile-page .event-info p {
     color: var(--text-muted);
 }
 
-/* Responsive */
+/* Responsive : une colonne, défilement global comme avant */
 @media (max-width: 1024px) {
-    body.profile-page .profile-content-grid {
-        grid-template-columns: 1fr;
-        grid-template-rows: none;
+    body.profile-page .main-wrapper.main-wrapper--profile-split {
+        overflow-y: auto;
     }
-    body.profile-page .profile-identity,
-    body.profile-page .profile-top-right,
-    body.profile-page .profile-sidebar,
+
+    body.profile-page .profile-split {
+        flex-direction: column;
+        flex: none;
+        min-height: unset;
+    }
+
+    body.profile-page .profile-split-left {
+        max-width: none;
+        flex: none;
+        max-height: none;
+        overflow-y: visible;
+    }
+
+    body.profile-page .profile-split-right {
+        overflow: visible;
+        flex: none;
+        min-height: unset;
+    }
+
+    body.profile-page .profile-split-right-scroll {
+        overflow-y: visible;
+        flex: none;
+        min-height: unset;
+    }
+
     body.profile-page .profile-main {
-        grid-column: 1;
-        grid-row: auto;
+        flex: none;
     }
 }
 

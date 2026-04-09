@@ -4,14 +4,19 @@
          th:attr="data-activite-id=${activite.id},
                   data-feed-comment-count=${#lists.size(activite.commentairesMessages)}">
     <div class="post-header">
-        <img th:src="${activite.utilisateur.cheminPhotoProfilAffichee()}"
-             th:alt="${activite.utilisateur.prenom}"
-             class="post-avatar">
+        <a th:href="@{/profile/{id}(id=${activite.utilisateur.id})}"
+           class="post-profile-link post-profile-link--avatar"
+           th:attr="aria-label=|Profil de ${activite.utilisateur.prenom} ${activite.utilisateur.nom}|">
+            <img th:src="${activite.utilisateur.cheminPhotoProfilAffichee()}"
+                 th:alt="${activite.utilisateur.prenom}"
+                 class="post-avatar">
+        </a>
         <div class="post-meta">
-            <p class="post-author"
+            <a th:href="@{/profile/{id}(id=${activite.utilisateur.id})}"
+               class="post-author post-profile-link"
                th:text="|${activite.utilisateur.prenom} ${activite.utilisateur.nom}|">
                 Prénom Nom
-            </p>
+            </a>
             <h2 class="post-activity-title" th:text="${activite.nom}">Nom de l’activité</h2>
             <p class="post-meta-details">
                 <span th:text="${#temporals.format(activite.date, 'dd/MM/yyyy')}">01/01/2025</span>
