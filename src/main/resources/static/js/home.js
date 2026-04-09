@@ -577,10 +577,32 @@
         return section;
     }
 
-    function buildCommentElement(c) {
+    function createCommentDeleteButton() {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'comment-delete-btn';
+        btn.setAttribute('aria-label', 'Supprimer le commentaire');
+        btn.setAttribute('title', 'Supprimer le commentaire');
+        btn.innerHTML =
+            '<svg class="comment-delete-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<polyline points="3 6 5 6 21 6"></polyline>' +
+            '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>' +
+            '<line x1="10" y1="11" x2="10" y2="17"></line>' +
+            '<line x1="14" y1="11" x2="14" y2="17"></line>' +
+            '</svg>';
+        return btn;
+    }
+
+    function buildCommentElement(c, activiteId) {
         var auteur = c.auteur || {};
         var wrap = document.createElement('div');
         wrap.className = 'comment';
+        if (c.id != null) {
+            wrap.setAttribute('data-commentaire-id', String(c.id));
+        }
+        if (activiteId != null) {
+            wrap.setAttribute('data-activite-id', String(activiteId));
+        }
         var img = document.createElement('img');
         img.className = 'comment-avatar';
         img.src = urlPhotoProfilAuteur(auteur);
@@ -594,9 +616,89 @@
         bubble.appendChild(strong);
         bubble.appendChild(document.createTextNode(' '));
         bubble.appendChild(span);
+        var inner = document.createElement('div');
+        inner.className = 'comment-inner';
+        inner.appendChild(bubble);
+        var currentUserId = document.body.getAttribute('data-current-user-id');
+        var aid = auteur.id != null ? String(auteur.id) : '';
+        if (currentUserId && aid && currentUserId === aid) {
+            inner.appendChild(createCommentDeleteButton());
+        }
         wrap.appendChild(img);
-        wrap.appendChild(bubble);
+        wrap.appendChild(inner);
         return wrap;
+    }
+
+    function supprimerCommentaireViaApi(btn) {
+        var commentEl = btn.closest('.comment');
+        var card = commentEl && commentEl.closest('.post-card');
+        if (!commentEl || !card) {
+            return;
+        }
+        var activiteId =
+            commentEl.getAttribute('data-activite-id') ||
+            card.getAttribute('data-activite-id');
+        var commentaireId = commentEl.getAttribute('data-commentaire-id');
+        var userAttr = document.body.getAttribute('data-current-user-id');
+        if (!activiteId || !commentaireId || !userAttr) {
+            return;
+        }
+        if (!window.confirm('Supprimer ce commentaire ?')) {
+            return;
+        }
+        var utilisateurId = parseInt(userAttr, 10);
+        if (isNaN(utilisateurId)) {
+            showToastErreur('Session invalide.');
+            return;
+        }
+        btn.disabled = true;
+        btn.classList.add('comment-delete-btn--pending');
+        var url =
+            '/api/activites/' +
+            encodeURIComponent(String(activiteId)) +
+            '/commentaires/' +
+            encodeURIComponent(String(commentaireId)) +
+            '?utilisateurId=' +
+            encodeURIComponent(String(utilisateurId));
+        fetch(url, {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' }
+        })
+            .then(function (r) {
+                return r.json().catch(function () {
+                    return null;
+                }).then(function (data) {
+                    return { ok: r.ok, status: r.status, data: data };
+                });
+            })
+            .then(function (result) {
+                if (result.data && result.data.success === true) {
+                    commentEl.remove();
+                    updateFeedCommentCount(card, -1);
+                    return;
+                }
+                var msg =
+                    result.data && result.data.message
+                        ? result.data.message
+                        : 'Impossible de supprimer le commentaire.';
+                if (!result.ok && !result.data) {
+                    msg =
+                        result.status === 401 || result.status === 403
+                            ? 'Accès refusé. Reconnectez-vous.'
+                            : 'Erreur serveur (' + result.status + ').';
+                }
+                showToastErreur(msg);
+            })
+            .catch(function () {
+                showToastErreur('Erreur réseau. Vérifiez votre connexion.');
+            })
+            .finally(function () {
+                if (btn.parentNode) {
+                    btn.disabled = false;
+                    btn.classList.remove('comment-delete-btn--pending');
+                }
+            });
     }
 
     function updateFeedCommentCount(card, delta) {
@@ -667,7 +769,9 @@
                 if (result.data && result.data.success === true && result.data.commentaire) {
                     var section = ensureCommentsSection(card);
                     if (section) {
-                        section.appendChild(buildCommentElement(result.data.commentaire));
+                        section.appendChild(
+                            buildCommentElement(result.data.commentaire, activiteId)
+                        );
                     }
                     updateFeedCommentCount(card, 1);
                     input.value = '';
@@ -692,6 +796,16 @@
                 setCommentComposerLoading(btn, input, false);
             });
     }
+
+    document.addEventListener('click', function (e) {
+        var delBtn = e.target.closest('.comment-delete-btn');
+        if (delBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            supprimerCommentaireViaApi(delBtn);
+            return;
+        }
+    });
 
     document.addEventListener('click', function (e) {
         var postBtn = e.target.closest('.comment-composer-post');

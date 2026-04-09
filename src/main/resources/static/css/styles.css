@@ -1299,6 +1299,49 @@ body.home-page .comments-section {
 body.home-page .comment {
     display: flex;
     gap: 10px;
+    align-items: flex-start;
+}
+
+body.home-page .comment-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+body.home-page .comment-delete-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+body.home-page .comment-delete-btn:hover:not(:disabled) {
+    color: #b91c1c;
+    background-color: rgba(185, 28, 28, 0.08);
+}
+
+body.home-page .comment-delete-btn:disabled,
+body.home-page .comment-delete-btn.comment-delete-btn--pending {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+body.home-page .comment-delete-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
 }
 
 body.home-page .comment-avatar {
@@ -1311,6 +1354,8 @@ body.home-page .comment-avatar {
 }
 
 body.home-page .comment-bubble {
+    flex: 1;
+    min-width: 0;
     background-color: var(--hover-bg);
     padding: 10px 14px;
     border-radius: 0 16px 16px 16px;
