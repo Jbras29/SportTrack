@@ -1,6 +1,13 @@
 (function () {
     var STORAGE_KEY = "sporttrack-theme";
 
+    try {
+        var stored = localStorage.getItem(STORAGE_KEY);
+        if (stored === "dark" || stored === "light") {
+            document.documentElement.setAttribute("data-theme", stored);
+        }
+    } catch (e) { /* ignore */ }
+
     function effectiveDark() {
         var t = document.documentElement.getAttribute("data-theme");
         if (t === "dark") {
