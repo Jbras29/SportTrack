@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation | Sport Track</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="app-shell messages-page">
+
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+
+    <div class="main-wrapper main-wrapper--stack">
+
+        <div class="page-header">
+            <a href="/messages" class="btn btn-secondary back-btn">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Retour
+            </a>
+            <div class="conversation-header-info">
+                <img th:src="${destinataire.cheminPhotoProfilAffichee()}" alt="Photo de profil" class="conversation-header-avatar">
+                <div>
+                    <h1 th:text="${destinataire.prenom + ' ' + destinataire.nom}"></h1>
+                    <p>Conversation privée</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="messages-container">
+            <div class="messages-list">
+                <h2>Conversations</h2>
+                <!-- Liste des conversations serait ici, mais pour simplifier on garde juste le lien retour -->
+                <a href="/messages" class="conversation-link">
+                    <div class="conversation-item active">
+                        <div class="conversation-avatar">
+                            <img th:src="${destinataire.cheminPhotoProfilAffichee()}" alt="Photo de profil">
+                        </div>
+                        <div class="conversation-info">
+                            <div class="conversation-header">
+                                <h4 th:text="${destinataire.prenom + ' ' + destinataire.nom}"></h4>
+                            </div>
+                            <p class="last-message">Conversation en cours</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="messages-content">
+                <div class="chat-messages" id="chatMessages">
+                    <div th:if="${#lists.isEmpty(conversation)}" class="empty-chat-state">
+                        <div class="empty-icon">💬</div>
+                        <h3>Aucun message</h3>
+                        <p>Envoyez le premier message pour commencer la conversation !</p>
+                    </div>
+
+                    <div th:each="message : ${conversation}" class="message"
+                         th:classappend="${message.expediteur.id == utilisateur.id} ? 'message-sent' : 'message-received'">
+                        <div class="message-avatar">
+                            <img th:src="${message.expediteur.cheminPhotoProfilAffichee()}" alt="Photo de profil">
+                        </div>
+                        <div class="message-content">
+                            <div class="message-bubble">
+                                <p th:text="${message.contenu}"></p>
+                            </div>
+                            <div class="message-time" th:text="${#temporals.format(message.dateEnvoi, 'dd/MM/yyyy HH:mm')}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-input-container">
+                    <form th:action="@{/messages/envoyer}" method="post" class="message-form">
+                        <input type="hidden" name="destinataireId" th:value="${destinataire.id}">
+                        <div class="message-input-group">
+                            <textarea name="contenu" placeholder="Tapez votre message..." rows="1" maxlength="2000" required></textarea>
+                            <button type="submit" class="btn btn-primary send-btn">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/messages.js}"></script>
+</body>
+</html>
