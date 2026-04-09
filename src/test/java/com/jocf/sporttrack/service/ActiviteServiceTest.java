@@ -32,11 +32,14 @@ class ActiviteServiceTest {
     @Mock
     private UtilisateurRepository utilisateurRepository;
 
+    @Mock
+    private UtilisateurService utilisateurService;
+
     private ActiviteService activiteService;
 
     @BeforeEach
     void setUp() {
-        activiteService = new ActiviteService(activiteRepository, utilisateurRepository);
+        activiteService = new ActiviteService(activiteRepository, utilisateurRepository, utilisateurService);
     }
 
     @Test
@@ -130,8 +133,29 @@ class ActiviteServiceTest {
         assertEquals(TypeSport.COURSE, resultat.getTypeSport());
         assertEquals(date, resultat.getDate());
         assertEquals(utilisateur, resultat.getUtilisateur());
+        int xpAttendu = Utilisateur.calculerXpGagnePourActivite(0.0, 0);
+        assertEquals(xpAttendu, resultat.getXpGagne());
         verify(utilisateurRepository).findById(1L);
         verify(activiteRepository).save(any(Activite.class));
+        verify(utilisateurService).crediterExperience(utilisateur, xpAttendu);
+    }
+
+    @Test
+    void creerActiviteCreditsXpSelonDistanceEtDuree() {
+        Utilisateur utilisateur = Utilisateur.builder().id(1L).email("user").xp(100).build();
+        LocalDate date = LocalDate.of(2024, 4, 7);
+        double distanceKm = 10.0;
+        int minutes = 60;
+        int xpAttendu = Utilisateur.calculerXpGagnePourActivite(distanceKm, minutes);
+
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+        when(activiteRepository.save(any(Activite.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Activite resultat = activiteService.creerActivite(
+                1L, "Course", TypeSport.COURSE, date, distanceKm, minutes, "Parc", 4);
+
+        assertEquals(xpAttendu, resultat.getXpGagne());
+        verify(utilisateurService).crediterExperience(utilisateur, xpAttendu);
     }
 
     @Test

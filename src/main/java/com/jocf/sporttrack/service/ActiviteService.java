@@ -18,10 +18,15 @@ public class ActiviteService {
 
     private final ActiviteRepository activiteRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final UtilisateurService utilisateurService;
 
-    public ActiviteService(ActiviteRepository activiteRepository, UtilisateurRepository utilisateurRepository) {
+    public ActiviteService(
+            ActiviteRepository activiteRepository,
+            UtilisateurRepository utilisateurRepository,
+            UtilisateurService utilisateurService) {
         this.activiteRepository = activiteRepository;
         this.utilisateurRepository = utilisateurRepository;
+        this.utilisateurService = utilisateurService;
     }
 
     public List<Activite> recupererToutesLesActivites() {
@@ -58,32 +63,45 @@ public class ActiviteService {
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
 
+        double distanceBrute = distance != null ? distance : 0.0;
+        int dureeMin = temps != null ? temps : 0;
+        double distanceKm = Utilisateur.distanceEnKmPourFormuleXp(distanceBrute);
+        int xpGagne = Utilisateur.calculerXpGagnePourActivite(distanceKm, dureeMin);
+
         Activite activite = Activite.builder()
                 .nom(nom)
                 .typeSport(typeSport)
                 .date(date)
-                .distance(distance != null ? distance : 0.0)
-                .temps(temps != null ? temps : 0)
+                .distance(distanceBrute)
+                .temps(dureeMin)
                 .location(location != null ? location : "")
                 .evaluation(evaluation != null ? evaluation : 0)
+                .xpGagne(xpGagne)
                 .utilisateur(utilisateur)
                 .build();
 
-        return activiteRepository.save(activite);
+        Activite sauvegardee = activiteRepository.save(activite);
+        utilisateurService.crediterExperience(utilisateur, xpGagne);
+        return sauvegardee;
     }
 
     public Activite creerActivite(Long utilisateurId, String nom, TypeSport typeSport, LocalDate date) {
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
 
+        int xpGagne = Utilisateur.calculerXpGagnePourActivite(0.0, 0);
+
         Activite activite = Activite.builder()
                 .nom(nom)
                 .typeSport(typeSport)
                 .date(date)
+                .xpGagne(xpGagne)
                 .utilisateur(utilisateur)
                 .build();
 
-        return activiteRepository.save(activite);
+        Activite sauvegardee = activiteRepository.save(activite);
+        utilisateurService.crediterExperience(utilisateur, xpGagne);
+        return sauvegardee;
     }
 
     public Activite modifierActivite(Long id, Activite activiteDetails) {

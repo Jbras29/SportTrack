@@ -54,6 +54,9 @@ public class Activite {
 
     private Integer evaluation;
 
+    /** XP attribuée à l’enregistrement de cette activité (historique / affichage). */
+    private Integer xpGagne;
+
     @ManyToOne
     @JoinColumn(name = "utilisateur_id", nullable = false)
     private Utilisateur utilisateur;

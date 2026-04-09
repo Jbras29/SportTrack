@@ -124,6 +124,17 @@ public class UtilisateurService implements UserDetailsService {
         utilisateurRepository.save(utilisateur);
     }
 
+    /**
+     * Ajoute de l’expérience au compte (ex. après enregistrement d’une activité). Persiste immédiatement.
+     */
+    public Utilisateur crediterExperience(Utilisateur utilisateur, int montantXp) {
+        if (montantXp <= 0) {
+            return utilisateur;
+        }
+        utilisateur.setXp(utilisateur.getXpEffectif() + montantXp);
+        return utilisateurRepository.save(utilisateur);
+    }
+
     public void supprimerUtilisateur(Long id) {
         if (!utilisateurRepository.existsById(id)) {
             throw new IllegalArgumentException("Utilisateur introuvable : " + id);

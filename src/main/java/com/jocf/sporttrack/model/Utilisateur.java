@@ -38,6 +38,26 @@ public class Utilisateur {
      */
     public static final int[] SEUILS_XP_NIVEAU_EXPERIENCE = {0, 100, 500, 1000, 3000, 5000};
 
+    /**
+     * Partie fixe : récompense toute séance enregistrée.
+     */
+    private static final double XP_ACTIVITE_BASE = 8.0;
+
+    /** Poids de la distance (km) dans l’XP. */
+    private static final double XP_COEF_DISTANCE_KM = 1.8;
+
+    /** Poids de la durée (minutes) dans l’XP. */
+    private static final double XP_COEF_DUREE_MIN = 0.35;
+
+    /**
+     * Bonus « effort complet » : récompense les sorties où distance et temps sont tous deux non triviaux
+     * (produit √(km × min) : même allure longue ou courte séance intense rentrent dans la formule).
+     */
+    private static final double XP_COEF_SYNERGIE = 2.5;
+
+    /** Saisie typique en mètres au-delà de ce seuil (ex. 5000 m) ; en dessous on suppose des km (ex. 10,5). */
+    private static final double XP_SEUIL_DISTANCE_METRES = 400.0;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -152,6 +172,35 @@ public class Utilisateur {
 
     public int getXpEffectif() {
         return xp != null ? xp : 0;
+    }
+
+    /**
+     * Interprète la distance en base pour la formule d’XP : au-delà du seuil « mètres »,
+     * la valeur est traitée comme des mètres (ex. 5000 → 5 km), sinon comme des kilomètres déjà (ex. 10 → 10 km).
+     */
+    public static double distanceEnKmPourFormuleXp(Double distanceStockee) {
+        if (distanceStockee == null || distanceStockee <= 0) {
+            return 0.0;
+        }
+        double v = distanceStockee;
+        return v > XP_SEUIL_DISTANCE_METRES ? v / 1000.0 : v;
+    }
+
+    /**
+     * XP gagnée pour une activité : base + effort distance + effort durée + bonus synergie √(km×min).
+     * Les paramètres attendus sont la distance déjà ramenée en km (voir {@link #distanceEnKmPourFormuleXp}) et la durée en minutes.
+     *
+     * @param distanceKm distance parcourue en kilomètres
+     * @param dureeMinutes durée en minutes
+     * @return XP entière (au moins 1 pour toute activité enregistrée)
+     */
+    public static int calculerXpGagnePourActivite(double distanceKm, int dureeMinutes) {
+        double d = Math.max(0.0, distanceKm);
+        double t = Math.max(0.0, dureeMinutes);
+        double score = XP_ACTIVITE_BASE + XP_COEF_DISTANCE_KM * d + XP_COEF_DUREE_MIN * t
+                + XP_COEF_SYNERGIE * Math.sqrt(d * t);
+        int arrondi = (int) Math.floor(score);
+        return Math.max(1, arrondi);
     }
 
     /** HP affichable (0–100), avec valeur par défaut à 100 si non renseigné. */

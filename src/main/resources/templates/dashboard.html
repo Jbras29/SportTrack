@@ -214,6 +214,29 @@
         .fill-hp { background: linear-gradient(90deg, var(--brand-green), #A3CC52); min-width: 0; }
         .fill-xp { background: linear-gradient(90deg, var(--brand-blue), var(--brand-light-blue)); min-width: 0; }
 
+        .xp-level-rail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            padding: 0 2px;
+        }
+        .xp-level-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--brand-blue);
+            letter-spacing: 0.02em;
+        }
+        .xp-level-label--next {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .xp-level-label--max {
+            font-weight: 600;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
         /* Liste des challenges */
         .challenge-list { display: flex; flex-direction: column; gap: 15px; }
         .challenge-item {
@@ -395,6 +418,11 @@
                             </span>
                         </div>
                         <div class="status-bar-bg"><div class="status-bar-fill fill-xp" th:style="|width: ${xpBarPercent}%|"></div></div>
+                        <div class="xp-level-rail">
+                            <span class="xp-level-label" th:text="|Niveau ${level}|">Niveau 1</span>
+                            <span th:if="${level &lt; 6}" class="xp-level-label xp-level-label--next" th:text="|Niveau ${level + 1}|">Niveau 2</span>
+                            <span th:if="${level >= 6}" class="xp-level-label xp-level-label--max">Palier max</span>
+                        </div>
                     </div>
                 </div>
 
