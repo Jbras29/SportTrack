@@ -42,14 +42,14 @@ public class FriendSearchController {
     public String afficherPageAmis(Authentication authentication, Model model) {
         Utilisateur utilisateurCourant = getUtilisateurCourant(authentication);
         remplirModele(model, utilisateurCourant, null);
-        return "search/friend";
+        return "friend/search";
     }
 
     @GetMapping(params = "recherche")
     public String rechercherAmis(@RequestParam String recherche, Authentication authentication, Model model) {
         Utilisateur utilisateurCourant = getUtilisateurCourant(authentication);
         remplirModele(model, utilisateurCourant, recherche);
-        return "search/friend";
+        return "friend/search";
     }
 
     @PostMapping("/request/{destinataireId}")
