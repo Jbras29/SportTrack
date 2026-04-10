@@ -1,5 +1,6 @@
 package com.jocf.sporttrack.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.jocf.sporttrack.model.PrefSportive;
 import com.jocf.sporttrack.model.Utilisateur;
@@ -122,6 +124,14 @@ public class UtilisateurService implements UserDetailsService {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + id));
         utilisateur.setPhotoProfil(cheminPublic);
+        utilisateurRepository.save(utilisateur);
+    }
+
+    @Transactional
+    public void enregistrerDerniereConsultationNotifications(Long utilisateurId) {
+        Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+        utilisateur.setDerniereConsultationNotifications(LocalDateTime.now());
         utilisateurRepository.save(utilisateur);
     }
 

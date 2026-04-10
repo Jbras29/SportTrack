@@ -16,6 +16,7 @@ import com.jocf.sporttrack.repository.CommentaireRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -58,8 +59,14 @@ public class NotificationService {
 
     /**
      * Agrège toutes les sources de notifications pour l’utilisateur, du plus récent au plus ancien.
+     *
+     * @param derniereConsultationNotifications référence « vue » (typiquement en base avant d’ouvrir la page) ;
+     *                                          {@code null} = tout considéré comme non lu
      */
-    public List<NotificationItem> listerPourUtilisateur(Long utilisateurId) {
+    @Transactional(readOnly = true)
+    public List<NotificationItem> listerPourUtilisateur(
+            Long utilisateurId,
+            LocalDateTime derniereConsultationNotifications) {
         Utilisateur proprietaire = utilisateurRepository.findById(utilisateurId)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
 
@@ -69,15 +76,15 @@ public class NotificationService {
             Utilisateur aut = c.getAuteur();
             Activite act = c.getActivite();
             String nomAuteur = aut.getPrenom() + " " + aut.getNom();
-            items.add(new NotificationItem(
+            items.add(item(
                     NotificationType.REACTION,
                     "Réaction à votre activité",
                     nomAuteur + " a réagi avec " + c.getMessage() + " à « " + act.getNom() + " »",
                     c.getDateCreation(),
                     "/home#post-" + act.getId(),
                     c.getId(),
-                    aut.cheminPhotoProfilAffichee()
-            ));
+                    aut.cheminPhotoProfilAffichee(),
+                    derniereConsultationNotifications));
         }
 
         for (Commentaire c : commentaireRepository.findPourProprietaireActiviteEtType(utilisateurId, TypeCommentaire.MESSAGE)) {
@@ -88,15 +95,15 @@ public class NotificationService {
             if (extrait.length() > 160) {
                 extrait = extrait.substring(0, 157) + "…";
             }
-            items.add(new NotificationItem(
+            items.add(item(
                     NotificationType.REPONSE_ACTIVITE,
                     "Commentaire sur votre activité",
                     nomAuteur + " sur « " + act.getNom() + " » : " + extrait,
                     c.getDateCreation(),
                     "/home#post-" + act.getId(),
                     c.getId(),
-                    aut.cheminPhotoProfilAffichee()
-            ));
+                    aut.cheminPhotoProfilAffichee(),
+                    derniereConsultationNotifications));
         }
 
         for (Annonce a : annonceRepository.findAnnoncesPourEvenementsOuUtilisateurParticipe(utilisateurId)) {
@@ -105,19 +112,19 @@ public class NotificationService {
             if (msg.length() > 200) {
                 msg = msg.substring(0, 197) + "…";
             }
-            items.add(new NotificationItem(
+            items.add(item(
                     NotificationType.ANNONCE_EVENEMENT,
                     "Annonce : " + titreEvenement,
                     msg,
                     a.getDate(),
                     "/evenements/" + a.getEvenement().getId(),
                     a.getId(),
-                    null
-            ));
+                    null,
+                    derniereConsultationNotifications));
         }
 
         if (joursSansActiviteRappel > 0) {
-            ajouterRappelInactiviteSiBesoin(items, proprietaire);
+            ajouterRappelInactiviteSiBesoin(items, proprietaire, derniereConsultationNotifications);
         }
 
         LocalDate aujourdhui = LocalDate.now();
@@ -127,15 +134,15 @@ public class NotificationService {
             }
             if (!challengeSaisieQuotidienneRepository.existsByChallenge_IdAndUtilisateur_IdAndJour(
                     ch.getId(), utilisateurId, aujourdhui)) {
-                items.add(new NotificationItem(
+                items.add(item(
                         NotificationType.RAPPEL_CHALLENGE_QUOTIDIEN,
                         "Défi du jour",
                         "Indiquez si vous avez réalisé l’objectif du jour pour le challenge « " + ch.getNom() + " ».",
                         LocalDateTime.now(),
                         "/challenges/" + ch.getId(),
                         ch.getId(),
-                        null
-                ));
+                        null,
+                        derniereConsultationNotifications));
             }
         }
 
@@ -143,7 +150,50 @@ public class NotificationService {
         return items;
     }
 
-    private void ajouterRappelInactiviteSiBesoin(List<NotificationItem> items, Utilisateur utilisateur) {
+    /**
+     * Nombre de notifications « non lues » par rapport à {@link Utilisateur#getDerniereConsultationNotifications()}.
+     */
+    @Transactional(readOnly = true)
+    public long compterNotificationsNonLues(Long utilisateurId) {
+        LocalDateTime derniere = utilisateurRepository.findById(utilisateurId)
+                .map(Utilisateur::getDerniereConsultationNotifications)
+                .orElse(null);
+        return listerPourUtilisateur(utilisateurId, derniere).stream()
+                .filter(NotificationItem::nonLue)
+                .count();
+    }
+
+    private static NotificationItem item(
+            NotificationType type,
+            String titre,
+            String detail,
+            LocalDateTime dateTri,
+            String lien,
+            Long referenceId,
+            String photoProfilUrl,
+            LocalDateTime derniereConsultationNotifications) {
+        return new NotificationItem(
+                type,
+                titre,
+                detail,
+                dateTri,
+                lien,
+                referenceId,
+                photoProfilUrl,
+                estNonLue(dateTri, derniereConsultationNotifications));
+    }
+
+    private static boolean estNonLue(LocalDateTime dateTri, LocalDateTime derniereConsultationNotifications) {
+        if (derniereConsultationNotifications == null) {
+            return true;
+        }
+        return dateTri.isAfter(derniereConsultationNotifications);
+    }
+
+    private void ajouterRappelInactiviteSiBesoin(
+            List<NotificationItem> items,
+            Utilisateur utilisateur,
+            LocalDateTime derniereConsultationNotifications) {
         Optional<Activite> derniere = activiteRepository.findTopByUtilisateurOrderByDateDesc(utilisateur);
         LocalDate aujourdhui = LocalDate.now();
         boolean inactif;
@@ -164,15 +214,15 @@ public class NotificationService {
                     + derniere.get().getDate().format(DATE_FR)
                     + " — pensez à noter vos séances.";
         }
-        items.add(new NotificationItem(
+        items.add(item(
                 NotificationType.RAPPEL_ACTIVITE,
                 "Rappel d’activité",
                 detail,
                 LocalDateTime.now(),
                 "/activites/create",
                 null,
-                null
-        ));
+                null,
+                derniereConsultationNotifications));
     }
 
     private static boolean challengeActifPourDate(Challenge c, LocalDate jour) {

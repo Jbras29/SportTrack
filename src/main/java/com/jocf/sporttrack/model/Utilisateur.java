@@ -22,6 +22,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,6 +81,9 @@ public class Utilisateur {
      */
     @Column(length = 512)
     private String photoProfil;
+
+    /** Dernière ouverture de la page notifications (repère pour marquer les entrées comme lues). */
+    private LocalDateTime derniereConsultationNotifications;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)

@@ -6,6 +6,7 @@ import com.jocf.sporttrack.service.UtilisateurService;
 import com.jocf.sporttrack.web.SessionKeys;
 import com.jocf.sporttrack.web.SessionUtilisateur;
 import jakarta.servlet.http.HttpSession;
+import java.time.LocalDateTime;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +31,9 @@ public class NotificationController {
         Utilisateur user = utilisateurService.trouverParId(sessionUser.id())
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + sessionUser.id()));
         model.addAttribute("user", user);
-        model.addAttribute("notifications", notificationService.listerPourUtilisateur(sessionUser.id()));
+        LocalDateTime derniereVue = user.getDerniereConsultationNotifications();
+        model.addAttribute("notifications", notificationService.listerPourUtilisateur(sessionUser.id(), derniereVue));
+        utilisateurService.enregistrerDerniereConsultationNotifications(sessionUser.id());
         return "notifications/list";
     }
 }

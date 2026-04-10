@@ -15,6 +15,8 @@ public record NotificationItem(
         String lien,
         Long referenceId,
         /** URL affichable pour l’avatar (réactions / réponses uniquement), sinon {@code null}. */
-        String photoProfilUrl
+        String photoProfilUrl,
+        /** {@code true} si la notification est plus récente que la dernière consultation de la page. */
+        boolean nonLue
 ) {
 }

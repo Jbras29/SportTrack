@@ -317,6 +317,34 @@ body.home-page .nav-btn--create.active {
     height: 24px;
 }
 
+.nav-btn--with-badge {
+    position: relative;
+}
+
+.nav-btn-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 1;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--brand-red);
+    color: var(--text-on-accent);
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+    border: 2px solid var(--bg-card);
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+html[data-theme="dark"] .nav-btn-badge {
+    border-color: var(--bg-card);
+}
+
 .nav-form,
 .request-form,
 .inline-form {
@@ -4261,6 +4289,22 @@ body.notifications-page .notif-list {
 
 body.notifications-page .notifications-page__subtitle {
     margin-top: 0.25rem;
+}
+
+body.notifications-page .notif-item--non-lue {
+    box-shadow: inset 3px 0 0 0 var(--notif-accent, var(--brand-blue));
+}
+
+body.notifications-page .notif-item--non-lue.notif-item--blue {
+    --notif-accent: #2563eb;
+}
+
+body.notifications-page .notif-item--non-lue.notif-item--red {
+    --notif-accent: #dc2626;
+}
+
+body.notifications-page .notif-item--non-lue.notif-item--yellow {
+    --notif-accent: #ca8a04;
 }
 
 body.notifications-page .notif-item {

@@ -26,7 +26,7 @@
             <a th:each="n : ${notifications}"
                th:href="${n.lien}"
                class="notif-item"
-               th:classappend="${n.type.name == 'REACTION' || n.type.name == 'REPONSE_ACTIVITE'} ? ' notif-item--blue' : (${n.type.name == 'ANNONCE_EVENEMENT'} ? ' notif-item--red' : ' notif-item--yellow')">
+               th:classappend="${(n.type.name == 'REACTION' || n.type.name == 'REPONSE_ACTIVITE') ? ' notif-item--blue' : (n.type.name == 'ANNONCE_EVENEMENT' ? ' notif-item--red' : ' notif-item--yellow') + (n.nonLue ? ' notif-item--non-lue' : '')}">
                 <div class="notif-item-layout">
                     <!-- Avatar + pastille (réactions / réponses) -->
                     <div class="notif-item-aside" th:if="${n.photoProfilUrl != null}">
