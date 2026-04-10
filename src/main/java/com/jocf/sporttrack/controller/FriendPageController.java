@@ -246,4 +246,20 @@ public class FriendPageController {
             String photoUrl,
             String sousTitre) {
     }
+
+     //On fait un endpoint pour supprimer un ami et on se redirige vers la page des amis après la suppression
+    @GetMapping("/remove")
+    public String supprimerAmi(@RequestParam Long id, Authentication authentication) {
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            return "redirect:/login";
+        }
+
+        Utilisateur utilisateurCourant = utilisateurService.trouverParEmail(authentication.getName());
+        if (utilisateurCourant == null) {
+            return "redirect:/login";
+        }
+
+        utilisateurService.supprimerAmi(utilisateurCourant.getId(), id);
+        return "redirect:/friend";
+    }
 }

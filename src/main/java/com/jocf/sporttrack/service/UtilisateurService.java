@@ -230,4 +230,18 @@ public class UtilisateurService implements UserDetailsService {
                 .thenComparing(Utilisateur::getNom, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
         return amis;
     }
-}
+
+    //Supprimer un ami de la liste d'amis de l'utilisateur
+    public void supprimerAmi(Long utilisateurId, Long amiId) {
+            Utilisateur utilisateur = utilisateurRepository.findByIdWithAmis(utilisateurId)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé : " + utilisateurId));
+            Utilisateur ami = utilisateurRepository.findByIdWithAmis(amiId)
+                    .orElseThrow(() -> new RuntimeException("Ami non trouvé : " + amiId));
+
+            utilisateur.getAmis().remove(ami);
+            ami.getAmis().remove(utilisateur); 
+
+            utilisateurRepository.save(utilisateur);
+            utilisateurRepository.save(ami);
+        }
+    }

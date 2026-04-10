@@ -269,4 +269,6 @@ public class FriendSearchController {
             return !demandeEnvoyee && !dejaAmi && !demandeRecue;
         }
     }
+
+   
 }

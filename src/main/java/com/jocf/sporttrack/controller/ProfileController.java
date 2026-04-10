@@ -168,6 +168,7 @@ public class ProfileController {
         }
         Utilisateur utilisateur = utilisateurService.trouverParId(id)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + id));
+        System.out.println("DEBUG utilisateur.id = " + utilisateur.getId());
         Utilisateur connecte = utilisateurService.trouverParId(idSession)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + idSession));
         model.addAttribute("utilisateur", utilisateur);
