@@ -3,75 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accueil | Sport Track</title>
+    <title>Administration | Sport Track</title>
     <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .main-wrapper--admin {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+        .admin-section {
+            background: var(--surface-card, #fff);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .admin-section h2 {
+            color: var(--text-base, #333);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .admin-table th, .admin-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color, #eaeaea);
+            text-align: left;
+        }
+        .admin-table th {
+            background: var(--surface-default, #f9f9f9);
+            color: var(--text-muted, #777);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .badge {
+            background: #3b82f6;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .badge-type {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .badge-type.msg {
+            background: #f3e8ff;
+            color: #9333ea;
+        }
+        .badge-type.evt {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+    </style>
 </head>
 <body class="app-shell home-page"
       th:attr="data-current-user-id=${user.id}">
 
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
-    <div class="main-wrapper main-wrapper--split">
-        
-        <div class="timeline timeline--scroll">
-            <div class="page-header">
-                <h1>Fil d'actualité</h1>
-            </div>
-
-            <div class="post-card empty-feed" th:if="${#lists.isEmpty(activitesFil)}">
-                Aucune activité pour le moment. Enregistrez une séance ou ajoutez des amis pour voir le fil.
-            </div>
-
-            <th:block th:each="activite : ${activitesFil}">
-                <article th:replace="~{fragments/feed-activite :: carteActivite(activite=${activite}, user=${user})}"></article>
-            </th:block>
-
+    <div class="main-wrapper main-wrapper--admin">
+        <div class="page-header">
+            <h1>Tableau de Bord Administrateur</h1>
         </div>
 
-        <div class="right-panel">
-            <div class="widget">
-                <h3 class="widget-title">Mon Athlète</h3>
-                <div class="widget-block">
-                    <div class="metric-head">
-                        <span>Santé (HP)</span>
-                        <span class="status-value--hp" th:text="|${hp} %|">85%</span>
-                    </div>
-                    <div class="modern-bar">
-                        <div class="modern-bar-fill hp-fill" th:style="|width: ${hpBarPercent}%|"></div>
-                    </div>
-                </div>
-                <div>
-                    <div class="metric-head">
-                        <span th:text="|Niveau ${level} (XP)|">Niveau 1 (XP)</span>
-                        <span class="status-value--xp">
-                            <span th:if="${level &lt; 6}" th:text="|${xpDansNiveau} / ${xpMaxNiveau}|">0 / 100</span>
-                            <span th:if="${level >= 6}" th:text="|${user.xp} XP|">5000 XP</span>
-                        </span>
-                    </div>
-                    <div class="modern-bar">
-                        <div class="modern-bar-fill xp-fill" th:style="|width: ${xpBarPercent}%|"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="widget">
-                <h3 class="widget-title">Défis en cours</h3>
-                <p class="defis-vide" th:if="${#lists.isEmpty(defisEnCours)}">Aucun défi en cours pour le moment.</p>
-                <div th:each="defi : ${defisEnCours}" class="defi-ligne">
-                    <span class="emoji-accent">🔥</span>
-                    <div>
-                        <div th:text="${defi.nom}">Nom du défi</div>
-                        <div class="defi-meta"
-                             th:if="${defi.dateDebut != null and defi.dateFin != null}"
-                             th:text="|${#dates.format(defi.dateDebut, 'dd/MM/yyyy')} — ${#dates.format(defi.dateFin, 'dd/MM/yyyy')}|">
-                        </div>
-                    </div>
-                </div>
+        <div class="admin-section">
+            <h2>Gestion des Utilisateurs</h2>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nom & Prénom</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="u : ${tousUtilisateurs}">
+                            <td th:text="${u.id}"></td>
+                            <td th:text="|${u.prenom} ${u.nom}|"></td>
+                            <td th:text="${u.email}"></td>
+                            <td>
+                                <button th:if="${u.id != user.id}" class="btn-action btn-danger" th:attr="onclick=|supprimerUtilisateur(${u.id})|">Supprimer</button>
+                                <span th:if="${u.id == user.id}" class="badge">Administrateur</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(tousUtilisateurs)}">
+                            <td colspan="4">Aucun utilisateur trouvé.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
+        <div class="admin-section">
+            <h2>Gestion des Commentaires</h2>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Auteur</th>
+                            <th>Type</th>
+                            <th>Message / Emoji</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="c : ${tousCommentaires}">
+                            <td th:text="${c.id}"></td>
+                            <td th:text="${c.auteur.prenom} + ' ' + ${c.auteur.nom}"></td>
+                            <td>
+                                <span th:if="${c.type.name() == 'MESSAGE'}" class="badge-type msg">Texte</span>
+                                <span th:if="${c.type.name() == 'REACTION'}" class="badge-type evt">Réaction</span>
+                            </td>
+                            <td th:text="${c.message}"></td>
+                            <td th:text="${#temporals.format(c.dateCreation, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td>
+                                <button class="btn-action btn-danger" th:attr="onclick=|supprimerCommentaire(${c.id})|">Supprimer</button>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(tousCommentaires)}">
+                            <td colspan="6">Aucun commentaire trouvé.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <div id="home-feedback-toast"
@@ -83,5 +171,39 @@
     <script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js" defer></script>
     <script th:src="@{/js/home-reactions-tooltip.js}" defer></script>
     <script th:src="@{/js/home.js}" defer></script>
+
+    <script>
+        async function supprimerUtilisateur(id) {
+            if (!confirm('Voulez-vous vraiment supprimer cet utilisateur ?')) return;
+            try {
+                const res = await fetch(`/utilisateurs/${id}`, { method: 'DELETE' });
+                if (res.ok || res.status === 204) {
+                    alert('Utilisateur supprimé.');
+                    location.reload();
+                } else {
+                    alert('Erreur lors de la suppression.');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Erreur: ' + e.message);
+            }
+        }
+
+        async function supprimerCommentaire(id) {
+            if (!confirm('Voulez-vous vraiment supprimer ce commentaire ?')) return;
+            try {
+                const res = await fetch(`/api/commentaires/${id}`, { method: 'DELETE' });
+                if (res.ok || res.status === 204) {
+                    alert('Commentaire supprimé.');
+                    location.reload();
+                } else {
+                    alert('Erreur lors de la suppression.');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Erreur: ' + e.message);
+            }
+        }
+    </script>
 </body>
 </html>
