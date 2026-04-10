@@ -4314,22 +4314,6 @@ body.notifications-page .notifications-page__subtitle {
     margin-top: 0.25rem;
 }
 
-body.notifications-page .notif-item--non-lue {
-    box-shadow: inset 3px 0 0 0 var(--notif-accent, var(--brand-blue));
-}
-
-body.notifications-page .notif-item--non-lue.notif-item--blue {
-    --notif-accent: #2563eb;
-}
-
-body.notifications-page .notif-item--non-lue.notif-item--red {
-    --notif-accent: #dc2626;
-}
-
-body.notifications-page .notif-item--non-lue.notif-item--yellow {
-    --notif-accent: #ca8a04;
-}
-
 body.notifications-page .notif-item {
     --notif-accent: var(--border-light);
     --notif-tint-1: transparent;
@@ -4338,6 +4322,7 @@ body.notifications-page .notif-item {
     --notif-icon-bg: rgba(100, 116, 139, 0.12);
     --notif-icon-fg: var(--text-muted);
 
+    position: relative;
     display: block;
     padding: 0.95rem 1rem;
     border-radius: 12px;
@@ -4346,6 +4331,32 @@ body.notifications-page .notif-item {
     text-decoration: none;
     color: inherit;
     transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Non lues : bordure teintée, dégradé un peu plus marqué, pastille */
+body.notifications-page .notif-item--non-lue {
+    border-color: color-mix(in srgb, var(--notif-accent) 45%, var(--border-light));
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--notif-accent) 20%, transparent) 0%,
+        var(--bg-card) 52%
+    );
+}
+
+body.notifications-page .notif-item--non-lue .notif-item-title {
+    color: var(--text-main);
+}
+
+body.notifications-page .notif-item--non-lue::before {
+    content: "";
+    position: absolute;
+    top: 0.85rem;
+    right: 0.85rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--notif-accent);
+    box-shadow: 0 0 0 2px var(--bg-card);
 }
 
 body.notifications-page .notif-item:hover {
@@ -4378,6 +4389,17 @@ body.notifications-page .notif-item--yellow {
     --notif-type-color: var(--warning-text);
     --notif-icon-bg: var(--warning-bg);
     --notif-icon-fg: var(--warning-text);
+}
+
+/* Lues : sans dégradé de type (après les variantes pour écraser --notif-tint-*) */
+body.notifications-page .notif-item:not(.notif-item--non-lue) {
+    --notif-tint-1: transparent;
+    --notif-tint-2: transparent;
+}
+
+body.notifications-page .notif-item:not(.notif-item--non-lue) .notif-item-title {
+    font-weight: 500;
+    color: var(--text-muted);
 }
 
 body.notifications-page .notif-item-layout {
