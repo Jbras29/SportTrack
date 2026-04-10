@@ -103,6 +103,23 @@
             </span>
         </div>
 
+        <div th:if="${estParticipant}" class="dash-card" style="margin-top: 1rem;">
+            <h2 style="font-size:1rem; font-weight:600; margin-bottom:0.5rem;">Objectif du jour</h2>
+            <p class="empty-copy" style="margin-bottom:0.75rem;">
+                Indiquez si vous avez réalisé l’objectif prévu pour aujourd’hui (utilisé pour les rappels dans les notifications).
+            </p>
+            <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+                <form th:action="@{/challenges/{id}/saisie-quotidienne(id=${challenge.id})}" method="post">
+                    <input type="hidden" name="realise" value="true"/>
+                    <button type="submit" class="btn btn-primary">Oui, fait</button>
+                </form>
+                <form th:action="@{/challenges/{id}/saisie-quotidienne(id=${challenge.id})}" method="post">
+                    <input type="hidden" name="realise" value="false"/>
+                    <button type="submit" class="btn btn-secondary">Non, pas fait</button>
+                </form>
+            </div>
+        </div>
+
         <!-- Classement -->
         <div class="dash-card">
             <h2 style="font-size:1rem; font-weight:600; margin-bottom:0.5rem;">🏆 Classement</h2>

@@ -1,6 +1,7 @@
 <article xmlns:th="http://www.thymeleaf.org"
          th:fragment="carteActivite (activite, user)"
          class="post-card feed-post"
+         th:id="|post-${activite.id}|"
          th:attr="data-activite-id=${activite.id},
                   data-feed-comment-count=${#lists.size(activite.commentairesMessages)}">
     <div class="post-header">
