@@ -3342,22 +3342,7 @@ body.messages-page .empty-state p {
     }
 }
 
-body.event-create-page .invite-loading,
-body.event-create-page .invite-empty {
-    color: var(--text-muted);
-}
 
-body.event-create-page .invite-error {
-    color: var(--error-text);
-}
-
-body.event-create-page .event-form-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 28px;
-    padding-top: 0;
-    border-top: none;
-}
 
 body.event-list-page .page-header {
     display: flex;
@@ -3379,165 +3364,227 @@ body.event-list-page .page-header p {
     font-size: 15px;
 }
 
+body.event-list-page .page-header {
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+}
+
+body.event-list-page .page-header h1 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--brand-blue);
+}
+
+body.event-list-page .page-header p {
+    margin: 10px 0 20px 0;
+    color: var(--text-muted);
+    font-size: 16px;
+}
+
+/* Bouton "+ NOUVEAU" : Style "Créer un challenge" mais en plus visible */
 body.event-list-page .btn-create {
-    background: linear-gradient(135deg, var(--brand-orange), #ffb347);
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--brand-blue); /* Ton bleu de groupe */
     color: white;
     text-decoration: none;
     padding: 10px 20px;
-    border-radius: 10px;
+    border-radius: 6px;
     font-weight: 700;
-    box-shadow: 0 4px 15px rgba(243, 148, 52, 0.3);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    font-size: 14px;
+    border: 2px solid #1E1E1E;
+    box-shadow: 4px 4px 0px #1E1E1E; /* Ombre dure pour la visibilité */
+    transition: 0.2s;
 }
 
 body.event-list-page .btn-create:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-soft);
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #1E1E1E;
+    background-color: var(--brand-orange);
 }
 
+/* 2. Grille d'événements (3 colonnes comme sur ta capture) */
 body.event-list-page .events-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
     gap: 20px;
 }
 
-body.event-list-page .event-list-empty {
-    grid-column: 1 / -1;
-    margin: 0;
-    padding: 20px 0;
-    color: var(--text-muted);
-}
-
+/* 3. Carte d'événement : Style Challenge (Simple & Blanc) */
 body.event-list-page .event-card {
-    background-color: var(--bg-card);
+    background-color: #FFFFFF; /* Fond blanc pur comme les challenges */
     border-radius: 16px;
-    border: 1px solid var(--border-light);
-    padding: 20px;
+    border: 1px solid #E2E8F0;
+    padding: 25px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    box-shadow: var(--shadow-card);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    gap: 12px; /* Espacement aéré */
+    transition: transform 0.3s ease;
 }
 
 body.event-list-page .event-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-soft);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 }
 
+/* Typographie interne (Simple et propre) */
 body.event-list-page .event-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--brand-blue);
-    margin: 0 0 5px 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1E1E1E;
+    margin-bottom: 5px;
 }
 
-body.event-list-page .event-date {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--brand-orange);
-}
-
-body.event-list-page .event-desc {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--text-muted);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-body.event-list-page .card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    margin-top: auto;
-    padding-top: 15px;
-    border-top: 1px solid var(--border-light);
-}
 
 body.event-list-page .participants-count {
-    display: flex;
-    align-items: center;
-    gap: 5px;
     font-size: 13px;
-    font-weight: 600;
-    color: var(--text-muted);
+    font-weight: 700;
+    color: #94A3B8;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
-
-body.event-list-page .btn-join {
-    background-color: var(--brand-light-blue);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    font-size: 13px;
-}
-
-body.event-list-page .btn-join:hover {
-    background-color: var(--brand-blue);
-}
-
-body.event-list-page .btn-join:disabled {
-    background-color: var(--border-light);
-    color: var(--text-muted);
-    cursor: not-allowed;
+body.event-list-page .event-date,
+body.event-list-page .event-organizer {
+    font-size: 14px;
+    color: #64748B; /* Gris pro */
+    margin: 0;
 }
 
 body.event-list-page .card-actions {
     display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 6px;
     align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
 }
 
+/* 4. Footer de la carte : Boutons alignés à gauche (Comme sur Challenge) */
+body.event-list-page .card-footer {
+    display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 15px;
+        border-top: 1px solid #F1F5F9;
+}
+
+/* 5. Boutons UNIFIÉS (Visibilité maximale) */
+.btn-join, .btn-detail {
+    height: 34px;
+    padding: 0 10px;
+    font-size: 10px;
+    border-radius: 4px;
+    font-weight: 900;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border: 2px solid #1E1E1E;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Bouton REJOINDRE : Sombre, très visible */
+body.event-list-page .btn-join {
+    background-color: #1E1E1E;
+    color: #FFFFFF;
+}
+
+body.event-list-page .btn-join:hover:not(:disabled) {
+    background-color: var(--brand-orange);
+    color: #000;
+    box-shadow: 4px 4px 0px #000;
+    transform: translate(-2px, -2px);
+}
+
+/* Bouton DÉTAILS : Style "Voir le classement" mais avec bordure visible */
 body.event-list-page .btn-detail {
-    background-color: var(--hover-bg);
-    color: var(--brand-blue);
-    border: 1px solid var(--brand-blue);
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-weight: 600;
+    background-color: #F1F5F9; /* Gris très clair pour rester discret mais propre */
+    color: #1E1E1E;
     text-decoration: none;
-    font-size: 13px;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    display: inline-block;
 }
 
 body.event-list-page .btn-detail:hover {
-    background-color: var(--brand-blue);
-    color: var(--text-on-accent);
+    background-color: #FFFFFF;
+    box-shadow: 4px 4px 0px #1E1E1E;
+    transform: translate(-2px, -2px);
 }
+
+
+body.event-create-page .event-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 35px;
+    padding-top: 0;
+    border-top: none;
+}
+
+
+body.event-create-page .event-submit {
+    min-width: 200px;
+    height: 46px;
+    background-color: #1E1E1E;
+    color: #FFFFFF;
+
+    border-radius: 4px;
+    border: 2px solid #1E1E1E;
+
+    font-size: 14px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+
+
+    box-shadow: 4px 4px 0px #1E1E1E;
+}
+
+
+body.event-create-page .event-submit:hover {
+    background-color: var(--brand-orange);
+    color: #000;
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0px #1E1E1E;
+}
+
+
+body.event-create-page .event-submit:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px #1E1E1E;
+}
+
+
+body.event-create-page .invite-loading,
+body.event-create-page .invite-empty {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+body.event-create-page .invite-error {
+    color: var(--danger-red);
+    font-size: 13px;
+    font-weight: 700;
+}
+
 
 body.event-create-page .invite-option {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 0;
+    gap: 12px;
+    padding: 12px 0;
     border-bottom: 1px solid var(--border-light);
+    transition: background 0.2s;
 }
 
-body.event-create-page .invite-option:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-}
-
-body.event-create-page .invite-option:first-child {
-    padding-top: 0;
-}
-
-body.event-create-page .invite-option input {
-    margin: 0;
-}
-
-body.event-create-page .event-submit {
-    min-width: 180px;
+body.event-create-page .invite-option:hover {
+    background-color: rgba(0,0,0,0.02);
 }
 
 @media (min-width: 1100px) {
