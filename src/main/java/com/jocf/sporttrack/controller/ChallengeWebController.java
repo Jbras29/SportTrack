@@ -19,45 +19,38 @@ public class ChallengeWebController {
     }
 
     @GetMapping("/creer")
-    public String afficherFormulaireCreation(Model model, HttpSession session) {
-        Utilisateur user = (Utilisateur) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
-        }
-        return "challenges/creer"; 
+public String afficherFormulaireCreation(Model model, HttpSession session) {
+    Utilisateur user = (Utilisateur) session.getAttribute("user");
+    if (user == null) return "redirect:/login";
+    model.addAttribute("navRequestPath", "/challenges");
+    return "challenges/creer-challenge";
+}
+
+@PostMapping("/creer")
+public String traiterCreationChallenge(
+        @RequestParam String nom,
+        @RequestParam java.sql.Date dateDebut,
+        @RequestParam java.sql.Date dateFin,
+        HttpSession session,
+        Model model) {
+    Utilisateur user = (Utilisateur) session.getAttribute("user");
+    if (user == null) return "redirect:/login";
+    try {
+        Challenge challenge = Challenge.builder()
+            .nom(nom).dateDebut(dateDebut).dateFin(dateFin).build();
+        challengeService.creerChallenge(challenge, user.getId());
+        return "redirect:/challenges";
+    } catch (IllegalArgumentException e) {
+        model.addAttribute("erreur", e.getMessage());
+        model.addAttribute("navRequestPath", "/challenges");
+        return "challenges/creer-challenge"; 
     }
+}
 
-    @PostMapping("/creer")
-    public String traiterCreationChallenge(
-            @RequestParam String nom,
-            @RequestParam java.sql.Date dateDebut,
-            @RequestParam java.sql.Date dateFin,
-            HttpSession session,
-            Model model) {
-
-        Utilisateur user = (Utilisateur) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
-        }
-
-        try {
-            Challenge challenge = Challenge.builder()
-                .nom(nom)
-                .dateDebut(dateDebut)
-                .dateFin(dateFin)
-                .build();
-            
-            challengeService.creerChallenge(challenge, user.getId());
-            return "redirect:/challenges"; 
-        } catch (IllegalArgumentException e) {
-            model.addAttribute("erreur", e.getMessage());
-            return "challenges/creer";
-        }
-    }
-
-    @GetMapping
-    public String listeDesDefis(Model model) {
+@GetMapping
+public String listeDesDefis(Model model) {
     model.addAttribute("challenges", challengeService.recupererTousLesChallenges());
-    return "challenges/liste"; 
+    model.addAttribute("navRequestPath", "/challenges");
+    return "challenges/liste";
 }
 }
