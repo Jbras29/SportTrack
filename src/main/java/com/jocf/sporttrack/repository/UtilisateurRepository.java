@@ -36,11 +36,12 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
             @Param("recherche") String recherche);
 
     @Query("""
-            SELECT DISTINCT u
-            FROM Utilisateur u
-            LEFT JOIN FETCH u.prefSportives
-            """)
-    List<Utilisateur> findAllWithPrefSportives();
+        SELECT DISTINCT u
+        FROM Utilisateur u
+        LEFT JOIN FETCH u.prefSportives
+        WHERE u.typeUtilisateur <> TypeUtilisateur.ADMIN
+        """)
+     List<Utilisateur> findAllWithPrefSportives();
 
     @Query("""
             SELECT DISTINCT ami.id
