@@ -25,6 +25,26 @@
                          th:alt="|${utilisateur.prenom} ${utilisateur.nom}|"
                          width="120" height="120">
                     <p class="profile-identity-name" th:text="|${utilisateur.prenom} ${utilisateur.nom}|">Prénom Nom</p>
+                    <div class="profile-badges"
+                         th:if="${utilisateur.badges != null and !#lists.isEmpty(utilisateur.badges)}">
+                        <p class="profile-badges-heading">Badges</p>
+                        <ul class="profile-badges-list" role="list">
+                            <li th:each="badge : ${utilisateur.badges}"
+                                class="profile-badge-item"
+                                th:attr="aria-label=${badge.nom}">
+                                <img class="profile-badge-img"
+                                     th:src="${badge.photo}"
+                                     th:alt="${badge.nom}"
+                                     width="48"
+                                     height="48"
+                                     loading="lazy">
+                            </li>
+                        </ul>
+                    </div>
+                    <p class="profile-badges-empty empty-text"
+                       th:if="${utilisateur.badges == null or #lists.isEmpty(utilisateur.badges)}">
+                        Aucun badge débloqué pour le moment.
+                    </p>
                 </div>
             </div>
 
