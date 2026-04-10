@@ -1,5 +1,6 @@
 package com.jocf.sporttrack.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -165,12 +166,14 @@ public class Utilisateur {
 
     @Builder.Default
     @OneToMany(mappedBy = "expediteur", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Message> messagesEnvoyes = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "destinataire", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Message> messagesRecus = new ArrayList<>();

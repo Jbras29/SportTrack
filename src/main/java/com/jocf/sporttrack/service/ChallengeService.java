@@ -59,4 +59,31 @@ public class ChallengeService {
         }
         challengeRepository.deleteById(id);
     }
+
+    public List<Utilisateur> getClassement(Long challengeId) {
+        Challenge challenge = challengeRepository.findById(challengeId)
+            .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + challengeId));
+    
+        return challenge.getParticipants().stream()
+            .sorted((u1, u2) -> Integer.compare(
+                u2.getXp() != null ? u2.getXp() : 0,
+                u1.getXp() != null ? u1.getXp() : 0
+            ))
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    public Challenge rejoindreChallenge(Long challengeId, Long utilisateurId) {
+        Challenge challenge = challengeRepository.findById(challengeId)
+            .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + challengeId));
+    
+        Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
+            .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+    
+        if (challenge.getDateFin() != null && challenge.getDateFin().before(new java.sql.Date(System.currentTimeMillis()))) {
+            throw new IllegalArgumentException("Ce challenge est terminé.");
+        }
+    
+        challenge.getParticipants().add(utilisateur);
+        return challengeRepository.save(challenge);
+    }
 }
