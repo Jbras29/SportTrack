@@ -312,6 +312,28 @@
         true
     );
 
+    /** Clic sur un chip existant : ajouter la même réaction (emoji du chip), sauf si déjà la sienne. */
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('.reaction-chip-remove')) {
+            return;
+        }
+        var chip = e.target.closest('.reaction-chip');
+        if (!chip) {
+            return;
+        }
+        if (chip.classList.contains('reaction-chip--mine')) {
+            return;
+        }
+        var card = chip.closest('.post-card');
+        var activiteId = card && card.getAttribute('data-activite-id');
+        var emoji = chip.getAttribute('data-emoji');
+        if (!activiteId || !emoji) {
+            return;
+        }
+        e.preventDefault();
+        posterReaction(activiteId, emoji, chip);
+    });
+
     function setPlusButtonLoading(btn, loading) {
         if (!btn) {
             return;
@@ -327,7 +349,29 @@
         }
     }
 
-    function posterReaction(activiteId, emojiNatif, plusBtn) {
+    /** Bouton « + » ou chip de réaction pendant l’envoi POST. */
+    function setReactionRequestLoading(el, loading) {
+        if (!el) {
+            return;
+        }
+        if (el.classList.contains('post-actions-plus-btn')) {
+            setPlusButtonLoading(el, loading);
+            return;
+        }
+        if (el.classList.contains('reaction-chip')) {
+            if (loading) {
+                el.classList.add('reaction-chip--pending');
+                el.disabled = true;
+                el.setAttribute('aria-busy', 'true');
+            } else {
+                el.classList.remove('reaction-chip--pending');
+                el.disabled = false;
+                el.removeAttribute('aria-busy');
+            }
+        }
+    }
+
+    function posterReaction(activiteId, emojiNatif, loadingTarget) {
         var auteurAttr = document.body.getAttribute('data-current-user-id');
         if (!auteurAttr) {
             showToastErreur('Impossible d’identifier l’utilisateur. Rechargez la page.');
@@ -338,7 +382,7 @@
             showToastErreur('Session invalide.');
             return;
         }
-        setPlusButtonLoading(plusBtn, true);
+        setReactionRequestLoading(loadingTarget, true);
         fetch('/api/activites/' + encodeURIComponent(String(activiteId)) + '/reactions', {
             method: 'POST',
             headers: {
@@ -379,7 +423,7 @@
                 showToastErreur('Erreur réseau. Vérifiez votre connexion.');
             })
             .finally(function () {
-                setPlusButtonLoading(plusBtn, false);
+                setReactionRequestLoading(loadingTarget, false);
             });
     }
 

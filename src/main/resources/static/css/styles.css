@@ -1181,7 +1181,7 @@ body.home-page button.reaction-chip {
     margin: 0;
     font: inherit;
     color: inherit;
-    cursor: help;
+    cursor: pointer;
     text-align: left;
     appearance: none;
 }
