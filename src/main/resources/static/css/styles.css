@@ -3499,6 +3499,19 @@ body.event-list-page .btn-join:hover:not(:disabled) {
     transform: translate(-2px, -2px);
 }
 
+body.event-list-page .event-registered {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--brand-green);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 4px;
+}
+
 /* Bouton DÉTAILS : Style "Voir le classement" mais avec bordure visible */
 body.event-list-page .btn-detail {
     background-color: #F1F5F9; /* Gris très clair pour rester discret mais propre */

@@ -44,9 +44,12 @@
                         </svg>
                         <span th:text="${#lists.size(evt.participants)} + ' participants'"></span>
                     </span>
-                    <div class="card-actions">
+                    <div class="card-actions"
+                         th:with="participe=${#lists.contains(evt.participants.![id], user.id) or evt.organisateur.id == user.id}">
                         <a th:href="@{/evenements/{id}(id=${evt.id})}" class="btn-detail">Détails</a>
-                        <button type="button" class="btn-join" th:attr="onclick=|rejoindreEvenement(${evt.id}, this)|">Rejoindre</button>
+                        <span th:if="${participe}" class="event-registered">Déjà inscrit</span>
+                        <button th:unless="${participe}" type="button" class="btn-join"
+                                th:attr="onclick=|rejoindreEvenement(${evt.id}, this)|">Rejoindre</button>
                     </div>
                 </div>
             </div>
