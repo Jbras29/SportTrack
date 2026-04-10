@@ -160,7 +160,7 @@ public class ProfileController {
         return "profile/view";
     }
 
-    @GetMapping("/profile/{id}")
+   @GetMapping("/profile/{id}")
     public String viewProfile(@PathVariable Long id, HttpSession session, Model model) {
         Long idSession = (Long) session.getAttribute("utilisateurId");
         if (idSession == null) {
@@ -168,14 +168,21 @@ public class ProfileController {
         }
         Utilisateur utilisateur = utilisateurService.trouverParId(id)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + id));
-        System.out.println("DEBUG utilisateur.id = " + utilisateur.getId());
-        Utilisateur connecte = utilisateurService.trouverParId(idSession)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + idSession));
+        Utilisateur connecte = utilisateurService.findByIdWithAmis(idSession);
+
+        connecte.getAmis().forEach(ami ->
+            System.out.println("DEBUG ami.id = " + ami.getId() + " | id visité = " + id)
+        );
+
+        boolean estAmi = connecte.getAmis().stream()
+                .anyMatch(ami -> ami.getId().longValue() == id.longValue());
+
+        System.out.println("DEBUG estAmi = " + estAmi + " | amis = " + connecte.getAmis().size());
+
         model.addAttribute("utilisateur", utilisateur);
         model.addAttribute("user", connecte);
+        model.addAttribute("estAmi", estAmi);
         model.addAttribute("activites", activiteService.recupererActivitesPourProfil(utilisateur));
-        //model.addAttribute("defis", utilisateur.getDefis());
-        //model.addAttribute("defauts", utilisateur.getDefauts());
         model.addAttribute("amis", utilisateur.getAmis());
         model.addAttribute("evenementsOrganises", utilisateur.getEvenementsOrganises());
         model.addAttribute("evenementsParticipe", utilisateur.getEvenementsParticipes());
