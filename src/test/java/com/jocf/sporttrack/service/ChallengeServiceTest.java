@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.jocf.sporttrack.model.Challenge;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.ChallengeRepository;
+import com.jocf.sporttrack.repository.ChallengeSaisieQuotidienneRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 import java.sql.Date;
 import java.util.Arrays;
@@ -31,11 +32,14 @@ class ChallengeServiceTest {
     @Mock
     private UtilisateurRepository utilisateurRepository;
 
+    @Mock
+    private ChallengeSaisieQuotidienneRepository challengeSaisieQuotidienneRepository;
+
     private ChallengeService challengeService;
 
     @BeforeEach
     void setUp() {
-        challengeService = new ChallengeService(challengeRepository, utilisateurRepository);
+        challengeService = new ChallengeService(challengeRepository, utilisateurRepository, challengeSaisieQuotidienneRepository);
     }
 
     @Test

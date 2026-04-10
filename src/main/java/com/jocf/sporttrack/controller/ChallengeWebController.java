@@ -5,6 +5,7 @@ import com.jocf.sporttrack.service.ChallengeService;
 import com.jocf.sporttrack.web.SessionKeys;
 import com.jocf.sporttrack.web.SessionUtilisateur;
 import jakarta.servlet.http.HttpSession;
+import java.time.LocalDate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -89,6 +90,23 @@ public String detailChallenge(@PathVariable Long id, Model model, HttpSession se
             challengeService.rejoindreChallenge(id, user.id());
         } catch (IllegalArgumentException e) {
             // challenge terminé ou introuvable, on redirige quand même
+        }
+        return "redirect:/challenges/" + id;
+    }
+
+    @PostMapping("/{id}/saisie-quotidienne")
+    public String saisieQuotidienne(
+            @PathVariable Long id,
+            @RequestParam boolean realise,
+            HttpSession session) {
+        SessionUtilisateur user = (SessionUtilisateur) session.getAttribute(SessionKeys.UTILISATEUR);
+        if (user == null) {
+            return "redirect:/login";
+        }
+        try {
+            challengeService.enregistrerSaisieQuotidienne(id, user.id(), LocalDate.now(), realise);
+        } catch (IllegalArgumentException ignored) {
+            // challenge introuvable ou pas participant : on redirige sans erreur bloquante
         }
         return "redirect:/challenges/" + id;
     }

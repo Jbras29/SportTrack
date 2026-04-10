@@ -1,11 +1,15 @@
 package com.jocf.sporttrack.service;
 
 import com.jocf.sporttrack.model.Challenge;
+import com.jocf.sporttrack.model.ChallengeSaisieQuotidienne;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.ChallengeRepository;
+import com.jocf.sporttrack.repository.ChallengeSaisieQuotidienneRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,10 +18,15 @@ public class ChallengeService {
 
     private final ChallengeRepository challengeRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final ChallengeSaisieQuotidienneRepository challengeSaisieQuotidienneRepository;
 
-    public ChallengeService(ChallengeRepository challengeRepository, UtilisateurRepository utilisateurRepository) {
+    public ChallengeService(
+            ChallengeRepository challengeRepository,
+            UtilisateurRepository utilisateurRepository,
+            ChallengeSaisieQuotidienneRepository challengeSaisieQuotidienneRepository) {
         this.challengeRepository = challengeRepository;
         this.utilisateurRepository = utilisateurRepository;
+        this.challengeSaisieQuotidienneRepository = challengeSaisieQuotidienneRepository;
     }
 
     public List<Challenge> recupererTousLesChallenges() {
@@ -89,6 +98,34 @@ public class ChallengeService {
     
         challenge.getParticipants().add(utilisateur);
         return challengeRepository.save(challenge);
+    }
+
+    /**
+     * Enregistre pour aujourd’hui (ou un jour donné) si l’objectif du défi a été fait ou non.
+     */
+    @Transactional
+    public void enregistrerSaisieQuotidienne(Long challengeId, Long utilisateurId, LocalDate jour, boolean realise) {
+        Challenge challenge = challengeRepository.findById(challengeId)
+                .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + challengeId));
+        Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+        if (!challenge.getParticipants().contains(utilisateur)) {
+            throw new IllegalArgumentException("Vous ne participez pas à ce challenge.");
+        }
+        Optional<ChallengeSaisieQuotidienne> existant =
+                challengeSaisieQuotidienneRepository.findByChallengeAndUtilisateurAndJour(challenge, utilisateur, jour);
+        if (existant.isPresent()) {
+            ChallengeSaisieQuotidienne s = existant.get();
+            s.setRealise(realise);
+            challengeSaisieQuotidienneRepository.save(s);
+        } else {
+            challengeSaisieQuotidienneRepository.save(ChallengeSaisieQuotidienne.builder()
+                    .challenge(challenge)
+                    .utilisateur(utilisateur)
+                    .jour(jour)
+                    .realise(realise)
+                    .build());
+        }
     }
 
 
