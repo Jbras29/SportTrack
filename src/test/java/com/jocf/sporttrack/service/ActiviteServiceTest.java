@@ -36,11 +36,15 @@ class ActiviteServiceTest {
     @Mock
     private UtilisateurService utilisateurService;
 
+    @Mock
+    private ActiviteBadgeEvaluationService activiteBadgeEvaluationService;
+
     private ActiviteService activiteService;
 
     @BeforeEach
     void setUp() {
-        activiteService = new ActiviteService(activiteRepository, utilisateurRepository, utilisateurService);
+        activiteService = new ActiviteService(
+                activiteRepository, utilisateurRepository, utilisateurService, activiteBadgeEvaluationService);
     }
 
     @Test
@@ -139,6 +143,7 @@ class ActiviteServiceTest {
         verify(utilisateurRepository).findById(1L);
         verify(activiteRepository).save(any(Activite.class));
         verify(utilisateurService).crediterExperience(utilisateur, xpAttendu);
+        verify(activiteBadgeEvaluationService).evaluerEtAttribuerBadges(any(Activite.class));
     }
 
     @Test
@@ -157,6 +162,7 @@ class ActiviteServiceTest {
 
         assertEquals(xpAttendu, resultat.getXpGagne());
         verify(utilisateurService).crediterExperience(utilisateur, xpAttendu);
+        verify(activiteBadgeEvaluationService).evaluerEtAttribuerBadges(any(Activite.class));
     }
 
     @Test
