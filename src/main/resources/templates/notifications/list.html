@@ -7,41 +7,15 @@
     <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <style>
-        .notif-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
-        .notif-item {
-            display: block;
-            padding: 1rem 1.1rem;
-            border-radius: 12px;
-            border: 1px solid var(--border, #e5e7eb);
-            background: var(--surface, #fff);
-            text-decoration: none;
-            color: inherit;
-            transition: background 0.15s ease, border-color 0.15s ease;
-        }
-        .notif-item:hover { border-color: var(--primary, #6d28d9); background: var(--surface-alt, #f9fafb); }
-        .notif-item-type {
-            font-size: 0.72rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-muted, #6b7280);
-            margin-bottom: 0.35rem;
-        }
-        .notif-item-title { font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem; }
-        .notif-item-detail { font-size: 0.92rem; color: var(--text-muted, #4b5563); line-height: 1.45; }
-        .notif-item-date { font-size: 0.8rem; color: var(--text-muted, #9ca3af); margin-top: 0.5rem; }
-        .notif-empty { color: var(--text-muted, #6b7280); padding: 2rem 0; text-align: center; }
-    </style>
 </head>
-<body class="app-shell">
+<body class="app-shell notifications-page">
 
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
     <div class="main-wrapper main-wrapper--stack">
         <div class="page-header">
             <h1>Notifications</h1>
-            <p class="empty-copy" style="margin-top:0.25rem;">Du plus récent au plus ancien</p>
+            <p class="empty-copy notifications-page__subtitle">Du plus récent au plus ancien</p>
         </div>
 
         <p class="notif-empty" th:if="${#lists.isEmpty(notifications)}">
@@ -51,18 +25,58 @@
         <div class="notif-list" th:if="${!#lists.isEmpty(notifications)}">
             <a th:each="n : ${notifications}"
                th:href="${n.lien}"
-               class="notif-item">
-                <div class="notif-item-type" th:switch="${n.type.name()}">
-                    <span th:case="'REACTION'">Réaction</span>
-                    <span th:case="'REPONSE_ACTIVITE'">Commentaire</span>
-                    <span th:case="'ANNONCE_EVENEMENT'">Événement</span>
-                    <span th:case="'RAPPEL_ACTIVITE'">Rappel</span>
-                    <span th:case="'RAPPEL_CHALLENGE_QUOTIDIEN'">Défi</span>
+               class="notif-item"
+               th:classappend="${n.type.name == 'REACTION' || n.type.name == 'REPONSE_ACTIVITE'} ? ' notif-item--blue' : (${n.type.name == 'ANNONCE_EVENEMENT'} ? ' notif-item--red' : ' notif-item--yellow')">
+                <div class="notif-item-layout">
+                    <!-- Avatar + pastille (réactions / réponses) -->
+                    <div class="notif-item-aside" th:if="${n.photoProfilUrl != null}">
+                        <img class="notif-item-avatar"
+                             th:src="${n.photoProfilUrl}"
+                             alt=""
+                             width="52" height="52" loading="lazy"/>
+                        <span class="notif-item-mini-icon" th:if="${n.type.name == 'REACTION'}" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        </span>
+                        <span class="notif-item-mini-icon" th:if="${n.type.name == 'REPONSE_ACTIVITE'}" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        </span>
+                    </div>
+                    <!-- Icône seule (annonces, rappels) -->
+                    <div class="notif-item-aside" th:if="${n.photoProfilUrl == null}">
+                        <div class="notif-item-icon-circle" th:switch="${n.type.name}">
+                            <th:block th:case="'ANNONCE_EVENEMENT'">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M3 11v2a2 2 0 0 0 2 2h2l4 4V5l-4 4H5a2 2 0 0 1-2-2z"/>
+                                    <path d="M16 9a5 5 0 0 1 0 6"/>
+                                    <path d="M19 6a9 9 0 0 1 0 12"/>
+                                </svg>
+                            </th:block>
+                            <th:block th:case="'RAPPEL_ACTIVITE'">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                            </th:block>
+                            <th:block th:case="'RAPPEL_CHALLENGE_QUOTIDIEN'">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+                                </svg>
+                            </th:block>
+                        </div>
+                    </div>
+                    <div class="notif-item-body">
+                        <div class="notif-item-type" th:switch="${n.type.name}">
+                            <span th:case="'REACTION'">Réaction</span>
+                            <span th:case="'REPONSE_ACTIVITE'">Commentaire</span>
+                            <span th:case="'ANNONCE_EVENEMENT'">Annonce d’événement</span>
+                            <span th:case="'RAPPEL_ACTIVITE'">Rappel activité</span>
+                            <span th:case="'RAPPEL_CHALLENGE_QUOTIDIEN'">Rappel défi</span>
+                        </div>
+                        <div class="notif-item-title" th:text="${n.titre}">Titre</div>
+                        <div class="notif-item-detail" th:text="${n.detail}">Détail</div>
+                        <div class="notif-item-date"
+                             th:text="${#temporals.format(n.dateTri, 'dd/MM/yyyy HH:mm')}">01/01/2026 12:00</div>
+                    </div>
                 </div>
-                <div class="notif-item-title" th:text="${n.titre}">Titre</div>
-                <div class="notif-item-detail" th:text="${n.detail}">Détail</div>
-                <div class="notif-item-date"
-                     th:text="${#temporals.format(n.dateTri, 'dd/MM/yyyy HH:mm')}">01/01/2026 12:00</div>
             </a>
         </div>
     </div>

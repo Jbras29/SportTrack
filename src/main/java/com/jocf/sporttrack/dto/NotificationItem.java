@@ -13,6 +13,8 @@ public record NotificationItem(
         String detail,
         LocalDateTime dateTri,
         String lien,
-        Long referenceId
+        Long referenceId,
+        /** URL affichable pour l’avatar (réactions / réponses uniquement), sinon {@code null}. */
+        String photoProfilUrl
 ) {
 }

@@ -75,7 +75,8 @@ public class NotificationService {
                     nomAuteur + " a réagi avec " + c.getMessage() + " à « " + act.getNom() + " »",
                     c.getDateCreation(),
                     "/home#post-" + act.getId(),
-                    c.getId()
+                    c.getId(),
+                    aut.cheminPhotoProfilAffichee()
             ));
         }
 
@@ -93,7 +94,8 @@ public class NotificationService {
                     nomAuteur + " sur « " + act.getNom() + " » : " + extrait,
                     c.getDateCreation(),
                     "/home#post-" + act.getId(),
-                    c.getId()
+                    c.getId(),
+                    aut.cheminPhotoProfilAffichee()
             ));
         }
 
@@ -109,7 +111,8 @@ public class NotificationService {
                     msg,
                     a.getDate(),
                     "/evenements/" + a.getEvenement().getId(),
-                    a.getId()
+                    a.getId(),
+                    null
             ));
         }
 
@@ -130,7 +133,8 @@ public class NotificationService {
                         "Indiquez si vous avez réalisé l’objectif du jour pour le challenge « " + ch.getNom() + " ».",
                         LocalDateTime.now(),
                         "/challenges/" + ch.getId(),
-                        ch.getId()
+                        ch.getId(),
+                        null
                 ));
             }
         }
@@ -166,6 +170,7 @@ public class NotificationService {
                 detail,
                 LocalDateTime.now(),
                 "/activites/create",
+                null,
                 null
         ));
     }

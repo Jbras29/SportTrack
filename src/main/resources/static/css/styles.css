@@ -4247,3 +4247,164 @@ body.profile-page .event-info p {
         grid-column: span 1;
     }
 }
+
+/* --------------------------------------------------------------------------
+   Page notifications — cartes agrégées (réactions, réponses, annonces, rappels)
+   -------------------------------------------------------------------------- */
+
+body.notifications-page .notif-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+body.notifications-page .notifications-page__subtitle {
+    margin-top: 0.25rem;
+}
+
+body.notifications-page .notif-item {
+    --notif-accent: var(--border-light);
+    --notif-tint-1: transparent;
+    --notif-tint-2: transparent;
+    --notif-type-color: var(--text-muted);
+    --notif-icon-bg: rgba(100, 116, 139, 0.12);
+    --notif-icon-fg: var(--text-muted);
+
+    display: block;
+    padding: 0.95rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    background: linear-gradient(135deg, var(--notif-tint-1) 0%, var(--bg-card) 48%);
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+body.notifications-page .notif-item:hover {
+    background: linear-gradient(135deg, var(--notif-tint-2) 0%, var(--hover-bg) 50%);
+    box-shadow: var(--shadow-card);
+}
+
+body.notifications-page .notif-item--blue {
+    --notif-accent: #2563eb;
+    --notif-tint-1: rgba(37, 99, 235, 0.07);
+    --notif-tint-2: rgba(37, 99, 235, 0.11);
+    --notif-type-color: #1d4ed8;
+    --notif-icon-bg: rgba(37, 99, 235, 0.15);
+    --notif-icon-fg: #1d4ed8;
+}
+
+body.notifications-page .notif-item--red {
+    --notif-accent: #dc2626;
+    --notif-tint-1: rgba(220, 38, 38, 0.08);
+    --notif-tint-2: rgba(220, 38, 38, 0.12);
+    --notif-type-color: var(--error-solid);
+    --notif-icon-bg: var(--error-bg);
+    --notif-icon-fg: var(--error-text);
+}
+
+body.notifications-page .notif-item--yellow {
+    --notif-accent: #ca8a04;
+    --notif-tint-1: rgba(202, 138, 4, 0.1);
+    --notif-tint-2: rgba(202, 138, 4, 0.14);
+    --notif-type-color: var(--warning-text);
+    --notif-icon-bg: var(--warning-bg);
+    --notif-icon-fg: var(--warning-text);
+}
+
+body.notifications-page .notif-item-layout {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+}
+
+body.notifications-page .notif-item-aside {
+    flex-shrink: 0;
+    position: relative;
+    width: 52px;
+}
+
+body.notifications-page .notif-item-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(37, 99, 235, 0.35);
+    background: var(--bg-muted);
+}
+
+body.notifications-page .notif-item-mini-icon {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--notif-accent);
+    color: var(--text-on-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-card);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+body.notifications-page .notif-item-mini-icon svg {
+    width: 12px;
+    height: 12px;
+}
+
+body.notifications-page .notif-item-icon-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--notif-icon-bg);
+    color: var(--notif-icon-fg);
+}
+
+body.notifications-page .notif-item-icon-circle svg {
+    width: 26px;
+    height: 26px;
+}
+
+body.notifications-page .notif-item-body {
+    flex: 1;
+    min-width: 0;
+}
+
+body.notifications-page .notif-item-type {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.3rem;
+    color: var(--notif-type-color);
+}
+
+body.notifications-page .notif-item-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+body.notifications-page .notif-item-detail {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+
+body.notifications-page .notif-item-date {
+    font-size: 0.8rem;
+    color: var(--text-subtle);
+    margin-top: 0.45rem;
+}
+
+body.notifications-page .notif-empty {
+    color: var(--text-muted);
+    padding: 2rem 0;
+    text-align: center;
+}
