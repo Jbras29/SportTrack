@@ -20,14 +20,17 @@ public class ActiviteService {
     private final ActiviteRepository activiteRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final UtilisateurService utilisateurService;
+    private final ActiviteBadgeEvaluationService activiteBadgeEvaluationService;
 
     public ActiviteService(
             ActiviteRepository activiteRepository,
             UtilisateurRepository utilisateurRepository,
-            UtilisateurService utilisateurService) {
+            UtilisateurService utilisateurService,
+            ActiviteBadgeEvaluationService activiteBadgeEvaluationService) {
         this.activiteRepository = activiteRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.utilisateurService = utilisateurService;
+        this.activiteBadgeEvaluationService = activiteBadgeEvaluationService;
     }
 
     public List<Activite> recupererToutesLesActivites() {
@@ -106,6 +109,7 @@ public class ActiviteService {
 
         Activite sauvegardee = activiteRepository.save(activite);
         utilisateurService.crediterExperience(utilisateur, xpGagne);
+        activiteBadgeEvaluationService.evaluerEtAttribuerBadges(sauvegardee);
         return sauvegardee;
     }
 
@@ -126,6 +130,7 @@ public class ActiviteService {
 
         Activite sauvegardee = activiteRepository.save(activite);
         utilisateurService.crediterExperience(utilisateur, xpGagne);
+        activiteBadgeEvaluationService.evaluerEtAttribuerBadges(sauvegardee);
         return sauvegardee;
     }
 
