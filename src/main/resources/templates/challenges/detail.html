@@ -93,18 +93,15 @@
                 </div>
             </div>
 
-            <!-- Bouton rejoindre — la logique est gérée côté controller via estParticipant -->
             <!-- Bouton rejoindre -->
             <form th:action="@{/challenges/{id}/rejoindre(id=${challenge.id})}" method="post"
-            th:if="${!estParticipant}">
-            <button type="submit" class="btn btn-primary">Rejoindre le challenge</button>
+                  th:if="${!estParticipant}">
+                <button type="submit" class="btn btn-primary">Rejoindre le challenge</button>
             </form>
             <span th:if="${estParticipant}" class="btn btn-secondary" style="cursor:default; opacity:0.7;">
-            ✓ Vous participez
+                ✓ Vous participez
             </span>
-
-    <!-- Badge "vous" dans le classement -->
-    <span class="you-badge" th:if="${participant.id == sessionUser.id()}">vous</span>
+        </div>
 
         <!-- Classement -->
         <div class="dash-card">
@@ -131,7 +128,7 @@
                         </td>
                         <td>
                             <span th:text="|${participant.prenom} ${participant.nom}|">Prénom Nom</span>
-                            <span class="you-badge" th:if="${participant.id == user.id()}">vous</span>
+                            <span class="you-badge" th:if="${participant.id == sessionUser.id()}">vous</span>
                         </td>
                         <td>
                             <span class="xp-pill"
