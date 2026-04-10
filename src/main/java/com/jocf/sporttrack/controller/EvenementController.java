@@ -217,6 +217,25 @@ public class EvenementController {
         return ResponseEntity.ok().build();
     }
 
+    @ResponseBody
+    @DeleteMapping("/api/evenements/{id}")
+    public ResponseEntity<?> supprimerEvenement(@PathVariable Long id) {
+
+        Evenement evenement = evenementService.trouverParId(id);
+
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
+        Utilisateur currentUser = utilisateurService.trouverParEmail(email);
+
+        if (!evenement.getOrganisateur().getId().equals(currentUser.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Seul l'organisateur peut supprimer cet événement.");
+        }
+
+        evenementService.supprimer(id);
+        return ResponseEntity.ok().build();
+    }
+
 
     // =======================================================
     // MÉTHODES PRIVÉES (Aide à la sécurité)

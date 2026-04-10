@@ -161,4 +161,11 @@ public class EvenementService {
 
         evenementRepository.save(evenement);
     }
+
+    /** 🚀 Supprimer un événement par son ID. */
+    @Transactional
+    public void supprimer(Long id) {
+        // En JPA, la suppression simple suffit si les cascades sont bien configurées
+        evenementRepository.deleteById(id);
+    }
 }
