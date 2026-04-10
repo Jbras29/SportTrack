@@ -73,11 +73,16 @@ public String detailChallenge(@PathVariable Long id, Model model, HttpSession se
             .stream()
             .anyMatch(p -> p.getId().equals(sessionUser.id()));
 
+    Boolean reponseDuJour = challengeService.recupererReponseDuJour(id, sessionUser.id(), LocalDate.now());
+
     model.addAttribute("challenge", challenge);
     model.addAttribute("classement", challengeService.getClassement(id));
     model.addAttribute("estParticipant", estParticipant);
-    model.addAttribute("sessionUser", sessionUser); 
+    model.addAttribute("sessionUser", sessionUser);
+    model.addAttribute("reponseDuJour", reponseDuJour);
+    model.addAttribute("aDejaReponduAujourdhui", reponseDuJour != null);
     model.addAttribute("navRequestPath", "/challenges");
+
     return "challenges/detail";
 }
 

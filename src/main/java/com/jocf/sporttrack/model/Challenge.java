@@ -36,6 +36,7 @@ public class Challenge {
     private String nom;
     private Date dateDebut;
     private Date dateFin;
+    private String objectifJour;
 
     @ManyToOne
     @JoinColumn(name = "organisateur_id", nullable = false)

@@ -42,7 +42,7 @@
         .rank-gold   { background: #fef3c7; color: #92400e; }
         .rank-silver { background: #f1f5f9; color: #475569; }
         .rank-bronze { background: #fef0e7; color: #9a3412; }
-        .xp-pill {
+        .score-pill {
             display: inline-block;
             padding: 0.2rem 0.65rem;
             border-radius: 999px;
@@ -76,91 +76,106 @@
 </head>
 <body class="app-shell">
 
-    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+<nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
-    <div class="main-wrapper main-wrapper--stack">
+<div class="main-wrapper main-wrapper--stack">
 
-        <!-- En-tête -->
-        <div class="page-header event-create-header">
-            <div>
-                <h1 class="event-form-title" th:text="${challenge.nom}">Nom du challenge</h1>
-                <div class="challenge-meta">
-                    <span th:if="${challenge.dateDebut != null and challenge.dateFin != null}"
-                          th:text="|${#dates.format(challenge.dateDebut, 'dd/MM/yyyy')} — ${#dates.format(challenge.dateFin, 'dd/MM/yyyy')}|">
-                    </span>
-                    <span th:text="|Organisé par ${challenge.organisateur.prenom} ${challenge.organisateur.nom}|"></span>
-                    <span th:text="|${challenge.participants.size()} participant(s)|"></span>
-                </div>
-            </div>
-
-            <!-- Bouton rejoindre -->
-            <form th:action="@{/challenges/{id}/rejoindre(id=${challenge.id})}" method="post"
-                  th:if="${!estParticipant}">
-                <button type="submit" class="btn btn-primary">Rejoindre le challenge</button>
-            </form>
-            <span th:if="${estParticipant}" class="btn btn-secondary" style="cursor:default; opacity:0.7;">
-                ✓ Vous participez
-            </span>
-        </div>
-
-        <div th:if="${estParticipant}" class="dash-card" style="margin-top: 1rem;">
-            <h2 style="font-size:1rem; font-weight:600; margin-bottom:0.5rem;">Objectif du jour</h2>
-            <p class="empty-copy" style="margin-bottom:0.75rem;">
-                Indiquez si vous avez réalisé l’objectif prévu pour aujourd’hui (utilisé pour les rappels dans les notifications).
-            </p>
-            <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
-                <form th:action="@{/challenges/{id}/saisie-quotidienne(id=${challenge.id})}" method="post">
-                    <input type="hidden" name="realise" value="true"/>
-                    <button type="submit" class="btn btn-primary">Oui, fait</button>
-                </form>
-                <form th:action="@{/challenges/{id}/saisie-quotidienne(id=${challenge.id})}" method="post">
-                    <input type="hidden" name="realise" value="false"/>
-                    <button type="submit" class="btn btn-secondary">Non, pas fait</button>
-                </form>
+    <div class="page-header event-create-header">
+        <div>
+            <h1 class="event-form-title" th:text="${challenge.nom}">Nom du challenge</h1>
+            <div class="challenge-meta">
+                <span th:if="${challenge.dateDebut != null and challenge.dateFin != null}"
+                      th:text="|${#dates.format(challenge.dateDebut, 'dd/MM/yyyy')} — ${#dates.format(challenge.dateFin, 'dd/MM/yyyy')}|">
+                </span>
+                <span th:text="|Organisé par ${challenge.organisateur.prenom} ${challenge.organisateur.nom}|"></span>
+                <span th:text="|${challenge.participants.size()} participant(s)|"></span>
             </div>
         </div>
 
-        <!-- Classement -->
-        <div class="dash-card">
-            <h2 style="font-size:1rem; font-weight:600; margin-bottom:0.5rem;">🏆 Classement</h2>
+        <p th:if="${challenge.objectifJour != null}" class="empty-copy">
+            Objectif du jour : <strong th:text="${challenge.objectifJour}"></strong>
+        </p>
 
-            <p th:if="${#lists.isEmpty(classement)}" class="empty-copy">
-                Aucun participant pour le moment.
-            </p>
+        <form th:action="@{/challenges/{id}/rejoindre(id=${challenge.id})}" method="post"
+              th:if="${!estParticipant}">
+            <button type="submit" class="btn btn-primary">Rejoindre le challenge</button>
+        </form>
 
-            <table th:unless="${#lists.isEmpty(classement)}" class="classement-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Participant</th>
-                        <th>XP</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="participant, stat : ${classement}">
-                        <td>
-                            <span class="rank-badge"
-                                  th:classappend="${stat.index == 0} ? 'rank-gold' : (${stat.index == 1} ? 'rank-silver' : (${stat.index == 2} ? 'rank-bronze' : ''))"
-                                  th:text="${stat.index + 1}">1</span>
-                        </td>
-                        <td>
-                            <span th:text="|${participant.prenom} ${participant.nom}|">Prénom Nom</span>
-                            <span class="you-badge" th:if="${participant.id == sessionUser.id()}">vous</span>
-                        </td>
-                        <td>
-                            <span class="xp-pill"
-                                  th:text="|${participant.xp != null ? participant.xp : 0} XP|">0 XP</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div style="margin-top: 1rem;">
-            <a th:href="@{/challenges}" class="btn btn-secondary">← Retour aux challenges</a>
-        </div>
-
+        <span th:if="${estParticipant}" class="btn btn-secondary" style="cursor:default; opacity:0.7;">
+            ✓ Vous participez
+        </span>
     </div>
+
+    <div th:if="${estParticipant}" class="dash-card" style="margin-top: 1rem;">
+        <h2 style="font-size:1rem; font-weight:600; margin-bottom:0.5rem;">Objectif du jour</h2>
+    
+        <p th:if="${!aDejaReponduAujourdhui}" class="empty-copy" style="margin-bottom:0.75rem;">
+            Indiquez si vous avez réalisé l’objectif prévu pour aujourd’hui.
+        </p>
+    
+        <p th:if="${aDejaReponduAujourdhui and reponseDuJour == true}"
+           class="empty-copy"
+           style="margin-bottom:0.75rem;">
+            ✅ C’est déjà fait pour aujourd’hui.
+        </p>
+    
+        <p th:if="${aDejaReponduAujourdhui and reponseDuJour == false}"
+           class="empty-copy"
+           style="margin-bottom:0.75rem;">
+            ℹ️ Vous avez déjà indiqué que ce n’était pas fait aujourd’hui.
+        </p>
+    
+        <div th:if="${!aDejaReponduAujourdhui}" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+            <form th:action="@{/challenges/{id}/saisie-quotidienne(id=${challenge.id})}" method="post">
+                <input type="hidden" name="realise" value="true"/>
+                <button type="submit" class="btn btn-primary">Oui, fait</button>
+            </form>
+            <form th:action="@{/challenges/{id}/saisie-quotidienne(id=${challenge.id})}" method="post">
+                <input type="hidden" name="realise" value="false"/>
+                <button type="submit" class="btn btn-secondary">Non, pas fait</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="dash-card">
+        <h2 style="font-size:1rem; font-weight:600; margin-bottom:0.5rem;">🏆 Classement</h2>
+
+        <p th:if="${#lists.isEmpty(classement)}" class="empty-copy">
+            Aucun participant pour le moment.
+        </p>
+
+        <table th:unless="${#lists.isEmpty(classement)}" class="classement-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Participant</th>
+                    <th>Progression</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="ligne, stat : ${classement}">
+                    <td>
+                        <span class="rank-badge"
+                              th:classappend="${stat.index == 0} ? 'rank-gold' : (${stat.index == 1} ? 'rank-silver' : (${stat.index == 2} ? 'rank-bronze' : ''))"
+                              th:text="${stat.index + 1}">1</span>
+                    </td>
+                    <td>
+                        <span th:text="|${ligne.utilisateur.prenom} ${ligne.utilisateur.nom}|">Prénom Nom</span>
+                        <span class="you-badge" th:if="${ligne.utilisateur.id == sessionUser.id()}">vous</span>
+                    </td>
+                    <td>
+                        <span class="score-pill" th:text="|${ligne.score} validation(s)|">0 validation(s)</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 1rem;">
+        <a th:href="@{/challenges}" class="btn btn-secondary">← Retour aux challenges</a>
+    </div>
+
+</div>
 
 </body>
 </html>
