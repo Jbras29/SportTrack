@@ -24,4 +24,6 @@ public interface ChallengeSaisieQuotidienneRepository extends JpaRepository<Chal
         Long utilisateurId,
         LocalDate jour
 );
+
+void deleteByChallenge(Challenge challenge);
 }

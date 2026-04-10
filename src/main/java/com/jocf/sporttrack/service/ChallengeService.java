@@ -158,4 +158,17 @@ public class ChallengeService {
                 .map(ChallengeSaisieQuotidienne::isRealise)
                 .orElse(null);
     }
+
+    @Transactional
+public void supprimerChallengeSiOrganisateur(Long challengeId, Long utilisateurId) {
+    Challenge challenge = challengeRepository.findById(challengeId)
+            .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + challengeId));
+
+    if (challenge.getOrganisateur() == null || !challenge.getOrganisateur().getId().equals(utilisateurId)) {
+        throw new IllegalArgumentException("Seul l'organisateur peut supprimer ce challenge.");
+    }
+
+    challengeSaisieQuotidienneRepository.deleteByChallenge(challenge);
+    challengeRepository.delete(challenge);
+}
 }

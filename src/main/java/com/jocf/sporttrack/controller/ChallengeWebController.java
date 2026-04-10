@@ -55,11 +55,13 @@ public class ChallengeWebController {
     }
 
     @GetMapping
-    public String listeDesDefis(Model model) {
-        model.addAttribute("challenges", challengeService.recupererTousLesChallenges());
-        model.addAttribute("navRequestPath", "/challenges");
-        return "challenges/liste";
-    }
+public String listeDesDefis(Model model, HttpSession session) {
+    SessionUtilisateur user = (SessionUtilisateur) session.getAttribute(SessionKeys.UTILISATEUR);
+    model.addAttribute("challenges", challengeService.recupererTousLesChallenges());
+    model.addAttribute("sessionUser", user);
+    model.addAttribute("navRequestPath", "/challenges");
+    return "challenges/liste";
+}
 
     @GetMapping("/{id}")
 public String detailChallenge(@PathVariable Long id, Model model, HttpSession session) {
@@ -72,6 +74,9 @@ public String detailChallenge(@PathVariable Long id, Model model, HttpSession se
     boolean estParticipant = challenge.getParticipants()
             .stream()
             .anyMatch(p -> p.getId().equals(sessionUser.id()));
+
+    boolean estOrganisateur = challenge.getOrganisateur() != null
+    && challenge.getOrganisateur().getId().equals(sessionUser.id());
 
     Boolean reponseDuJour = challengeService.recupererReponseDuJour(id, sessionUser.id(), LocalDate.now());
 
@@ -115,4 +120,20 @@ public String detailChallenge(@PathVariable Long id, Model model, HttpSession se
         }
         return "redirect:/challenges/" + id;
     }
+
+    @PostMapping("/{id}/supprimer")
+public String supprimerChallenge(@PathVariable Long id, HttpSession session) {
+    SessionUtilisateur user = (SessionUtilisateur) session.getAttribute(SessionKeys.UTILISATEUR);
+    if (user == null) {
+        return "redirect:/login";
+    }
+
+    try {
+        challengeService.supprimerChallengeSiOrganisateur(id, user.id());
+    } catch (IllegalArgumentException e) {
+        return "redirect:/challenges/" + id;
+    }
+
+    return "redirect:/challenges";
+}
 }

@@ -96,15 +96,26 @@
             Objectif du jour : <strong th:text="${challenge.objectifJour}"></strong>
         </p>
 
-        <form th:action="@{/challenges/{id}/rejoindre(id=${challenge.id})}" method="post"
-              th:if="${!estParticipant}">
-            <button type="submit" class="btn btn-primary">Rejoindre le challenge</button>
-        </form>
-
-        <span th:if="${estParticipant}" class="btn btn-secondary" style="cursor:default; opacity:0.7;">
-            ✓ Vous participez
-        </span>
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+            <form th:action="@{/challenges/{id}/rejoindre(id=${challenge.id})}" method="post"
+                  th:if="${!estParticipant}">
+                <button type="submit" class="btn btn-primary">Rejoindre le challenge</button>
+            </form>
+        
+            <span th:if="${estParticipant}" class="btn btn-secondary" style="cursor:default; opacity:0.7;">
+                ✓ Vous participez
+            </span>
+        
+            <form th:if="${estOrganisateur}"
+                  th:action="@{/challenges/{id}/supprimer(id=${challenge.id})}"
+                  method="post"
+                  onsubmit="return confirm('Supprimer ce challenge ?');">
+                <button type="submit" class="btn btn-secondary">Supprimer le challenge</button>
+            </form>
+        </div>
     </div>
+
+
 
     <div th:if="${estParticipant}" class="dash-card" style="margin-top: 1rem;">
         <h2 style="font-size:1rem; font-weight:600; margin-bottom:0.5rem;">Objectif du jour</h2>

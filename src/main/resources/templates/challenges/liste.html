@@ -78,6 +78,14 @@
                        class="btn btn-secondary">Voir le classement</a>
                 </div>
 
+                <form th:if="${sessionUser != null and challenge.organisateur != null and challenge.organisateur.id == sessionUser.id()}"
+                    th:action="@{/challenges/{id}/supprimer(id=${challenge.id})}"
+                    method="post"
+                    onsubmit="return confirm('Supprimer ce challenge ?');"
+                    style="margin-top: 0.5rem;">
+                    <button type="submit" class="btn btn-secondary">Supprimer</button>
+                </form>
+
             </div>
         </div>
 
