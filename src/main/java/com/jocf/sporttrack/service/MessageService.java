@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -72,8 +71,33 @@ public class MessageService {
         }
     }
 
+    /**
+     * Charge la conversation et marque comme lus les messages reçus par {@code utilisateurConnecte}
+     * (accusé de réception). Utilisé pour le compteur sidebar et l’état « lu » côté expéditeur.
+     */
+    @Transactional
+    public List<Message> getConversationEtMarquerRecusCommeLus(Utilisateur utilisateurConnecte, Utilisateur interlocuteur) {
+        if (utilisateurConnecte == null || interlocuteur == null) {
+            return List.of();
+        }
+        List<Message> conversation = messageRepository.findConversationBetweenUsers(utilisateurConnecte, interlocuteur);
+        List<Message> aPersister = new ArrayList<>();
+        for (Message m : conversation) {
+            if (m.getDestinataire().getId().equals(utilisateurConnecte.getId()) && !m.isLu()) {
+                m.marquerCommeLu();
+                aPersister.add(m);
+            }
+        }
+        if (!aPersister.isEmpty()) {
+            messageRepository.saveAll(aPersister);
+        }
+        return conversation;
+    }
+
     public void marquerTousCommeLus(Utilisateur destinataire) {
-        if (destinataire == null) return;
+        if (destinataire == null) {
+            return;
+        }
 
         List<Message> messagesNonLus = messageRepository.findByDestinataireAndLuFalse(destinataire);
 

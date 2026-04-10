@@ -15,7 +15,14 @@
                     <div class="message-bubble">
                         <p th:text="${msg.contenu}"></p>
                     </div>
-                    <div class="message-time" th:text="${#temporals.format(msg.dateEnvoi, 'dd/MM/yyyy HH:mm')}"></div>
+                    <div class="message-meta-row">
+                        <span class="message-time" th:text="${#temporals.format(msg.dateEnvoi, 'dd/MM/yyyy HH:mm')}"></span>
+                        <span th:if="${msg.expediteur.id == utilisateur.id and msg.lu and msg.dateLu != null}"
+                              class="message-read-receipt"
+                              th:text="|Lu · ${#temporals.format(msg.dateLu, 'dd/MM/yyyy HH:mm')}|">Lu</span>
+                        <span th:if="${msg.expediteur.id == utilisateur.id and msg.lu and msg.dateLu == null}"
+                              class="message-read-receipt">Lu</span>
+                    </div>
                 </div>
             </div>
         </th:block>

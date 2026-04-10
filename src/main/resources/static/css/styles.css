@@ -3182,15 +3182,38 @@ body.messages-page .message-bubble p {
     line-height: 1.4;
 }
 
-body.messages-page .message-time {
-    font-size: 11px;
-    color: var(--text-muted);
+body.messages-page .message-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.6rem;
     padding: 0 4px;
 }
 
+body.messages-page .message-sent .message-meta-row {
+    justify-content: flex-end;
+}
+
+body.messages-page .message-received .message-meta-row {
+    justify-content: flex-start;
+}
+
+body.messages-page .message-time {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
 body.messages-page .message-sent .message-time {
-    text-align: right;
     color: rgba(255, 255, 255, 0.7);
+}
+
+body.messages-page .message-read-receipt {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+body.messages-page .message-sent .message-read-receipt {
+    color: rgba(255, 255, 255, 0.78);
 }
 
 body.messages-page .message-input-container {

@@ -75,10 +75,8 @@ public class MessageController {
                                                   Long destinataireId,
                                                   Model model) {
         Utilisateur destinataire = utilisateurService.findById(destinataireId);
-        List<Message> conversation = messageService.getConversation(utilisateurConnecte, destinataire);
-        conversation.stream()
-                .filter(msg -> msg.getDestinataire().equals(utilisateurConnecte) && !msg.isLu())
-                .forEach(messageService::marquerCommeLu);
+        List<Message> conversation =
+                messageService.getConversationEtMarquerRecusCommeLus(utilisateurConnecte, destinataire);
         model.addAttribute("destinataire", destinataire);
         model.addAttribute("conversation", conversation);
         if (!model.containsAttribute("utilisateur")) {

@@ -34,12 +34,23 @@ public class Message {
     @Column(nullable = false)
     private LocalDateTime dateEnvoi;
 
+    /**
+     * Accusé de réception côté destinataire : {@code false} tant que le message n’a pas été consulté
+     * (liste + conversation ouverte).
+     */
     @Builder.Default
     @Column(nullable = false)
     private boolean lu = false;
 
-    // Méthode utilitaire pour marquer comme lu
+    /** Instant du passage à lu (null si non lu). */
+    private LocalDateTime dateLu;
+
+    /** Marque comme lu et enregistre la date d’accusé de réception (idempotent sur {@code dateLu}). */
     public void marquerCommeLu() {
+        if (this.lu) {
+            return;
+        }
         this.lu = true;
+        this.dateLu = LocalDateTime.now();
     }
 }
