@@ -1,56 +1,57 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Créer un Challenge – Sport Track</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <title>Créer un Challenge | Sport Track</title>
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
-<body>
+<body class="app-shell">
 
-<div class="app-layout">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
-    <!-- Sidebar -->
-    <th:block th:insert="~{fragments/sidebar :: sidebar}" />
+    <div class="main-wrapper main-wrapper--stack">
 
-    <!-- Contenu principal -->
-    <main class="main-content">
-        <div class="page-header">
-            <h1 class="page-title">Créer un Challenge</h1>
+        <div class="page-header event-create-header">
+            <div>
+                <h1 class="event-form-title">Créer un Challenge</h1>
+                <p class="event-form-subtitle">Lancez un défi à la communauté !</p>
+            </div>
         </div>
 
-        <!-- Message d'erreur -->
-        <div th:if="${erreur}" class="alert alert-danger" th:text="${erreur}"></div>
+        <div class="dash-card dash-card--narrow">
 
-        <div class="card">
-            <form method="post" th:action="@{/challenges/creer}">
+            <p th:if="${erreur}" class="error-message" th:text="${erreur}"></p>
+
+            <form th:action="@{/challenges/creer}" method="post">
 
                 <div class="form-group">
                     <label for="nom" class="form-label">Nom du challenge</label>
-                    <input type="text" id="nom" name="nom" class="form-control"
-                           placeholder="Ex: 10km en 30 jours" required />
+                    <input type="text" id="nom" name="nom"
+                           class="form-control" placeholder="Ex: Trail de mai" required>
                 </div>
 
                 <div class="form-group">
                     <label for="dateDebut" class="form-label">Date de début</label>
-                    <input type="date" id="dateDebut" name="dateDebut" class="form-control" required />
+                    <input type="date" id="dateDebut" name="dateDebut" class="form-control" required>
                 </div>
 
                 <div class="form-group">
                     <label for="dateFin" class="form-label">Date de fin</label>
-                    <input type="date" id="dateFin" name="dateFin" class="form-control" required />
+                    <input type="date" id="dateFin" name="dateFin" class="form-control" required>
                 </div>
 
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Créer le challenge</button>
+                <div class="event-form-actions">
                     <a th:href="@{/challenges}" class="btn btn-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-primary">Créer le challenge</button>
                 </div>
 
             </form>
         </div>
-    </main>
 
-</div>
+    </div>
 
 </body>
 </html>

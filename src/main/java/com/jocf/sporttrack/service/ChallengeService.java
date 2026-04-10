@@ -82,8 +82,14 @@ public class ChallengeService {
         if (challenge.getDateFin() != null && challenge.getDateFin().before(new java.sql.Date(System.currentTimeMillis()))) {
             throw new IllegalArgumentException("Ce challenge est terminé.");
         }
+
+        if (challenge.getParticipants().contains(utilisateur)) {
+            throw new IllegalArgumentException("Vous participez déjà à ce challenge.");
+        }
     
         challenge.getParticipants().add(utilisateur);
         return challengeRepository.save(challenge);
     }
+
+
 }

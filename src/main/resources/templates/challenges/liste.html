@@ -3,14 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Défis | Sport Track</title>
-
     <title>Sport Track | Challenges</title>
-
     <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .challenges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem 0;
+        }
+        .challenge-card {
+            background: var(--surface, #ffffff);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .challenge-card .challenge-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .challenge-card .defi-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted, #6b7280);
+        }
+        .challenge-card .event-form-actions {
+            margin-top: 1rem;
+        }
+    </style>
 </head>
 <body class="app-shell">
 
@@ -18,61 +43,21 @@
 
     <div class="main-wrapper main-wrapper--stack">
 
-
-        <div class="profile-header">
-            <div class="profile-info">
-                <h1>Défis Sportifs</h1>
-                <p>Rejoignez un défi ou lancez le vôtre !</p>
-            </div>
-            <a th:href="@{/challenges/creer}" class="btn-primary">+ Créer un défi</a>
-        </div>
-
-        <!-- Aucun défi -->
-        <div th:if="${#lists.isEmpty(challenges)}" class="dash-card dash-card--narrow">
-            <p class="text-muted" style="text-align:center; padding: 2rem 0;">
-                Aucun défi disponible pour le moment.
-            </p>
-        </div>
-
-        <!-- Liste des défis -->
-        <div th:unless="${#lists.isEmpty(challenges)}" class="dash-card">
-            <table class="stat-table">
-                <thead>
-                    <tr>
-                        <th>Nom du défi</th>
-                        <th>Date de début</th>
-                        <th>Date de fin</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="challenge : ${challenges}">
-                        <td class="fw-bold" th:text="${challenge.nom}">Nom</td>
-                        <td th:text="${#temporals.format(challenge.dateDebut, 'dd/MM/yyyy')}">01/01/2026</td>
-                        <td th:text="${#temporals.format(challenge.dateFin, 'dd/MM/yyyy')}">31/01/2026</td>
-                        <td>
-                            <a th:href="@{/challenges/{id}(id=${challenge.id})}" class="btn-primary" style="font-size:0.8rem; padding: 0.3rem 0.8rem;">
-                                Voir le détail
-                            </a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
         <div class="page-header event-create-header">
             <div>
                 <h1 class="event-form-title">Challenges</h1>
                 <p class="event-form-subtitle">Rejoignez un challenge ou créez le vôtre !</p>
             </div>
-            <a href="/challenges/creer" class="btn btn-primary">+ Créer un challenge</a>
+            <a th:href="@{/challenges/creer}" class="btn btn-primary">+ Créer un challenge</a>
         </div>
 
-        <div class="dashboard-grid">
-            <p th:if="${#lists.isEmpty(challenges)}" class="empty-copy">
-                Aucun challenge disponible pour le moment.
-            </p>
+        <p th:if="${#lists.isEmpty(challenges)}" class="empty-copy">
+            Aucun challenge disponible pour le moment.
+        </p>
 
-            <div th:each="challenge : ${challenges}" class="dash-card challenge-card">
+        <div th:unless="${#lists.isEmpty(challenges)}" class="challenges-grid">
+            <div th:each="challenge : ${challenges}" class="challenge-card">
+
                 <div class="challenge-title" th:text="${challenge.nom}">Nom du challenge</div>
 
                 <div class="defi-meta"
@@ -92,8 +77,8 @@
                     <a th:href="@{/challenges/{id}(id=${challenge.id})}"
                        class="btn btn-secondary">Voir le classement</a>
                 </div>
-            </div>
 
+            </div>
         </div>
 
     </div>

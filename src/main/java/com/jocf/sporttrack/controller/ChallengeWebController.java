@@ -1,8 +1,9 @@
 package com.jocf.sporttrack.controller;
 
 import com.jocf.sporttrack.model.Challenge;
-import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.ChallengeService;
+import com.jocf.sporttrack.web.SessionKeys;
+import com.jocf.sporttrack.web.SessionUtilisateur;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,7 +21,7 @@ public class ChallengeWebController {
 
     @GetMapping("/creer")
     public String afficherFormulaireCreation(Model model, HttpSession session) {
-        Utilisateur user = (Utilisateur) session.getAttribute("user");
+        SessionUtilisateur user = (SessionUtilisateur) session.getAttribute(SessionKeys.UTILISATEUR);
         if (user == null) return "redirect:/login";
         model.addAttribute("navRequestPath", "/challenges");
         return "challenges/creer-challenge";
@@ -34,7 +35,7 @@ public class ChallengeWebController {
             HttpSession session,
             Model model) {
 
-        Utilisateur user = (Utilisateur) session.getAttribute("user");
+        SessionUtilisateur user = (SessionUtilisateur) session.getAttribute(SessionKeys.UTILISATEUR);
         if (user == null) return "redirect:/login";
 
         try {
@@ -43,7 +44,7 @@ public class ChallengeWebController {
                     .dateDebut(dateDebut)
                     .dateFin(dateFin)
                     .build();
-            challengeService.creerChallenge(challenge, user.getId());
+            challengeService.creerChallenge(challenge, user.id());
             return "redirect:/challenges";
         } catch (IllegalArgumentException e) {
             model.addAttribute("erreur", e.getMessage());
@@ -60,27 +61,32 @@ public class ChallengeWebController {
     }
 
     @GetMapping("/{id}")
-    public String detailChallenge(@PathVariable Long id, Model model, HttpSession session) {
-        Utilisateur user = (Utilisateur) session.getAttribute("user");
-        if (user == null) return "redirect:/login";
+public String detailChallenge(@PathVariable Long id, Model model, HttpSession session) {
+    SessionUtilisateur sessionUser = (SessionUtilisateur) session.getAttribute(SessionKeys.UTILISATEUR);
+    if (sessionUser == null) return "redirect:/login";
 
-        Challenge challenge = challengeService.trouverParId(id)
-                .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + id));
+    Challenge challenge = challengeService.trouverParId(id)
+            .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + id));
 
-        model.addAttribute("challenge", challenge);
-        model.addAttribute("classement", challengeService.getClassement(id));
-        model.addAttribute("user", user);
-        model.addAttribute("navRequestPath", "/challenges");
-        return "challenges/detail";
-    }
+    boolean estParticipant = challenge.getParticipants()
+            .stream()
+            .anyMatch(p -> p.getId().equals(sessionUser.id()));
+
+    model.addAttribute("challenge", challenge);
+    model.addAttribute("classement", challengeService.getClassement(id));
+    model.addAttribute("estParticipant", estParticipant);
+    model.addAttribute("sessionUser", sessionUser); 
+    model.addAttribute("navRequestPath", "/challenges");
+    return "challenges/detail";
+}
 
     @PostMapping("/{id}/rejoindre")
     public String rejoindreChallenge(@PathVariable Long id, HttpSession session) {
-        Utilisateur user = (Utilisateur) session.getAttribute("user");
+        SessionUtilisateur user = (SessionUtilisateur) session.getAttribute(SessionKeys.UTILISATEUR);
         if (user == null) return "redirect:/login";
 
         try {
-            challengeService.rejoindreChallenge(id, user.getId());
+            challengeService.rejoindreChallenge(id, user.id());
         } catch (IllegalArgumentException e) {
             // challenge terminé ou introuvable, on redirige quand même
         }

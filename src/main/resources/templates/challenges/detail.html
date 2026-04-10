@@ -2,89 +2,151 @@
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Sport Track | Détail de l'événement</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classement | Sport Track</title>
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
-        :root {
-            --brand-blue: #135077; --brand-orange: #F39434; --brand-light-blue: #21A2D7;
-            --bg-app: #F3F6F8; --bg-card: #FFFFFF; --text-main: #0F172A;
-            --text-muted: #64748B; --border-light: #E2E8F0; --danger-red: #EF4444;
+        .classement-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
         }
-        body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-app); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
-        .slim-sidebar { width: 80px; background-color: var(--bg-card); border-right: 1px solid var(--border-light); display: flex; flex-direction: column; align-items: center; padding: 20px 0; flex-shrink: 0; z-index: 10; }
-        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--brand-blue), var(--brand-light-blue)); border-radius: 12px; display: flex; justify-content: center; align-items: center; color: white; font-weight: 800; font-size: 20px; margin-bottom: 40px; }
-        .nav-btn { width: 50px; height: 50px; border-radius: 12px; display: flex; justify-content: center; align-items: center; color: var(--text-muted); margin-bottom: 15px; text-decoration: none; transition: 0.2s; }
-        .nav-btn:hover, .nav-btn.active { background-color: rgba(33, 162, 215, 0.1); color: var(--brand-blue); }
-        .main-wrapper { flex-grow: 1; padding: 30px 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
-
-        /* Layout Grid */
-        .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        .card { background-color: var(--bg-card); padding: 25px; border-radius: 20px; border: 1px solid var(--border-light); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02); }
-
-        .header-title { font-size: 32px; color: var(--brand-blue); font-weight: 800; margin: 0 0 10px 0; }
-        .header-meta { display: flex; gap: 20px; color: var(--text-muted); font-size: 14px; font-weight: 600; margin-bottom: 20px; }
-
-        .section-title { font-size: 18px; color: var(--brand-blue); font-weight: 700; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
-
-        .btn-action { background: var(--brand-light-blue); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; transition: 0.2s; }
-        .btn-action:hover { background: var(--brand-blue); }
-        .btn-danger { background: white; color: var(--danger-red); border: 1px solid var(--danger-red); }
-        .btn-danger:hover { background: var(--danger-red); color: white; }
-
-        .participant-list { display: flex; flex-direction: column; gap: 10px; }
-        .participant-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg-app); border-radius: 10px; }
-
-        .annonce-box { padding: 15px; background: rgba(243, 148, 52, 0.1); border-left: 4px solid var(--brand-orange); border-radius: 8px; margin-bottom: 10px; }
-        .annonce-date { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; display: block;}
-
-        input, textarea { width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; border: 1px solid var(--border-light); font-family: inherit; box-sizing: border-box;}
-
-        @keyframes slideIn {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .classement-table th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted, #6b7280);
+            border-bottom: 2px solid var(--border, #e5e7eb);
         }
-
+        .classement-table td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--border, #e5e7eb);
+            font-size: 0.95rem;
+        }
+        .classement-table tr:last-child td { border-bottom: none; }
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.85rem;
+            background: var(--surface-alt, #f3f4f6);
+        }
+        .rank-gold   { background: #fef3c7; color: #92400e; }
+        .rank-silver { background: #f1f5f9; color: #475569; }
+        .rank-bronze { background: #fef0e7; color: #9a3412; }
+        .xp-pill {
+            display: inline-block;
+            padding: 0.2rem 0.65rem;
+            border-radius: 999px;
+            background: var(--primary-light, #ede9fe);
+            color: var(--primary, #6d28d9);
+            font-weight: 600;
+            font-size: 0.82rem;
+        }
+        .you-badge {
+            display: inline-block;
+            margin-left: 0.5rem;
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+            background: var(--primary, #6d28d9);
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 600;
+            vertical-align: middle;
+        }
+        .challenge-meta {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.25rem;
+        }
+        .challenge-meta span {
+            font-size: 0.88rem;
+            color: var(--text-muted, #6b7280);
+        }
     </style>
 </head>
-<body>
+<body class="app-shell">
 
-<div class="slim-sidebar">
-    <div class="logo-icon">S</div>
-    <a href="/evenements" class="nav-btn"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></a>
-</div>
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
-<div class="main-wrapper">
+    <div class="main-wrapper main-wrapper--stack">
 
-    <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: start;">
+        <!-- En-tête -->
+        <div class="page-header event-create-header">
             <div>
-                <h1 class="header-title" th:text="${evenement.nom}">Titre de l'événement</h1>
-                <div class="header-meta">
-                    <span th:text="'📅 ' + ${#temporals.format(evenement.date, 'dd MMM yyyy HH:mm')}">Date Début</span>
-                    <span th:text="'📅 ' + ${#temporals.format(evenement.date, 'dd MMM yyyy HH:mm')}">Date Fin</span>
-                    <span th:text="'👑 Organisé par ' + ${evenement.organisateur.nom}">Organisateur</span>
+                <h1 class="event-form-title" th:text="${challenge.nom}">Nom du challenge</h1>
+                <div class="challenge-meta">
+                    <span th:if="${challenge.dateDebut != null and challenge.dateFin != null}"
+                          th:text="|${#dates.format(challenge.dateDebut, 'dd/MM/yyyy')} — ${#dates.format(challenge.dateFin, 'dd/MM/yyyy')}|">
+                    </span>
+                    <span th:text="|Organisé par ${challenge.organisateur.prenom} ${challenge.organisateur.nom}|"></span>
+                    <span th:text="|${challenge.participants.size()} participant(s)|"></span>
                 </div>
             </div>
 
-    
+            <!-- Bouton rejoindre — la logique est gérée côté controller via estParticipant -->
+            <!-- Bouton rejoindre -->
+            <form th:action="@{/challenges/{id}/rejoindre(id=${challenge.id})}" method="post"
+            th:if="${!estParticipant}">
+            <button type="submit" class="btn btn-primary">Rejoindre le challenge</button>
+            </form>
+            <span th:if="${estParticipant}" class="btn btn-secondary" style="cursor:default; opacity:0.7;">
+            ✓ Vous participez
+            </span>
 
-        <div class="card">
-            <h2 class="section-title">
-                👥 Participants
-                <span th:text="${#lists.size(evenement.participants)}">0</span>
-            </h2>
+    <!-- Badge "vous" dans le classement -->
+    <span class="you-badge" th:if="${participant.id == sessionUser.id()}">vous</span>
 
-            <div class="participant-list">
-                <div class="participant-item" th:each="participant : ${evenement.participants}">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span th:text="${participant.nom}" style="font-weight: 600;">Nom Participant</span>
-                    </div>
-                    <button th:if="${isOrganisateur}" class="btn-action btn-danger" th:attr="onclick=|retirerParticipant(${evenement.id}, ${participant.id})|">Retirer</button>
-                </div>
-            </div>
+        <!-- Classement -->
+        <div class="dash-card">
+            <h2 style="font-size:1rem; font-weight:600; margin-bottom:0.5rem;">🏆 Classement</h2>
+
+            <p th:if="${#lists.isEmpty(classement)}" class="empty-copy">
+                Aucun participant pour le moment.
+            </p>
+
+            <table th:unless="${#lists.isEmpty(classement)}" class="classement-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Participant</th>
+                        <th>XP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="participant, stat : ${classement}">
+                        <td>
+                            <span class="rank-badge"
+                                  th:classappend="${stat.index == 0} ? 'rank-gold' : (${stat.index == 1} ? 'rank-silver' : (${stat.index == 2} ? 'rank-bronze' : ''))"
+                                  th:text="${stat.index + 1}">1</span>
+                        </td>
+                        <td>
+                            <span th:text="|${participant.prenom} ${participant.nom}|">Prénom Nom</span>
+                            <span class="you-badge" th:if="${participant.id == user.id()}">vous</span>
+                        </td>
+                        <td>
+                            <span class="xp-pill"
+                                  th:text="|${participant.xp != null ? participant.xp : 0} XP|">0 XP</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 1rem;">
+            <a th:href="@{/challenges}" class="btn btn-secondary">← Retour aux challenges</a>
         </div>
 
     </div>
-</div>
+
 </body>
 </html>
