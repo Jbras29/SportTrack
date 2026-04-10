@@ -68,6 +68,35 @@ public class RootController {
         return "home";
     }
 
+    @GetMapping("/homeAdmin")
+    public String homeAdmin(Model model, Authentication authentication) {
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            return "redirect:/login";
+        }
+
+        String email = authentication.getName();
+        Utilisateur user = utilisateurService.trouverParEmailAvecAmis(email);
+
+        LocalDate aujourdhui = LocalDate.now();
+        List<Challenge> defis = challengeRepository.findByParticipants_IdOrderByDateFinAsc(user.getId())
+                .stream()
+                .filter(c -> c.getDateFin() == null || !c.getDateFin().toLocalDate().isBefore(aujourdhui))
+                .toList();
+
+        model.addAttribute("user", user);
+        model.addAttribute("level", user.getNiveauExperience());
+        model.addAttribute("xpBarPercent", user.getPourcentageBarreExperience());
+        model.addAttribute("xpDansNiveau", user.getXpDepuisSeuilNiveauExperience());
+        model.addAttribute("xpMaxNiveau", user.getXpSeuilProchainNiveauExperience());
+        model.addAttribute("hpBarPercent", (double) user.getHpNormalise());
+        model.addAttribute("hp", user.getHpNormalise());
+        model.addAttribute("activitesFil", activiteService.recupererActivitesFilActualite(user));
+        model.addAttribute("defisEnCours", defis);
+        return "homeAdmin";
+    }
+
     @GetMapping("/evenements/create")
     public String creerEvenementPage(
             Authentication authentication,

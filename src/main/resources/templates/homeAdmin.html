@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accueil | Sport Track</title>
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="app-shell home-page"
+      th:attr="data-current-user-id=${user.id}">
+
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+
+    <div class="main-wrapper main-wrapper--split">
+        
+        <div class="timeline timeline--scroll">
+            <div class="page-header">
+                <h1>Fil d'actualité</h1>
+            </div>
+
+            <div class="post-card empty-feed" th:if="${#lists.isEmpty(activitesFil)}">
+                Aucune activité pour le moment. Enregistrez une séance ou ajoutez des amis pour voir le fil.
+            </div>
+
+            <th:block th:each="activite : ${activitesFil}">
+                <article th:replace="~{fragments/feed-activite :: carteActivite(activite=${activite}, user=${user})}"></article>
+            </th:block>
+
+        </div>
+
+        <div class="right-panel">
+            <div class="widget">
+                <h3 class="widget-title">Mon Athlète</h3>
+                <div class="widget-block">
+                    <div class="metric-head">
+                        <span>Santé (HP)</span>
+                        <span class="status-value--hp" th:text="|${hp} %|">85%</span>
+                    </div>
+                    <div class="modern-bar">
+                        <div class="modern-bar-fill hp-fill" th:style="|width: ${hpBarPercent}%|"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="metric-head">
+                        <span th:text="|Niveau ${level} (XP)|">Niveau 1 (XP)</span>
+                        <span class="status-value--xp">
+                            <span th:if="${level &lt; 6}" th:text="|${xpDansNiveau} / ${xpMaxNiveau}|">0 / 100</span>
+                            <span th:if="${level >= 6}" th:text="|${user.xp} XP|">5000 XP</span>
+                        </span>
+                    </div>
+                    <div class="modern-bar">
+                        <div class="modern-bar-fill xp-fill" th:style="|width: ${xpBarPercent}%|"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget">
+                <h3 class="widget-title">Défis en cours</h3>
+                <p class="defis-vide" th:if="${#lists.isEmpty(defisEnCours)}">Aucun défi en cours pour le moment.</p>
+                <div th:each="defi : ${defisEnCours}" class="defi-ligne">
+                    <span class="emoji-accent">🔥</span>
+                    <div>
+                        <div th:text="${defi.nom}">Nom du défi</div>
+                        <div class="defi-meta"
+                             th:if="${defi.dateDebut != null and defi.dateFin != null}"
+                             th:text="|${#dates.format(defi.dateDebut, 'dd/MM/yyyy')} — ${#dates.format(defi.dateFin, 'dd/MM/yyyy')}|">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="home-feedback-toast"
+         class="home-feedback-toast"
+         hidden
+         role="alert"
+         aria-live="polite"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js" defer></script>
+    <script th:src="@{/js/home-reactions-tooltip.js}" defer></script>
+    <script th:src="@{/js/home.js}" defer></script>
+</body>
+</html>
