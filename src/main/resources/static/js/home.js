@@ -653,11 +653,21 @@
         img.alt = auteur.prenom || '';
         var bubble = document.createElement('div');
         bubble.className = 'comment-bubble';
-        var strong = document.createElement('strong');
-        strong.textContent = ((auteur.prenom || '') + ' ' + (auteur.nom || '')).trim();
+        var nameText = ((auteur.prenom || '') + ' ' + (auteur.nom || '')).trim();
+        var nameEl;
+        if (auteur.id != null) {
+            nameEl = document.createElement('a');
+            nameEl.className = 'comment-author-link post-profile-link';
+            nameEl.href = '/profile/' + encodeURIComponent(String(auteur.id));
+            nameEl.textContent = nameText;
+            nameEl.setAttribute('aria-label', 'Profil de ' + nameText);
+        } else {
+            nameEl = document.createElement('strong');
+            nameEl.textContent = nameText;
+        }
         var span = document.createElement('span');
         span.textContent = c.message || '';
-        bubble.appendChild(strong);
+        bubble.appendChild(nameEl);
         bubble.appendChild(document.createTextNode(' '));
         bubble.appendChild(span);
         var inner = document.createElement('div');

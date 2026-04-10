@@ -129,7 +129,10 @@
             <img class="comment-avatar" th:src="${c.auteur.cheminPhotoProfilAffichee()}" th:alt="${c.auteur.prenom}">
             <div class="comment-inner">
                 <div class="comment-bubble">
-                    <strong th:text="|${c.auteur.prenom} ${c.auteur.nom}|">Auteur</strong>
+                    <a th:href="@{/profile/{id}(id=${c.auteur.id})}"
+                       class="comment-author-link post-profile-link"
+                       th:text="|${c.auteur.prenom} ${c.auteur.nom}|"
+                       th:attr="aria-label=|Profil de ${c.auteur.prenom} ${c.auteur.nom}|">Auteur</a>
                     <span th:text="${c.message}">Message</span>
                 </div>
                 <button type="button"

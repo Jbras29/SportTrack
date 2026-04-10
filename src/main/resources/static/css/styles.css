@@ -1591,10 +1591,21 @@ body.home-page .comment-bubble {
     font-size: 14px;
 }
 
-body.home-page .comment-bubble strong {
+body.home-page .comment-bubble strong,
+body.home-page .comment-bubble .comment-author-link {
     font-weight: 600;
     margin-right: 5px;
     color: var(--brand-blue);
+}
+
+body.home-page .comment-bubble .comment-author-link:hover {
+    text-decoration: underline;
+}
+
+body.home-page .comment-bubble .comment-author-link:focus-visible {
+    outline: 2px solid var(--brand-light-blue);
+    outline-offset: 2px;
+    border-radius: 2px;
 }
 
 body.home-page .right-panel {
