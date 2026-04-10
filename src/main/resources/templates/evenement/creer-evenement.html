@@ -7,6 +7,41 @@
     <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+
+        .friend-checkbox-card {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .friend-checkbox-card:hover { background-color: #f8fafc; }
+
+        .friend-info { display: flex; align-items: center; gap: 12px; flex-grow: 1; }
+
+
+        .avatar-wrapper {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: #e2e8f0;
+            flex-shrink: 0;
+        }
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ami-check { margin-right: 15px; width: 18px; height: 18px; }
+    </style>
 </head>
 <body class="app-shell event-create-page">
 
@@ -43,7 +78,9 @@
                         <label th:each="ami : ${amis}" class="friend-checkbox-card">
                             <input type="checkbox" class="ami-check" th:value="${ami.id}">
                             <div class="friend-info">
-                                <div class="mini-avatar" th:text="${#strings.toUpperCase(#strings.substring(ami.nom, 0, 1))}">A</div>
+                                <div class="avatar-wrapper">
+                                    <img th:src="${ami.cheminPhotoProfilAffichee()}" class="avatar-img" alt="Avatar">
+                                </div>
                                 <span th:text="${ami.nom}">Nom de l'ami</span>
                             </div>
                         </label>
@@ -61,6 +98,7 @@
         document.getElementById("formEvenement").addEventListener("submit", async function (e) {
             e.preventDefault();
             var btn = document.getElementById("btnSubmit");
+
             var selected = Array.from(document.querySelectorAll(".ami-check:checked")).map(function (c) {
                 return { id: parseInt(c.value, 10) };
             });
@@ -83,14 +121,27 @@
                 });
 
                 if (res.ok) {
-                    alert("Événement créé !");
-                    window.location.href = "/evenements";
+
+                    Swal.fire({
+                        title: 'Succès !',
+                        text: "L'événement a été créé avec succès.",
+                        icon: 'success',
+                        confirmButtonColor: '#135077',
+                        confirmButtonText: 'Génial'
+                    }).then((result) => {
+                        window.location.href = "/evenements";
+                    });
                 } else {
-                    alert("Erreur lors de la création.");
+                    Swal.fire({
+                        title: 'Erreur',
+                        text: "Un problème est survenu lors de la création.",
+                        icon: 'error',
+                        confirmButtonColor: '#ef4444'
+                    });
                 }
             } catch (err) {
                 console.error("Erreur détaillée:", err);
-                alert("Erreur serveur.");
+                Swal.fire('Erreur', "Impossible de contacter le serveur.", 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerText = "Créer l'événement";
