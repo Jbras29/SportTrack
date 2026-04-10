@@ -3925,6 +3925,39 @@ body.profile-page .about-item:last-child {
     border-bottom: none;
 }
 
+body.profile-page .about-item--actions {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+body.profile-page .profile-about-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+body.profile-page .profile-about-action-btn {
+    width: 100%;
+    max-width: none;
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.25;
+    border-radius: 12px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+body.profile-page .profile-about-action-btn svg {
+    flex-shrink: 0;
+}
+
 body.profile-page .about-label {
     font-weight: 600;
     color: var(--text-main);
