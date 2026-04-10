@@ -7,6 +7,7 @@
     <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --brand-blue: #135077; --brand-orange: #F39434; --brand-light-blue: #21A2D7;
@@ -114,6 +115,14 @@
                 </div>
             </div>
             <button th:if="${isOrganisateur}" class="btn-action" onclick="activerModeEdition()">✏️ Modifier l'événement</button>
+            <div th:if="${!isOrganisateur}">
+                <button th:if="${isParticipant}" class="btn-action btn-danger" onclick="quitterEvenement()">
+                    🏃‍♂️ Quitter
+                </button>
+                <button th:unless="${isParticipant}" class="btn-action btn-primary" th:attr="onclick=|rejoindreEvenement(${evenement.id}, this)|">
+                    🤝 Rejoindre
+                </button>
+            </div>
         </div>
         <p th:text="${evenement.description}">Description de l'événement...</p>
     </div>
@@ -212,7 +221,11 @@
 </div>
 
 <script>
-    // Ces fonctions JS feront appel aux API que nous allons créer à l'étape 2
+    // ==========================================
+    // Ces fonctions JS feront appel aux API que nous avons créées
+    // Elles utilisent SweetAlert2 pour les notifications
+    // ==========================================
+
     // Ouvrir le modal de modification
     function activerModeEdition() {
         document.getElementById('modalModifier').style.display = 'flex';
@@ -227,7 +240,7 @@
     document.getElementById('formModifier')?.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Récupérer l'ID de l'événement depuis l'URL (ex: /evenements/12)
+        // Récupérer l'ID de l'événement depuis l'URL
         const eventId = window.location.pathname.split('/').pop();
 
         const updatedData = {
@@ -244,66 +257,204 @@
             });
 
             if (response.ok) {
-                alert("Événement mis à jour avec succès !");
-                location.reload(); // Rafraîchir pour voir les changements
+                fermerModal();
+
+                Swal.fire({
+                    title: 'Succès !',
+                    text: "Événement mis à jour avec succès !",
+                    icon: 'success',
+                    confirmButtonColor: '#135077', // Ta couleur bleu marque
+                    confirmButtonText: 'Super'
+                }).then((result) => {
+                    // On ne recharge la page qu'après le clic sur le bouton
+                    if (result.isConfirmed) {
+                        location.reload();
+                    }
+                });
             } else {
-                alert("Erreur lors de la mise à jour.");
+                // ❌ Remplacement alert -> Swal.fire (Erreur API)
+                Swal.fire({
+                    title: 'Erreur',
+                    text: "Impossible de mettre à jour l'événement.",
+                    icon: 'error',
+                    confirmButtonColor: '#ef4444'
+                });
             }
         } catch (error) {
             console.error("Erreur:", error);
-            alert("Erreur de connexion au serveur.");
+            // ❌ Remplacement alert -> Swal.fire (Erreur Réseau)
+            Swal.fire('Erreur', "Problème de connexion au serveur.", 'error');
         }
     });
 
     async function publierAnnonce(eventId) {
-    const text = document.getElementById('nouvelleAnnonce').value;
-    if(!text) return;
+        const text = document.getElementById('nouvelleAnnonce').value;
+        if(!text) return;
 
-    try {
-        const response = await fetch(`/api/evenements/${eventId}/annonces`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            // On envoie un objet avec la clé "message" pour correspondre au Controller
-            body: JSON.stringify({ message: text })
-        });
+        try {
+            const response = await fetch(`/api/evenements/${eventId}/annonces`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
 
-        if(response.ok) {
-            location.reload(); // Recharge la page pour voir la nouvelle annonce
-        } else {
-            alert("Erreur lors de la publication.");
+            if(response.ok) {
+                // Ici, on recharge directement, mais on pourrait aussi mettre un toast succès.
+                location.reload();
+            } else {
+                // ❌ Remplacement alert
+                Swal.fire('Erreur', "Erreur lors de la publication.", 'error');
+            }
+        } catch (error) {
+            console.error("Erreur:", error);
+            Swal.fire('Erreur', "Impossible de publier l'annonce.", 'error');
         }
-    } catch (error) {
-        console.error("Erreur:", error);
     }
-}
 
-    function retirerParticipant(eventId, participantId) {
-        if(confirm("Voulez-vous vraiment retirer ce participant ?")) {
-            alert("Retrait en cours... (API à venir)");
+    /** Fonction pour retirer un participant de l'événement. */
+    async function retirerParticipant(eventId, participantId) {
+
+        Swal.fire({
+            title: 'Êtes-vous sûr ?',
+            text: "Voulez-vous vraiment retirer ce participant ?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444', // Rouge pour danger
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Oui, retirer !',
+            cancelButtonText: 'Annuler',
+            reverseButtons: true // Inverse l'ordre pour avoir Annuler à gauche
+        }).then(async (result) => {
+            // Cette partie s'exécute quand l'utilisateur clique sur un bouton
+            if (result.isConfirmed) {
+                try {
+                    // 2. Appel à l'API DELETE
+                    const response = await fetch(`/api/evenements/${eventId}/participants/${participantId}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    if (response.ok) {
+                        // On recharge la page pour mettre à jour la liste
+                        location.reload();
+                    } else {
+                        const errorText = await response.text();
+
+                        Swal.fire('Erreur', "Erreur lors du retrait : " + errorText, 'error');
+                    }
+                } catch (error) {
+                    console.error("Erreur réseau :", error);
+                    Swal.fire('Erreur', "Impossible de contacter le serveur.", 'error');
+                }
+            }
+        });
+    }
+
+
+    async function rejoindreEvenement(eventId, btnElement) {
+
+        btnElement.disabled = true;
+
+        try {
+            const response = await fetch(`/api/evenements/${eventId}/rejoindre`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (response.ok) {
+
+                Swal.fire({
+                    title: 'Félicitations !',
+                    text: "Vous avez rejoint l'événement.",
+                    icon: 'success',
+                    confirmButtonColor: '#135077'
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                const errorText = await response.text();
+                Swal.fire('Erreur', errorText || "Impossible de rejoindre l'événement.", 'error');
+                btnElement.disabled = false;
+            }
+        } catch (error) {
+            console.error("Erreur:", error);
+            Swal.fire('Erreur', "Problème de connexion au serveur.", 'error');
+            btnElement.disabled = false;
         }
+    }
+
+
+    /** Fonction pour que l'utilisateur quitte l'événement lui-même. */
+    async function quitterEvenement() {
+        const eventId = window.location.pathname.split('/').filter(p => p !== "").pop();
+
+        Swal.fire({
+            title: 'Quitter cet événement ?',
+            text: "Vous ne ferez plus partie de la liste des participants.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Oui, quitter',
+            cancelButtonText: 'Annuler'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/evenements/${eventId}/quitter`, {
+                        method: 'POST'
+                    });
+
+                    if (response.ok) {
+                        Swal.fire({
+                            title: 'Au revoir !',
+                            text: "Vous avez quitté l'événement.",
+                            icon: 'success',
+                            confirmButtonColor: '#135077'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Erreur', "Impossible de quitter l'événement.", 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Erreur', "Problème de connexion au serveur.", 'error');
+                }
+            }
+        });
     }
 
 
     // Fonction pour supprimer une annonce avec confirmation
-async function confirmerSuppressionAnnonce(eventId, annonceId) {
-    if (confirm("Voulez-vous vraiment supprimer cette annonce ?")) {
-        try {
-            const response = await fetch(`/api/evenements/${eventId}/annonces/${annonceId}`, {
-                method: 'DELETE'
-            });
+    async function confirmerSuppressionAnnonce(eventId, annonceId) {
 
-            if (response.ok) {
-                // Si la suppression a réussi, on rafraîchit la page pour mettre à jour la liste
-                location.reload();
-            } else {
-                alert("Erreur lors de la suppression.");
+        Swal.fire({
+            title: 'Supprimer cette annonce ?',
+            text: "Cette action est irréversible !",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Oui, supprimer !',
+            cancelButtonText: 'Annuler'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/evenements/${eventId}/annonces/${annonceId}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        Swal.fire('Erreur', "Erreur lors de la suppression.", 'error');
+                    }
+                } catch (error) {
+                    console.error("Erreur réseau :", error);
+                    Swal.fire('Erreur', "Impossible de contacter le serveur.", 'error');
+                }
             }
-        } catch (error) {
-            console.error("Erreur réseau :", error);
-            alert("Impossible de contacter le serveur.");
-        }
+        });
     }
-}
 </script>
 </body>
 </html>
