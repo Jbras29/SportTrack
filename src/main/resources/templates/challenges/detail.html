@@ -7,74 +7,8 @@
     <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <style>
-        .classement-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-        .classement-table th {
-            text-align: left;
-            padding: 0.75rem 1rem;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted, #6b7280);
-            border-bottom: 2px solid var(--border, #e5e7eb);
-        }
-        .classement-table td {
-            padding: 0.85rem 1rem;
-            border-bottom: 1px solid var(--border, #e5e7eb);
-            font-size: 0.95rem;
-        }
-        .classement-table tr:last-child td { border-bottom: none; }
-        .rank-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 50%;
-            font-weight: 700;
-            font-size: 0.85rem;
-            background: var(--surface-alt, #f3f4f6);
-        }
-        .rank-gold   { background: #fef3c7; color: #92400e; }
-        .rank-silver { background: #f1f5f9; color: #475569; }
-        .rank-bronze { background: #fef0e7; color: #9a3412; }
-        .score-pill {
-            display: inline-block;
-            padding: 0.2rem 0.65rem;
-            border-radius: 999px;
-            background: var(--primary-light, #ede9fe);
-            color: var(--primary, #6d28d9);
-            font-weight: 600;
-            font-size: 0.82rem;
-        }
-        .you-badge {
-            display: inline-block;
-            margin-left: 0.5rem;
-            padding: 0.1rem 0.5rem;
-            border-radius: 999px;
-            background: var(--primary, #6d28d9);
-            color: #fff;
-            font-size: 0.72rem;
-            font-weight: 600;
-            vertical-align: middle;
-        }
-        .challenge-meta {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            margin-top: 0.25rem;
-        }
-        .challenge-meta span {
-            font-size: 0.88rem;
-            color: var(--text-muted, #6b7280);
-        }
-    </style>
 </head>
-<body class="app-shell">
+<body class="app-shell challenges-page">
 
 <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 

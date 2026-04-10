@@ -7,37 +7,8 @@
     <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <style>
-        .challenges-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            padding: 1.5rem 0;
-        }
-        .challenge-card {
-            background: var(--surface, #ffffff);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .challenge-card .challenge-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-        .challenge-card .defi-meta {
-            font-size: 0.85rem;
-            color: var(--text-muted, #6b7280);
-        }
-        .challenge-card .event-form-actions {
-            margin-top: 1rem;
-        }
-    </style>
 </head>
-<body class="app-shell">
+<body class="app-shell challenges-page">
 
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
