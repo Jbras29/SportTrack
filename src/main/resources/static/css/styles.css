@@ -3198,22 +3198,22 @@ body.messages-page .message-received .message-meta-row {
     justify-content: flex-start;
 }
 
+/* Heure et accusé : sous la bulle, sur le fond du fil (pas sur la bulle bleue) → texte lisible, pas blanc */
 body.messages-page .message-time {
     font-size: 11px;
     color: var(--text-muted);
 }
 
-body.messages-page .message-sent .message-time {
-    color: rgba(255, 255, 255, 0.7);
-}
-
 body.messages-page .message-read-receipt {
     font-size: 11px;
     color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 body.messages-page .message-sent .message-read-receipt {
-    color: rgba(255, 255, 255, 0.78);
+    color: var(--brand-blue);
+    font-weight: 600;
 }
 
 body.messages-page .message-input-container {
