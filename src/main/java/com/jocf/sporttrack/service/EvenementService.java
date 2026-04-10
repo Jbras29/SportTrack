@@ -136,4 +136,29 @@ public class EvenementService {
 
         return evenementRepository.save(evenement);
     }
+
+    /** Retirer un participant de la liste des participants d'un événement. */
+    @Transactional
+    public void retirerParticipant(Long evenementId, Long utilisateurId) {
+        // 1. Trouver l'événement
+        Evenement evenement = trouverParId(evenementId);
+
+        // 2. Retirer l'utilisateur de la liste par son ID
+        // removeIf est très efficace ici
+        evenement.getParticipants().removeIf(p -> p.getId().equals(utilisateurId));
+
+        // 3. Sauvegarder les modifications
+        evenementRepository.save(evenement);
+    }
+
+    /** Supprimer l'utilisateur actuel de la liste des participants. */
+    @Transactional
+    public void quitterEvenement(Long evenementId, Long utilisateurId) {
+        Evenement evenement = trouverParId(evenementId);
+
+        // Retirer l'utilisateur de la liste
+        evenement.getParticipants().removeIf(p -> p.getId().equals(utilisateurId));
+
+        evenementRepository.save(evenement);
+    }
 }

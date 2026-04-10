@@ -70,8 +70,13 @@ public class EvenementController {
 
         boolean isOrganisateur = evenement.getOrganisateur().getId().equals(currentUser.getId());
 
+        boolean isParticipant = evenement.getParticipants().stream()
+                .anyMatch(p -> p.getId().equals(currentUser.getId()));
+
+
         model.addAttribute("evenement", evenement);
         model.addAttribute("isOrganisateur", isOrganisateur);
+        model.addAttribute("isParticipant", isParticipant);
         model.addAttribute("currentUser", currentUser);
 
         return "evenement/detail";
@@ -185,6 +190,31 @@ public class EvenementController {
             return ResponseEntity.ok().build(); // On renvoie un succès 200 sans corps
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Action non autorisée");
+    }
+
+
+    // API pour retirer (kicker) un participant
+    @ResponseBody
+    @DeleteMapping("/api/evenements/{id}/participants/{userId}")
+    public ResponseEntity<?> kickParticipant(@PathVariable Long id, @PathVariable Long userId) {
+        // Sécurité : Seul l'organisateur peut exclure quelqu'un
+        if (verifierSiOrganisateur(id)) {
+            evenementService.retirerParticipant(id, userId);
+            return ResponseEntity.ok().build(); // Succès 200
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Action non autorisée.");
+    }
+
+    @ResponseBody
+    @PostMapping("/api/evenements/{id}/quitter")
+    public ResponseEntity<?> quitter(@PathVariable Long id) {
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
+        Utilisateur currentUser = utilisateurService.trouverParEmail(email);
+
+        evenementService.quitterEvenement(id, currentUser.getId());
+        return ResponseEntity.ok().build();
     }
 
 
