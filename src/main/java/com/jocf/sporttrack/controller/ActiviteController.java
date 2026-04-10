@@ -85,18 +85,20 @@ public class ActiviteController {
 
     @PostMapping
     @Operation(summary = "Créer une nouvelle activité")
-    public ResponseEntity<Activite> createActivite(@RequestParam Long utilisateurId, @RequestParam String nom,
-                                                   @RequestParam TypeSport typeSport,
-                                                   @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-                                                   @RequestParam Double distance,
-                                                   @RequestParam Integer temps,
-                                                   @RequestParam String location,
-                                                   @RequestParam Integer evaluation) {
+    public String createActiviteForm(
+            @RequestParam Long utilisateurId,
+            @RequestParam String nom,
+            @RequestParam TypeSport typeSport,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) Double distance,
+            @RequestParam(required = false) Integer temps,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) Integer evaluation) {
         try {
-            Activite created = activiteService.creerActivite(utilisateurId, nom, typeSport, date, distance, temps, location, evaluation);
-            return ResponseEntity.ok(created);
+            activiteService.creerActivite(utilisateurId, nom, typeSport, date, distance, temps, location, evaluation);
+            return "redirect:/profile";
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return "redirect:/activites/create?erreur=" + e.getMessage();
         }
     }
 
