@@ -25,6 +25,10 @@ public class Badge {
     @Column(length = 2048)
     private String photo;
 
+    /** Texte affiché au survol (infobulle), ex. conditions de déblocage. */
+    @Column(length = 1024)
+    private String description;
+
     public Long getId() {
         return id;
     }
@@ -57,6 +61,14 @@ public class Badge {
         this.photo = photo;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public Badge(Long id, String code, String nom, String photo) {
         this.id = id;
         this.code = code;
@@ -70,6 +82,13 @@ public class Badge {
         this.photo = photo;
     }
 
+    public Badge(String code, String nom, String photo, String description) {
+        this.code = code;
+        this.nom = nom;
+        this.photo = photo;
+        this.description = description;
+    }
+
     public Badge() {
     }
 
@@ -81,6 +100,7 @@ public class Badge {
         result = prime * result + ((code == null) ? 0 : code.hashCode());
         result = prime * result + ((nom == null) ? 0 : nom.hashCode());
         result = prime * result + ((photo == null) ? 0 : photo.hashCode());
+        result = prime * result + ((description == null) ? 0 : description.hashCode());
         return result;
     }
 
@@ -112,6 +132,11 @@ public class Badge {
             if (other.photo != null)
                 return false;
         } else if (!photo.equals(other.photo))
+            return false;
+        if (description == null) {
+            if (other.description != null)
+                return false;
+        } else if (!description.equals(other.description))
             return false;
         return true;
     }

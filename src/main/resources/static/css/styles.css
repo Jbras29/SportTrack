@@ -3833,6 +3833,7 @@ body.profile-page .profile-badge-item {
     margin: 0;
     padding: 0;
     line-height: 0;
+    cursor: help;
 }
 
 body.profile-page .profile-badge-img {

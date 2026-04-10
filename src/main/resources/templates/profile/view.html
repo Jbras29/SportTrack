@@ -31,7 +31,8 @@
                         <ul class="profile-badges-list" role="list">
                             <li th:each="badge : ${utilisateur.badges}"
                                 class="profile-badge-item"
-                                th:attr="aria-label=${badge.nom}">
+                                th:title="${badge.description != null ? badge.description : badge.nom}"
+                                th:attr="aria-label=${badge.description != null ? badge.nom + '. ' + badge.description : badge.nom}">
                                 <img class="profile-badge-img"
                                      th:src="${badge.photo}"
                                      th:alt="${badge.nom}"
