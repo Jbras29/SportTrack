@@ -30,10 +30,67 @@
 
         .section-title { font-size: 18px; color: var(--brand-blue); font-weight: 700; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
 
-        .btn-action { background: var(--brand-light-blue); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; transition: 0.2s; }
-        .btn-action:hover { background: var(--brand-blue); }
-        .btn-danger { background: white; color: var(--danger-red); border: 1px solid var(--danger-red); }
-        .btn-danger:hover { background: var(--danger-red); color: white; }
+        .btn-action, .btn-danger {
+        height: 40px;
+        padding: 0 20px;
+        border-radius: 4px;      /* 统一 4px 微圆角 */
+        font-size: 12px;
+        font-weight: 900;       /* 极粗字体 */
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid #1E1E1E; /* 核心：2px 粗黑边 */
+        text-decoration: none;
+        box-sizing: border-box;
+        white-space: nowrap;
+    }
+
+    /* 1. 主操作按钮 (Modifier, Sauvegarder, Rejoindre) */
+    .btn-action {
+        background-color: #1E1E1E; /* 黑色底，对比度最高 */
+        color: #FFFFFF;
+        box-shadow: 4px 4px 0px #1E1E1E; /* 标志性硬投影 */
+    }
+
+    .btn-action:hover {
+        background-color: var(--brand-orange); /* 悬停变橙色 */
+        color: #000;
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0px #000;
+    }
+
+    /* 2. 危险操作按钮 (Quitter, Supprimer, Retirer) */
+    .btn-danger {
+        background-color: transparent; /* 镂空设计 */
+        color: #1E1E1E;
+        border-color: #1E1E1E;
+    }
+
+    .btn-danger:hover {
+        background-color: var(--danger-red); /* 悬停变红 */
+        color: #FFFFFF;
+        border-color: #1E1E1E; /* 保持黑边 */
+        transform: translate(-2px, -2px);
+        box-shadow: 4px 4px 0px #1E1E1E;
+    }
+
+    /* 3. 特殊处理：如果按钮在 Section Title 里面 (比如发布公告) */
+    .section-title .btn-action {
+        height: 32px; /* 标题栏里的按钮稍微矮一点，显得精致 */
+        padding: 0 12px;
+        font-size: 11px;
+    }
+
+    /* 4. 公告输入框下方的按钮 */
+    /* 确保发布按钮和输入框对齐时也有硬朗感 */
+    button[type="submit"].btn-action {
+        margin-top: 10px;
+        width: auto; /* 不强制占满，保持呼吸感 */
+    }
 
         .participant-list { display: flex; flex-direction: column; gap: 10px; }
         .participant-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg-app); border-radius: 10px; }
