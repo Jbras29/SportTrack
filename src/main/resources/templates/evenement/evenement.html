@@ -7,6 +7,7 @@
     <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="app-shell event-list-page">
 
@@ -54,6 +55,7 @@
 
     <script>
         async function rejoindreEvenement(evenementId, btnElement) {
+            // Désactiver le bouton pour éviter les doubles clics
             btnElement.disabled = true;
             btnElement.innerText = "Traitement...";
 
@@ -64,16 +66,40 @@
                 });
 
                 if (response.ok) {
-                    alert("Félicitations ! Vous avez rejoint l'événement.");
-                    location.reload();
+                    // ✅ Utilisation de SweetAlert2 pour le succès
+                    Swal.fire({
+                        title: 'Félicitations !',
+                        text: "Vous avez rejoint l'événement.",
+                        icon: 'success',
+                        confirmButtonColor: '#135077',
+                        confirmButtonText: 'Génial'
+                    }).then((result) => {
+                        // On ne recharge la page que si l'utilisateur a cliqué sur OK
+                        if (result.isConfirmed) {
+                            location.reload();
+                        }
+                    });
                 } else {
                     const erreurMsg = await response.text();
-                    alert("Impossible de rejoindre : " + erreurMsg);
+                    // ❌ Utilisation de SweetAlert2 pour l'erreur API
+                    Swal.fire({
+                        title: 'Oups...',
+                        text: "Impossible de rejoindre : " + (erreurMsg || "Erreur inconnue"),
+                        icon: 'error',
+                        confirmButtonColor: '#ef4444'
+                    });
                     btnElement.disabled = false;
                     btnElement.innerText = "Rejoindre";
                 }
             } catch (error) {
-                alert("Erreur de connexion au serveur.");
+                console.error("Erreur:", error);
+                // ❌ Utilisation de SweetAlert2 pour l'erreur réseau
+                Swal.fire({
+                    title: 'Erreur Serveur',
+                    text: "Impossible de contacter le serveur. Veuillez réessayer plus tard.",
+                    icon: 'error',
+                    confirmButtonColor: '#64748b'
+                });
                 btnElement.disabled = false;
                 btnElement.innerText = "Rejoindre";
             }
