@@ -1,11 +1,11 @@
 package com.jocf.sporttrack.controller;
 
+import com.jocf.sporttrack.dto.CreerActiviteCommand;
 import com.jocf.sporttrack.dto.ModifierActiviteRequest;
 import com.jocf.sporttrack.model.Activite;
 import com.jocf.sporttrack.model.TypeSport;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.ActiviteService;
-import com.jocf.sporttrack.service.PrefSportiveService;
 import com.jocf.sporttrack.service.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,17 +30,14 @@ import org.springframework.security.core.Authentication;
 public class ActiviteController {
 
     private final ActiviteService activiteService;
-    private final PrefSportiveService prefSportiveService;
     private final UtilisateurService utilisateurService;
     private final OpenMeteoService openMeteoService;
 
     public ActiviteController(
             ActiviteService activiteService,
-            PrefSportiveService prefSportiveService,
             UtilisateurService utilisateurService,
             OpenMeteoService openMeteoService) {
         this.activiteService = activiteService;
-        this.prefSportiveService = prefSportiveService;
         this.utilisateurService = utilisateurService;
         this.openMeteoService = openMeteoService;
     }
@@ -120,16 +117,16 @@ public class ActiviteController {
             @RequestParam(required = false) List<Long> invitesIds) {
         try {
             Activite created = activiteService.creerActivite(
-                    utilisateurId,
-                    nom,
-                    typeSport,
-                    date,
-                    distance,
-                    temps,
-                    location,
-                    evaluation,
-                    invitesIds
-            );
+                    new CreerActiviteCommand(
+                            utilisateurId,
+                            nom,
+                            typeSport,
+                            date,
+                            distance,
+                            temps,
+                            location,
+                            evaluation,
+                            invitesIds));
             // Redirige vers la page de confirmation qui affiche météo + calories
             return "redirect:/activites/" + created.getId() + "/detail";
         } catch (IllegalArgumentException e) {

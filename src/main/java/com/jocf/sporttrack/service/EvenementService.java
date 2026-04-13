@@ -8,6 +8,7 @@ import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.AnnonceRepository;
 import com.jocf.sporttrack.repository.EvenementRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,14 +20,17 @@ import java.util.Optional;
 @Service
 public class EvenementService {
 
+    private final EvenementService self;
     private final EvenementRepository evenementRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final AnnonceRepository annonceRepository;
 
     public EvenementService(
+            @Lazy EvenementService self,
             EvenementRepository evenementRepository,
             UtilisateurRepository utilisateurRepository,
             AnnonceRepository annonceRepository) {
+        this.self = self;
         this.evenementRepository = evenementRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.annonceRepository = annonceRepository;
@@ -155,7 +159,7 @@ public class EvenementService {
     /** Supprimer l'utilisateur actuel de la liste des participants. */
     @Transactional
     public void quitterEvenement(Long evenementId, Long utilisateurId) {
-        retirerParticipant(evenementId, utilisateurId);
+        self.retirerParticipant(evenementId, utilisateurId);
     }
 
     /** 🚀 Supprimer un événement par son ID. */

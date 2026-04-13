@@ -46,7 +46,7 @@ public class AnnonceService {
 
     return utilisateur.getEvenementsParticipes().stream()
         .flatMap(evenement -> annonceRepository.findByEvenement(evenement).stream())
-        .collect(java.util.stream.Collectors.toList());
+        .toList();
 }
 
     public Annonce creerAnnonce(Long evenementId, Long organisateurId, String message) {

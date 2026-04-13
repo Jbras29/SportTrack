@@ -205,7 +205,7 @@ class ActiviteTest {
                 Commentaire.builder().id(1L).type(TypeCommentaire.REACTION)
                         .message("👍").auteur(u).build());
 
-        assertThat(activite.getReactionsGroupeesMasqueesCount()).isEqualTo(0);
+        assertThat(activite.getReactionsGroupeesMasqueesCount()).isZero();
     }
 
     @Test

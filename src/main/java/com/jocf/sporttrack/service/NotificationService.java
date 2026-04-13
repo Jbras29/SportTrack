@@ -32,6 +32,7 @@ import java.util.Optional;
 public class NotificationService {
 
     private static final DateTimeFormatter DATE_FR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final String MSG_UTILISATEUR_INTROUVABLE = "Utilisateur introuvable : ";
 
     private final CommentaireRepository commentaireRepository;
     private final AnnonceRepository annonceRepository;
@@ -73,7 +74,7 @@ public class NotificationService {
             Long utilisateurId,
             LocalDateTime derniereConsultationNotifications) {
         Utilisateur proprietaire = utilisateurRepository.findById(utilisateurId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + utilisateurId));
 
         List<NotificationItem> items = new ArrayList<>();
 
@@ -81,7 +82,7 @@ public class NotificationService {
             Utilisateur aut = c.getAuteur();
             Activite act = c.getActivite();
             String nomAuteur = aut.getPrenom() + " " + aut.getNom();
-            items.add(item(
+            items.add(item(new ItemArgs(
                     NotificationType.REACTION,
                     "Réaction à votre activité",
                     nomAuteur + " a réagi avec " + c.getMessage() + " à « " + act.getNom() + " »",
@@ -89,7 +90,7 @@ public class NotificationService {
                     "/home#post-" + act.getId(),
                     c.getId(),
                     aut.cheminPhotoProfilAffichee(),
-                    derniereConsultationNotifications));
+                    derniereConsultationNotifications)));
         }
 
         for (Commentaire c : commentaireRepository.findPourProprietaireActiviteEtType(utilisateurId, TypeCommentaire.MESSAGE)) {
@@ -100,7 +101,7 @@ public class NotificationService {
             if (extrait.length() > 160) {
                 extrait = extrait.substring(0, 157) + "…";
             }
-            items.add(item(
+            items.add(item(new ItemArgs(
                     NotificationType.REPONSE_ACTIVITE,
                     "Commentaire sur votre activité",
                     nomAuteur + " sur « " + act.getNom() + " » : " + extrait,
@@ -108,7 +109,7 @@ public class NotificationService {
                     "/home#post-" + act.getId(),
                     c.getId(),
                     aut.cheminPhotoProfilAffichee(),
-                    derniereConsultationNotifications));
+                    derniereConsultationNotifications)));
         }
 
         for (Annonce a : annonceRepository.findAnnoncesPourEvenementsOuUtilisateurParticipe(utilisateurId)) {
@@ -117,7 +118,7 @@ public class NotificationService {
             if (msg.length() > 200) {
                 msg = msg.substring(0, 197) + "…";
             }
-            items.add(item(
+            items.add(item(new ItemArgs(
                     NotificationType.ANNONCE_EVENEMENT,
                     "Annonce : " + titreEvenement,
                     msg,
@@ -125,7 +126,7 @@ public class NotificationService {
                     "/evenements/" + a.getEvenement().getId(),
                     a.getId(),
                     null,
-                    derniereConsultationNotifications));
+                    derniereConsultationNotifications)));
         }
 
         if (joursSansActiviteRappel > 0) {
@@ -139,7 +140,7 @@ public class NotificationService {
             }
             if (!challengeSaisieQuotidienneRepository.existsByChallenge_IdAndUtilisateur_IdAndJour(
                     ch.getId(), utilisateurId, aujourdhui)) {
-                items.add(item(
+                items.add(item(new ItemArgs(
                         NotificationType.RAPPEL_CHALLENGE_QUOTIDIEN,
                         "Défi du jour",
                         "Indiquez si vous avez réalisé l’objectif du jour pour le challenge « " + ch.getNom() + " ».",
@@ -147,7 +148,7 @@ public class NotificationService {
                         "/challenges/" + ch.getId(),
                         ch.getId(),
                         null,
-                        derniereConsultationNotifications));
+                        derniereConsultationNotifications)));
             }
         }
 
@@ -168,7 +169,7 @@ public class NotificationService {
                 .count();
     }
 
-    private static NotificationItem item(
+    private record ItemArgs(
             NotificationType type,
             String titre,
             String detail,
@@ -176,16 +177,18 @@ public class NotificationService {
             String lien,
             Long referenceId,
             String photoProfilUrl,
-            LocalDateTime derniereConsultationNotifications) {
+            LocalDateTime derniereConsultationNotifications) {}
+
+    private static NotificationItem item(ItemArgs args) {
         return new NotificationItem(
-                type,
-                titre,
-                detail,
-                dateTri,
-                lien,
-                referenceId,
-                photoProfilUrl,
-                estNonLue(dateTri, derniereConsultationNotifications));
+                args.type(),
+                args.titre(),
+                args.detail(),
+                args.dateTri(),
+                args.lien(),
+                args.referenceId(),
+                args.photoProfilUrl(),
+                estNonLue(args.dateTri(), args.derniereConsultationNotifications()));
     }
 
     private static boolean estNonLue(LocalDateTime dateTri, LocalDateTime derniereConsultationNotifications) {
@@ -219,7 +222,7 @@ public class NotificationService {
                     + derniere.get().getDate().format(DATE_FR)
                     + " — pensez à noter vos séances.";
         }
-        items.add(item(
+        items.add(item(new ItemArgs(
                 NotificationType.RAPPEL_ACTIVITE,
                 "Rappel d’activité",
                 detail,
@@ -227,7 +230,7 @@ public class NotificationService {
                 "/activites/create",
                 null,
                 null,
-                derniereConsultationNotifications));
+                derniereConsultationNotifications)));
     }
 
     private static boolean challengeActifPourDate(Challenge c, LocalDate jour) {

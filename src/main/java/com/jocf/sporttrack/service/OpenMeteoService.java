@@ -16,6 +16,8 @@ public class OpenMeteoService {
     private static final Logger log = LoggerFactory.getLogger(OpenMeteoService.class);
     private static final String JSON_RESULTS = "results";
     private static final String JSON_DAILY = "daily";
+    /** Nom du paramètre de requête API (séries temporelles journalières). */
+    private static final String QUERY_PARAM_DAILY = "daily";
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -53,7 +55,7 @@ public class OpenMeteoService {
         String geoResponseStr = restTemplate.getForObject(geoUrl, String.class);
         JsonNode geoNode = objectMapper.readTree(geoResponseStr);
         if (!geoNode.has(JSON_RESULTS) || geoNode.get(JSON_RESULTS).size() == 0) {
-            log.warn("OpenMeteoService : ville introuvable pour -> {}", location);
+            log.warn("OpenMeteoService : aucun résultat de géocodage pour la recherche saisie");
             return null;
         }
         JsonNode resultNode = geoNode.get(JSON_RESULTS).get(0);
@@ -69,7 +71,7 @@ public class OpenMeteoService {
         String weatherUrl = UriComponentsBuilder.fromUriString(baseUrl)
                 .queryParam("latitude", coords.lat())
                 .queryParam("longitude", coords.lon())
-                .queryParam("daily", "weathercode,temperature_2m_max,temperature_2m_min")
+                .queryParam(QUERY_PARAM_DAILY, "weathercode,temperature_2m_max,temperature_2m_min")
                 .queryParam("timezone", "auto")
                 .queryParam("start_date", dateStr)
                 .queryParam("end_date", dateStr)
@@ -89,7 +91,7 @@ public class OpenMeteoService {
         int weatherCode = dailyNode.get("weathercode").get(0).asInt();
         double avgTemp = (tMax + tMin) / 2.0;
         String condition = weatherLabelFromCode(weatherCode);
-        log.info("OpenMeteoService OK : {} le {} → {} {}°C", location, dateStr, condition, avgTemp);
+        log.debug("OpenMeteoService OK : date {} → {} {}°C", dateStr, condition, avgTemp);
         return new WeatherInfo(Math.round(avgTemp * 10.0) / 10.0, condition);
     }
 

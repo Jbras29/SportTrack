@@ -26,6 +26,8 @@ import com.jocf.sporttrack.repository.UtilisateurRepository;
 @Service
 public class UtilisateurService implements UserDetailsService {
 
+    private static final String MSG_UTILISATEUR_INTROUVABLE = "Utilisateur introuvable : ";
+
     private final UtilisateurRepository utilisateurRepository;
     private final PrefSportiveRepository prefSportiveRepository;
     private final PasswordEncoder passwordEncoder;
@@ -52,7 +54,7 @@ public class UtilisateurService implements UserDetailsService {
 
     public Utilisateur modifierUtilisateur(Long id, ModifierUtilisateurRequest req) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + id));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + id));
 
         utilisateur.setNom(req.getNom());
         utilisateur.setPrenom(req.getPrenom());
@@ -93,7 +95,7 @@ public class UtilisateurService implements UserDetailsService {
 
     public Utilisateur ajouterPrefSportive(Long utilisateurId, String nomPreference) {
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + utilisateurId));
 
         String nomNormalise = normaliserNomPreference(nomPreference);
         boolean dejaAssociee = utilisateur.getPrefSportives().stream()
@@ -112,7 +114,7 @@ public class UtilisateurService implements UserDetailsService {
 
     public Utilisateur supprimerPrefSportive(Long utilisateurId, Long prefSportiveId) {
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + utilisateurId));
 
         boolean supprimee = utilisateur.getPrefSportives().removeIf(pref -> prefSportiveId.equals(pref.getId()));
         if (!supprimee) {
@@ -124,7 +126,7 @@ public class UtilisateurService implements UserDetailsService {
 
     public void modifierPhotoProfil(Long id, String cheminPublic) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + id));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + id));
         utilisateur.setPhotoProfil(cheminPublic);
         utilisateurRepository.save(utilisateur);
     }
@@ -132,7 +134,7 @@ public class UtilisateurService implements UserDetailsService {
     @Transactional
     public void enregistrerDerniereConsultationNotifications(Long utilisateurId) {
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + utilisateurId));
         utilisateur.setDerniereConsultationNotifications(LocalDateTime.now());
         utilisateurRepository.save(utilisateur);
     }
@@ -150,7 +152,7 @@ public class UtilisateurService implements UserDetailsService {
 
     public void supprimerUtilisateur(Long id) {
         if (!utilisateurRepository.existsById(id)) {
-            throw new IllegalArgumentException("Utilisateur introuvable : " + id);
+            throw new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + id);
         }
         utilisateurRepository.deleteById(id);
     }
@@ -170,12 +172,12 @@ public class UtilisateurService implements UserDetailsService {
 
     public Utilisateur trouverParEmail(String email) {
         return utilisateurRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + email));
+                .orElseThrow(() -> new UsernameNotFoundException(MSG_UTILISATEUR_INTROUVABLE + email));
     }
 
     public Utilisateur trouverParEmailAvecAmis(String email) {
         return utilisateurRepository.findByEmailWithAmis(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + email));
+                .orElseThrow(() -> new UsernameNotFoundException(MSG_UTILISATEUR_INTROUVABLE + email));
     }
 
     public Utilisateur connecter(String email, String motdepasse) {

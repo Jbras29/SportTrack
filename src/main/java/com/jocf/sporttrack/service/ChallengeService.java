@@ -23,6 +23,9 @@ import java.util.stream.Collectors;
 @Service
 public class ChallengeService {
 
+    private static final String MSG_CHALLENGE_INTROUVABLE = "Challenge introuvable : ";
+    private static final String MSG_UTILISATEUR_INTROUVABLE = "Utilisateur introuvable : ";
+
     private final ChallengeRepository challengeRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final ChallengeSaisieQuotidienneRepository challengeSaisieQuotidienneRepository;
@@ -66,7 +69,7 @@ public class ChallengeService {
 
     public Challenge modifierChallenge(Long id, ModifierChallengeRequest req) {
         Challenge challenge = challengeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + id));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_CHALLENGE_INTROUVABLE + id));
 
         challenge.setNom(req.nom());
         if (req.dateDebut() != null) {
@@ -81,14 +84,14 @@ public class ChallengeService {
 
     public void supprimerChallenge(Long id) {
         if (!challengeRepository.existsById(id)) {
-            throw new IllegalArgumentException("Challenge introuvable : " + id);
+            throw new IllegalArgumentException(MSG_CHALLENGE_INTROUVABLE + id);
         }
         challengeRepository.deleteById(id);
     }
 
     public List<LigneClassementChallenge> getClassement(Long challengeId) {
         Challenge challenge = challengeRepository.findById(challengeId)
-                .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + challengeId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_CHALLENGE_INTROUVABLE + challengeId));
 
         List<ChallengeSaisieQuotidienne> saisiesValidees =
                 challengeSaisieQuotidienneRepository.findByChallengeAndRealiseTrue(challenge);
@@ -105,15 +108,15 @@ public class ChallengeService {
                         scoresParUtilisateurId.getOrDefault(utilisateur.getId(), 0L)
                 ))
                 .sorted(Comparator.comparingLong(LigneClassementChallenge::getScore).reversed())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Challenge rejoindreChallenge(Long challengeId, Long utilisateurId) {
         Challenge challenge = challengeRepository.findById(challengeId)
-                .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + challengeId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_CHALLENGE_INTROUVABLE + challengeId));
 
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + utilisateurId));
 
         if (challenge.getDateFin() != null
                 && challenge.getDateFin().before(new java.sql.Date(System.currentTimeMillis()))) {
@@ -131,10 +134,10 @@ public class ChallengeService {
     @Transactional
     public void enregistrerSaisieQuotidienne(Long challengeId, Long utilisateurId, LocalDate jour, boolean realise) {
         Challenge challenge = challengeRepository.findById(challengeId)
-                .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + challengeId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_CHALLENGE_INTROUVABLE + challengeId));
 
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + utilisateurId));
 
         if (!challenge.getParticipants().contains(utilisateur)) {
             throw new IllegalArgumentException("Vous ne participez pas à ce challenge.");
@@ -161,10 +164,10 @@ public class ChallengeService {
 
     public Boolean recupererReponseDuJour(Long challengeId, Long utilisateurId, LocalDate jour) {
         Challenge challenge = challengeRepository.findById(challengeId)
-                .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + challengeId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_CHALLENGE_INTROUVABLE + challengeId));
     
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + utilisateurId));
     
         return challengeSaisieQuotidienneRepository
                 .findByChallengeAndUtilisateurAndJour(challenge, utilisateur, jour)
@@ -175,7 +178,7 @@ public class ChallengeService {
     @Transactional
 public void supprimerChallengeSiOrganisateur(Long challengeId, Long utilisateurId) {
     Challenge challenge = challengeRepository.findById(challengeId)
-            .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + challengeId));
+            .orElseThrow(() -> new IllegalArgumentException(MSG_CHALLENGE_INTROUVABLE + challengeId));
 
     if (challenge.getOrganisateur() == null || !challenge.getOrganisateur().getId().equals(utilisateurId)) {
         throw new IllegalArgumentException("Seul l'organisateur peut supprimer ce challenge.");

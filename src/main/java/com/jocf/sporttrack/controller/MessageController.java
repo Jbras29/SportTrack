@@ -26,6 +26,7 @@ public class MessageController {
     private static final String ATTR_UTILISATEUR = "utilisateur";
     private static final String REDIRECT_LOGIN = "redirect:/login";
     private static final String REDIRECT_MESSAGES_OPEN = "redirect:/messages?open=";
+    private static final String FLASH_ERROR = "error";
 
     private final MessageService messageService;
     private final UtilisateurService utilisateurService;
@@ -97,7 +98,7 @@ public class MessageController {
         try {
             Long utilisateurId = (Long) session.getAttribute(SESSION_UTILISATEUR_ID);
             if (utilisateurId == null) {
-                redirectAttributes.addFlashAttribute("error", "Vous devez être connecté.");
+                redirectAttributes.addFlashAttribute(FLASH_ERROR, "Vous devez être connecté.");
                 return REDIRECT_LOGIN;
             }
 
@@ -105,7 +106,7 @@ public class MessageController {
             Utilisateur destinataire = utilisateurService.findById(destinataireId);
 
             if (contenu == null || contenu.trim().isEmpty()) {
-                redirectAttributes.addFlashAttribute("error", "Le message ne peut pas être vide.");
+                redirectAttributes.addFlashAttribute(FLASH_ERROR, "Le message ne peut pas être vide.");
                 return REDIRECT_MESSAGES_OPEN + destinataireId;
             }
 
@@ -113,7 +114,7 @@ public class MessageController {
 
             redirectAttributes.addFlashAttribute("success", "Message envoyé avec succès.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Erreur lors de l'envoi du message: " + e.getMessage());
+            redirectAttributes.addFlashAttribute(FLASH_ERROR, "Erreur lors de l'envoi du message: " + e.getMessage());
             return REDIRECT_MESSAGES_OPEN + destinataireId;
         }
 
