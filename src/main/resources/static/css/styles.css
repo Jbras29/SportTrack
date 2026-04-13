@@ -192,16 +192,19 @@ body.auth-page a {
     align-items: center;
     padding: 20px 0;
     flex-shrink: 0;
-    z-index: 10;
+    /* Au-dessus du .main-wrapper (flex suivant) pour que les infobulles qui dépassent à droite se voient */
+    position: relative;
+    z-index: 20;
+    overflow: visible;
 }
 
-/* Barre latérale : hauteur fenêtre, pas de défilement interne (le contenu principal scroll à part). */
+/* Barre latérale : hauteur fenêtre, pas de défilement interne (le contenu principal scroll à part).
+   overflow visible des deux axes : sinon overflow-y ≠ visible force overflow-x à « auto » et découpe les bulles. */
 .slim-sidebar--viewport {
     align-self: stretch;
     height: auto;
     min-height: 100%;
-    overflow-x: hidden;
-    overflow-y: hidden;
+    overflow: visible;
 }
 
 .logo-icon {
@@ -225,6 +228,15 @@ body.auth-page a {
     box-shadow: none;
     padding: 2px;
     overflow: hidden;
+}
+
+/* Laisser dépasser l’infobulle (::after) à droite du logo */
+.slim-sidebar .logo-icon--brand[data-tooltip] {
+    overflow: visible;
+}
+
+.slim-sidebar .logo-icon--brand[data-tooltip] .logo-icon-img {
+    border-radius: 10px;
 }
 
 .logo-icon--brand .logo-icon-img {
@@ -380,6 +392,46 @@ html[data-theme="dark"] .nav-btn-badge {
 
 .spacer {
     flex-grow: 1;
+}
+
+/* Infobulles à droite de la barre latérale (alignées au bouton survolé) */
+.slim-sidebar [data-tooltip] {
+    position: relative;
+}
+
+.slim-sidebar [data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 6px 11px;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    color: var(--bg-card);
+    background: var(--text-main);
+    box-shadow: var(--shadow-card-strong);
+    border: 1px solid var(--border-light);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: 300;
+    transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+
+.slim-sidebar [data-tooltip]:hover::after,
+.slim-sidebar [data-tooltip]:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .slim-sidebar [data-tooltip]::after {
+        transition: none;
+    }
 }
 
 .profile-btn img {
