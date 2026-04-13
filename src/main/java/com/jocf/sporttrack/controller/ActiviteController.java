@@ -1,5 +1,6 @@
 package com.jocf.sporttrack.controller;
 
+import com.jocf.sporttrack.dto.ModifierActiviteRequest;
 import com.jocf.sporttrack.model.Activite;
 import com.jocf.sporttrack.model.TypeSport;
 import com.jocf.sporttrack.model.Utilisateur;
@@ -115,7 +116,7 @@ public class ActiviteController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Modifier une activité")
-    public ResponseEntity<Activite> updateActivite(@PathVariable Long id, @RequestBody Activite activiteDetails) {
+    public ResponseEntity<Activite> updateActivite(@PathVariable Long id, @RequestBody ModifierActiviteRequest activiteDetails) {
         try {
             Activite updated = activiteService.modifierActivite(id, activiteDetails);
             return ResponseEntity.ok(updated);

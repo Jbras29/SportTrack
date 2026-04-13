@@ -1,5 +1,6 @@
 package com.jocf.sporttrack.service;
 
+import com.jocf.sporttrack.dto.ModifierActiviteRequest;
 import com.jocf.sporttrack.model.Activite;
 import com.jocf.sporttrack.model.TypeSport;
 import com.jocf.sporttrack.model.Utilisateur;
@@ -146,22 +147,22 @@ public class ActiviteService {
         return sauvegardee;
     }
 
-    public Activite modifierActivite(Long id, Activite activiteDetails) {
+    public Activite modifierActivite(Long id, ModifierActiviteRequest req) {
         Activite activite = activiteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Activite introuvable : " + id));
 
-        if (activiteDetails.getDate() != null) {
-            verifierDateActiviteNonFuture(activiteDetails.getDate());
+        if (req.date() != null) {
+            verifierDateActiviteNonFuture(req.date());
         }
 
-        activite.setNom(activiteDetails.getNom());
-        activite.setTypeSport(activiteDetails.getTypeSport());
-        activite.setDistance(activiteDetails.getDistance());
-        activite.setTemps(activiteDetails.getTemps());
-        activite.setDate(activiteDetails.getDate());
-        activite.setLocation(activiteDetails.getLocation());
-        activite.setEvaluation(activiteDetails.getEvaluation());
-        activite.setInvites(activiteDetails.getInvites());
+        activite.setNom(req.nom());
+        activite.setTypeSport(req.typeSport());
+        activite.setDistance(req.distance());
+        activite.setTemps(req.temps());
+        activite.setDate(req.date());
+        activite.setLocation(req.location());
+        activite.setEvaluation(req.evaluation());
+        activite.setInvites(new ArrayList<>(utilisateurRepository.findAllById(req.inviteIds())));
 
         activite.setCalories(calculerKcalPourActivite(activite));
 

@@ -28,16 +28,16 @@ public class PrefSportiveService {
         return prefSportiveRepository.findByNom(nom);
     }
 
-    public PrefSportive creerPrefSportive(PrefSportive prefSportive) {
-        prefSportive.setId(null);
+    public PrefSportive creerPrefSportive(String nom) {
+        PrefSportive prefSportive = PrefSportive.builder().nom(nom).build();
         return prefSportiveRepository.save(prefSportive);
     }
 
-    public PrefSportive modifierPrefSportive(Long id, PrefSportive prefSportiveDetails) {
+    public PrefSportive modifierPrefSportive(Long id, String nom) {
         PrefSportive prefSportive = prefSportiveRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("PrefSportive introuvable : " + id));
 
-        prefSportive.setNom(prefSportiveDetails.getNom());
+        prefSportive.setNom(nom);
         return prefSportiveRepository.save(prefSportive);
     }
 

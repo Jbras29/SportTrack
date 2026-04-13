@@ -45,16 +45,16 @@ public class PrefSportiveController {
 
     @PostMapping
     @Operation(summary = "Créer une nouvelle préférence sportive")
-    public ResponseEntity<PrefSportive> createPrefSportive(@RequestBody PrefSportive prefSportive) {
-        PrefSportive created = prefSportiveService.creerPrefSportive(prefSportive);
+    public ResponseEntity<PrefSportive> createPrefSportive(@RequestParam String nom) {
+        PrefSportive created = prefSportiveService.creerPrefSportive(nom);
         return ResponseEntity.ok(created);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Modifier une préférence sportive")
-    public ResponseEntity<PrefSportive> updatePrefSportive(@PathVariable Long id, @RequestBody PrefSportive prefSportiveDetails) {
+    public ResponseEntity<PrefSportive> updatePrefSportive(@PathVariable Long id, @RequestParam String nom) {
         try {
-            PrefSportive updated = prefSportiveService.modifierPrefSportive(id, prefSportiveDetails);
+            PrefSportive updated = prefSportiveService.modifierPrefSportive(id, nom);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();

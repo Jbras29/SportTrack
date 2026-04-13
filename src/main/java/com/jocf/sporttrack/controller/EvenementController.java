@@ -1,5 +1,7 @@
 package com.jocf.sporttrack.controller;
 
+import com.jocf.sporttrack.dto.CreerEvenementRequest;
+import com.jocf.sporttrack.dto.ModifierEvenementRequest;
 import com.jocf.sporttrack.model.Evenement;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.EvenementService;
@@ -111,7 +113,7 @@ public class EvenementController {
     @ResponseBody
     @PostMapping("/api/evenements/creer")
     @Operation(summary = "Créer un nouvel événement")
-    public ResponseEntity<Evenement> creerEvenement(@RequestBody Evenement evenement) {
+    public ResponseEntity<Evenement> creerEvenement(@RequestBody CreerEvenementRequest body) {
         // 1. Récupérer l'email de l'utilisateur connecté via Spring Security
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email;
@@ -125,7 +127,7 @@ public class EvenementController {
         Utilisateur organisateur = utilisateurService.trouverParEmail(email);
 
         // 3. Créer l'événement en utilisant son ID
-        Evenement evenementCree = evenementService.creerEvenement(organisateur.getId(), evenement);
+        Evenement evenementCree = evenementService.creerEvenement(organisateur.getId(), body);
 
         return new ResponseEntity<>(evenementCree, HttpStatus.CREATED);
     }
@@ -169,7 +171,7 @@ public class EvenementController {
     // Modifier les informations d'un événement
     @ResponseBody
     @PutMapping("/api/evenements/{id}")
-    public ResponseEntity<?> modifierEvenement(@PathVariable Long id, @RequestBody Evenement nouveauxDetails) {
+    public ResponseEntity<?> modifierEvenement(@PathVariable Long id, @RequestBody ModifierEvenementRequest nouveauxDetails) {
         // Sécurité : Vérifier si c'est bien l'organisateur qui demande la modif
         if (verifierSiOrganisateur(id)) {
             // On appelle le service pour mettre à jour

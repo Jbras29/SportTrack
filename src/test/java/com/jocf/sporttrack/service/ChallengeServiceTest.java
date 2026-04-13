@@ -8,12 +8,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.jocf.sporttrack.dto.CreerChallengeRequest;
+import com.jocf.sporttrack.dto.ModifierChallengeRequest;
 import com.jocf.sporttrack.model.Challenge;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.ChallengeRepository;
 import com.jocf.sporttrack.repository.ChallengeSaisieQuotidienneRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -84,11 +87,10 @@ class ChallengeServiceTest {
     @Test
     void creerChallengeAvecOrganisateurValide() {
         Utilisateur organisateur = Utilisateur.builder().id(1L).email("organisateur").build();
-        Challenge challenge = Challenge.builder()
-                .nom("Nouveau Challenge")
-                .dateDebut(Date.valueOf("2024-01-01"))
-                .dateFin(Date.valueOf("2024-01-31"))
-                .build();
+        CreerChallengeRequest req = new CreerChallengeRequest(
+                "Nouveau Challenge",
+                LocalDate.parse("2024-01-01"),
+                LocalDate.parse("2024-01-31"));
 
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(organisateur));
         when(challengeRepository.save(any(Challenge.class))).thenAnswer(invocation -> {
@@ -97,7 +99,7 @@ class ChallengeServiceTest {
             return saved;
         });
 
-        Challenge resultat = challengeService.creerChallenge(challenge, 1L);
+        Challenge resultat = challengeService.creerChallenge(req, 1L);
 
         assertNotNull(resultat.getId());
         assertEquals("Nouveau Challenge", resultat.getNom());
@@ -108,13 +110,16 @@ class ChallengeServiceTest {
 
     @Test
     void creerChallengeRefuseOrganisateurInexistant() {
-        Challenge challenge = Challenge.builder().nom("Challenge").build();
+        CreerChallengeRequest req = new CreerChallengeRequest(
+                "Challenge",
+                LocalDate.parse("2024-01-01"),
+                LocalDate.parse("2024-01-31"));
 
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.empty());
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> challengeService.creerChallenge(challenge, 1L));
+                () -> challengeService.creerChallenge(req, 1L));
 
         assertEquals("Organisateur introuvable : 1", exception.getMessage());
         verify(utilisateurRepository).findById(1L);
@@ -129,11 +134,10 @@ class ChallengeServiceTest {
                 .dateDebut(Date.valueOf("2024-01-01"))
                 .dateFin(Date.valueOf("2024-01-31"))
                 .build();
-        Challenge updates = Challenge.builder()
-                .nom("Nouveau Nom")
-                .dateDebut(Date.valueOf("2024-02-01"))
-                .dateFin(Date.valueOf("2024-02-28"))
-                .build();
+        ModifierChallengeRequest updates = new ModifierChallengeRequest(
+                "Nouveau Nom",
+                LocalDate.parse("2024-02-01"),
+                LocalDate.parse("2024-02-28"));
 
         when(challengeRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(challengeRepository.save(any(Challenge.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -149,7 +153,10 @@ class ChallengeServiceTest {
 
     @Test
     void modifierChallengeRefuseIdInexistant() {
-        Challenge updates = Challenge.builder().nom("Update").build();
+        ModifierChallengeRequest updates = new ModifierChallengeRequest(
+                "Update",
+                LocalDate.parse("2024-01-01"),
+                LocalDate.parse("2024-01-31"));
 
         when(challengeRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -188,11 +195,10 @@ class ChallengeServiceTest {
     @Test
 void creerChallengeAvecDonneesValides() {
     Utilisateur organisateur = Utilisateur.builder().id(1L).build();
-    Challenge challenge = Challenge.builder()
-        .nom("Trail Challenge")
-        .dateDebut(Date.valueOf("2026-05-01"))
-        .dateFin(Date.valueOf("2026-05-31"))
-        .build();
+    CreerChallengeRequest req = new CreerChallengeRequest(
+                    "Trail Challenge",
+                    LocalDate.parse("2026-05-01"),
+                    LocalDate.parse("2026-05-31"));
 
     when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(organisateur));
     when(challengeRepository.save(any(Challenge.class))).thenAnswer(invocation -> {
@@ -206,7 +212,7 @@ void creerChallengeAvecDonneesValides() {
             .build();
     });
 
-    Challenge result = challengeService.creerChallenge(challenge, 1L);
+    Challenge result = challengeService.creerChallenge(req, 1L);
 
     assertNotNull(result.getId());
     assertEquals("Trail Challenge", result.getNom());
@@ -217,17 +223,16 @@ void creerChallengeAvecDonneesValides() {
 @Test
 void creerChallengeRefuseDateFinAvantDateDebut() {
     Utilisateur organisateur = Utilisateur.builder().id(1L).build();
-    Challenge challenge = Challenge.builder()
-        .nom("Trail Challenge")
-        .dateDebut(Date.valueOf("2026-05-31"))
-        .dateFin(Date.valueOf("2026-05-01"))
-        .build();
+    CreerChallengeRequest req = new CreerChallengeRequest(
+                    "Trail Challenge",
+                    LocalDate.parse("2026-05-31"),
+                    LocalDate.parse("2026-05-01"));
 
     when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(organisateur));
 
     IllegalArgumentException exception = assertThrows(
         IllegalArgumentException.class,
-        () -> challengeService.creerChallenge(challenge, 1L)
+        () -> challengeService.creerChallenge(req, 1L)
     );
 
     assertEquals("La date de fin doit être après la date de début.", exception.getMessage());

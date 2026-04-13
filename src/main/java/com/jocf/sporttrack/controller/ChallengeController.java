@@ -1,5 +1,7 @@
 package com.jocf.sporttrack.controller;
 
+import com.jocf.sporttrack.dto.CreerChallengeRequest;
+import com.jocf.sporttrack.dto.ModifierChallengeRequest;
 import com.jocf.sporttrack.model.Challenge;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.ChallengeService;
@@ -44,7 +46,7 @@ public class ChallengeController {
 
     @PostMapping
     @Operation(summary = "Créer un nouveau challenge")
-    public ResponseEntity<?> createChallenge(@RequestBody Challenge challenge, @RequestParam Long organisateurId) {
+    public ResponseEntity<?> createChallenge(@RequestBody CreerChallengeRequest body, @RequestParam Long organisateurId) {
 
         Optional<Utilisateur> organisateurOpt = utilisateurService.trouverParId(organisateurId);
 
@@ -63,7 +65,7 @@ public class ChallengeController {
 
         try {
 
-            Challenge created = challengeService.creerChallenge(challenge, organisateurId);
+            Challenge created = challengeService.creerChallenge(body, organisateurId);
             return ResponseEntity.ok(created);
         } catch (IllegalArgumentException e) {
 
@@ -73,9 +75,9 @@ public class ChallengeController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Modifier un challenge")
-    public ResponseEntity<Challenge> updateChallenge(@PathVariable Long id, @RequestBody Challenge challengeDetails) {
+    public ResponseEntity<Challenge> updateChallenge(@PathVariable Long id, @RequestBody ModifierChallengeRequest body) {
         try {
-            Challenge updated = challengeService.modifierChallenge(id, challengeDetails);
+            Challenge updated = challengeService.modifierChallenge(id, body);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();

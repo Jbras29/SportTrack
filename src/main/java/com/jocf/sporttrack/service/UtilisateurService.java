@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.jocf.sporttrack.dto.ModifierUtilisateurRequest;
 import com.jocf.sporttrack.model.PrefSportive;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.PrefSportiveRepository;
@@ -49,39 +50,39 @@ public class UtilisateurService implements UserDetailsService {
         return utilisateurRepository.findById(id);
     }
 
-    public Utilisateur modifierUtilisateur(Long id, Utilisateur utilisateurDetails) {
+    public Utilisateur modifierUtilisateur(Long id, ModifierUtilisateurRequest req) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + id));
 
-        utilisateur.setNom(utilisateurDetails.getNom());
-        utilisateur.setPrenom(utilisateurDetails.getPrenom());
-        utilisateur.setEmail(utilisateurDetails.getEmail());
-        String nouveauMotdepasse = utilisateurDetails.getMotdepasse();
+        utilisateur.setNom(req.getNom());
+        utilisateur.setPrenom(req.getPrenom());
+        utilisateur.setEmail(req.getEmail());
+        String nouveauMotdepasse = req.getMotdepasse();
         if (nouveauMotdepasse != null && nouveauMotdepasse.isBlank()) {
             nouveauMotdepasse = null;
         }
         utilisateur.setMotdepasse(nouveauMotdepasse != null
                 ? passwordEncoder.encode(nouveauMotdepasse)
                 : utilisateur.getMotdepasse());
-        utilisateur.setSexe(utilisateurDetails.getSexe());
-        utilisateur.setAge(utilisateurDetails.getAge());
-        utilisateur.setPoids(utilisateurDetails.getPoids());
-        utilisateur.setTaille(utilisateurDetails.getTaille());
-        utilisateur.setObjectifsPersonnels(utilisateurDetails.getObjectifsPersonnels());
-        utilisateur.setNiveauPratiqueSportive(utilisateurDetails.getNiveauPratiqueSportive());
-        utilisateur.setComptePrive(utilisateurDetails.isComptePrive());
+        utilisateur.setSexe(req.getSexe());
+        utilisateur.setAge(req.getAge());
+        utilisateur.setPoids(req.getPoids());
+        utilisateur.setTaille(req.getTaille());
+        utilisateur.setObjectifsPersonnels(req.getObjectifsPersonnels());
+        utilisateur.setNiveauPratiqueSportive(req.getNiveauPratiqueSportive());
+        utilisateur.setComptePrive(req.isComptePrive());
 
-        if (utilisateurDetails.getPhotoProfil() != null) {
-            utilisateur.setPhotoProfil(utilisateurDetails.getPhotoProfil().isBlank()
+        if (req.getPhotoProfil() != null) {
+            utilisateur.setPhotoProfil(req.getPhotoProfil().isBlank()
                     ? null
-                    : utilisateurDetails.getPhotoProfil());
+                    : req.getPhotoProfil());
         }
 
-        if (utilisateurDetails.getPrefSportives() != null) {
+        if (req.getPrefSportivesIds() != null) {
             utilisateur.getPrefSportives().clear();
-            for (PrefSportive preference : utilisateurDetails.getPrefSportives()) {
-                if (preference.getId() != null) {
-                    prefSportiveRepository.findById(preference.getId())
+            for (Long prefId : req.getPrefSportivesIds()) {
+                if (prefId != null) {
+                    prefSportiveRepository.findById(prefId)
                             .ifPresent(utilisateur.getPrefSportives()::add);
                 }
             }

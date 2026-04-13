@@ -9,6 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.jocf.sporttrack.dto.ModifierActiviteRequest;
 import com.jocf.sporttrack.model.Activite;
 import com.jocf.sporttrack.model.TypeSport;
 import com.jocf.sporttrack.model.Utilisateur;
@@ -16,6 +17,7 @@ import com.jocf.sporttrack.repository.ActiviteRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -224,18 +226,19 @@ class ActiviteServiceTest {
                 .typeSport(TypeSport.COURSE)
                 .utilisateur(testUser)
                 .build();
-        Activite updates = Activite.builder()
-                .nom("Nouveau Nom")
-                .typeSport(TypeSport.YOGA)
-                .distance(10.5)
-                .temps(60)
-                .date(LocalDate.of(2024, 4, 8))
-                .location("Parc")
-                .evaluation(5)
-                .build();
+        ModifierActiviteRequest updates = new ModifierActiviteRequest(
+                "Nouveau Nom",
+                TypeSport.YOGA,
+                10.5,
+                60,
+                LocalDate.of(2024, 4, 8),
+                "Parc",
+                5,
+                Collections.emptyList());
 
         when(activiteRepository.findById(1L)).thenReturn(Optional.of(existante));
         when(activiteRepository.save(any(Activite.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(utilisateurRepository.findAllById(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         Activite resultat = activiteService.modifierActivite(1L, updates);
 
@@ -252,7 +255,15 @@ class ActiviteServiceTest {
 
     @Test
     void modifierActiviteRefuseIdInexistant() {
-        Activite updates = Activite.builder().nom("Update").build();
+        ModifierActiviteRequest updates = new ModifierActiviteRequest(
+                "Update",
+                TypeSport.COURSE,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Collections.emptyList());
 
         when(activiteRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -272,11 +283,15 @@ class ActiviteServiceTest {
                 .typeSport(TypeSport.COURSE)
                 .date(LocalDate.now().minusDays(1))
                 .build();
-        Activite updates = Activite.builder()
-                .nom("B")
-                .typeSport(TypeSport.COURSE)
-                .date(LocalDate.now().plusDays(1))
-                .build();
+        ModifierActiviteRequest updates = new ModifierActiviteRequest(
+                "B",
+                TypeSport.COURSE,
+                null,
+                null,
+                LocalDate.now().plusDays(1),
+                null,
+                null,
+                Collections.emptyList());
 
         when(activiteRepository.findById(1L)).thenReturn(Optional.of(existante));
 

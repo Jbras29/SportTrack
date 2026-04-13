@@ -76,15 +76,13 @@ class PrefSportiveServiceTest {
 
     @Test
     void creerPrefSportiveSauvegardeLaPreference() {
-        PrefSportive prefSportive = PrefSportive.builder().nom("Yoga").build();
-
         when(prefSportiveRepository.save(any(PrefSportive.class))).thenAnswer(invocation -> {
             PrefSportive saved = invocation.getArgument(0);
             saved.setId(1L);
             return saved;
         });
 
-        PrefSportive resultat = prefSportiveService.creerPrefSportive(prefSportive);
+        PrefSportive resultat = prefSportiveService.creerPrefSportive("Yoga");
 
         assertNotNull(resultat.getId());
         assertEquals("Yoga", resultat.getNom());
@@ -94,12 +92,11 @@ class PrefSportiveServiceTest {
     @Test
     void modifierPrefSportiveMetAJourLaPreference() {
         PrefSportive existante = PrefSportive.builder().id(1L).nom("Yoga").build();
-        PrefSportive updates = PrefSportive.builder().nom("Course").build();
 
         when(prefSportiveRepository.findById(1L)).thenReturn(Optional.of(existante));
         when(prefSportiveRepository.save(any(PrefSportive.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        PrefSportive resultat = prefSportiveService.modifierPrefSportive(1L, updates);
+        PrefSportive resultat = prefSportiveService.modifierPrefSportive(1L, "Course");
 
         assertEquals("Course", resultat.getNom());
         verify(prefSportiveRepository).findById(1L);
@@ -108,13 +105,11 @@ class PrefSportiveServiceTest {
 
     @Test
     void modifierPrefSportiveRefuseIdInexistant() {
-        PrefSportive updates = PrefSportive.builder().nom("Course").build();
-
         when(prefSportiveRepository.findById(1L)).thenReturn(Optional.empty());
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> prefSportiveService.modifierPrefSportive(1L, updates));
+                () -> prefSportiveService.modifierPrefSportive(1L, "Course"));
 
         assertEquals("PrefSportive introuvable : 1", exception.getMessage());
         verify(prefSportiveRepository).findById(1L);

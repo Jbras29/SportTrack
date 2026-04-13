@@ -1,5 +1,7 @@
 package com.jocf.sporttrack.controller;
 
+import com.jocf.sporttrack.dto.CreerChallengeRequest;
+import com.jocf.sporttrack.dto.LigneClassementChallenge;
 import com.jocf.sporttrack.model.Challenge;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.dto.LigneClassementChallenge;
@@ -54,12 +56,11 @@ public class ChallengeWebController {
         if (user == null) return "redirect:/login";
 
         try {
-            Challenge challenge = Challenge.builder()
-                    .nom(nom)
-                    .dateDebut(dateDebut)
-                    .dateFin(dateFin)
-                    .build();
-            challengeService.creerChallenge(challenge, user.id());
+            CreerChallengeRequest req = new CreerChallengeRequest(
+                    nom,
+                    dateDebut.toLocalDate(),
+                    dateFin.toLocalDate());
+            challengeService.creerChallenge(req, user.id());
             return "redirect:/challenges";
         } catch (IllegalArgumentException e) {
             utilisateurService.trouverParId(user.id()).ifPresent(u -> {

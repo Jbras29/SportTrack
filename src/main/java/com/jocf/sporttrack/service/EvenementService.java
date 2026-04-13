@@ -1,5 +1,7 @@
 package com.jocf.sporttrack.service;
 
+import com.jocf.sporttrack.dto.CreerEvenementRequest;
+import com.jocf.sporttrack.dto.ModifierEvenementRequest;
 import com.jocf.sporttrack.model.Annonce;
 import com.jocf.sporttrack.model.Evenement;
 import com.jocf.sporttrack.model.Utilisateur;
@@ -29,29 +31,30 @@ public class EvenementService {
 
     // Crée un nouvel événement et associe l'utilisateur comme organisateur
     @Transactional
-    public Evenement creerEvenement(Long organisateurId, Evenement nouvelEvenement) {
-        // 1. Récupérer l'organisateur
+    public Evenement creerEvenement(Long organisateurId, CreerEvenementRequest req) {
         Utilisateur organisateur = utilisateurRepository.findById(organisateurId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
-        nouvelEvenement.setOrganisateur(organisateur);
-
-        // 2. Récupérer les vrais objets Utilisateur depuis la base de données
-        // pour les amis qui ont été cochés dans le formulaire frontend
         List<Utilisateur> participantsComplets = new ArrayList<>();
-
-        for (Utilisateur participantPartiel : nouvelEvenement.getParticipants()) {
-            utilisateurRepository.findById(participantPartiel.getId())
-                    .ifPresent(participantsComplets::add);
+        for (CreerEvenementRequest.ParticipantIdRef p : req.participants()) {
+            if (p.id() != null) {
+                utilisateurRepository.findById(p.id()).ifPresent(participantsComplets::add);
+            }
         }
-
-        // 3. Ajouter l'organisateur lui-même à la liste
         participantsComplets.add(organisateur);
 
-        // 4. Mettre à jour la liste des participants de l'événement
-        nouvelEvenement.setParticipants(participantsComplets);
+        String description = req.description() != null && !req.description().isBlank()
+                ? req.description()
+                : "";
 
-        // 5. Sauvegarder
+        Evenement nouvelEvenement = Evenement.builder()
+                .nom(req.nom())
+                .description(description)
+                .date(req.date())
+                .organisateur(organisateur)
+                .participants(participantsComplets)
+                .build();
+
         return evenementRepository.save(nouvelEvenement);
     }
 
@@ -127,12 +130,12 @@ public class EvenementService {
 
     // 2. Modifier l'événement
     @Transactional
-    public Evenement modifierEvenement(Long id, Evenement nouveauxDetails) {
+    public Evenement modifierEvenement(Long id, ModifierEvenementRequest req) {
         Evenement evenement = trouverParId(id);
 
-        evenement.setNom(nouveauxDetails.getNom());
-        evenement.setDate(nouveauxDetails.getDate());
-        evenement.setDescription(nouveauxDetails.getDescription());
+        evenement.setNom(req.nom());
+        evenement.setDate(req.date());
+        evenement.setDescription(req.description());
 
         return evenementRepository.save(evenement);
     }

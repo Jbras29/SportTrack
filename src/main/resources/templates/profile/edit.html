@@ -37,7 +37,7 @@
                 </div>
             </div>
 
-            <form th:action="@{/profile/edit}" th:object="${utilisateur}" method="post">
+            <form th:action="@{/profile/edit}" th:object="${profilForm}" method="post">
                 <input type="hidden" th:field="*{id}">
                 <input type="hidden" th:field="*{photoProfil}">
 
@@ -71,15 +71,11 @@
 
                     <div class="form-group">
                         <label for="sexe">Sexe</label>
-                        <select id="sexe" name="sexe">
-                            <option value=""
-                                    th:selected="${utilisateur.sexe == null or #strings.isEmpty(utilisateur.sexe)}">Sélectionnez...</option>
-                            <option value="M"
-                                    th:selected="${#strings.equals(utilisateur.sexe, 'M') or #strings.equals(utilisateur.sexe, 'HOMME')}">Homme</option>
-                            <option value="F"
-                                    th:selected="${#strings.equals(utilisateur.sexe, 'F') or #strings.equals(utilisateur.sexe, 'FEMME')}">Femme</option>
-                            <option value="Autre"
-                                    th:selected="${#strings.equals(utilisateur.sexe, 'Autre') or #strings.equals(utilisateur.sexe, 'AUTRE')}">Autre</option>
+                        <select id="sexe" th:field="*{sexe}">
+                            <option value="">Sélectionnez...</option>
+                            <option value="M">Homme</option>
+                            <option value="F">Femme</option>
+                            <option value="Autre">Autre</option>
                         </select>
                     </div>
 

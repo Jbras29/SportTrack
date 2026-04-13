@@ -1,5 +1,6 @@
 package com.jocf.sporttrack.controller;
 
+import com.jocf.sporttrack.dto.ModifierUtilisateurRequest;
 import com.jocf.sporttrack.model.NiveauPratiqueSportive;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.ActiviteService;
@@ -57,21 +58,22 @@ public class ProfileController {
         utilisateur.getPrefSportives().sort(Comparator.comparing(
                 pref -> pref.getNom() != null ? pref.getNom().toLowerCase() : ""));
         model.addAttribute("utilisateur", utilisateur);
+        model.addAttribute("profilForm", ModifierUtilisateurRequest.fromUtilisateur(utilisateur));
         model.addAttribute("niveauxPratique", NiveauPratiqueSportive.values());
         return "profile/edit";
     }
 
     @PostMapping("/profile/edit")
-    public String editProfileSubmit(@ModelAttribute Utilisateur utilisateurDetails, HttpSession session) {
+    public String editProfileSubmit(@ModelAttribute("profilForm") ModifierUtilisateurRequest profilForm, HttpSession session) {
         Long idSession = (Long) session.getAttribute("utilisateurId");
-        if (idSession == null || !utilisateurDetails.getId().equals(idSession)) {
+        if (idSession == null || !profilForm.getId().equals(idSession)) {
             return "redirect:/login";
         }
-        if (utilisateurDetails.getMotdepasse() != null && utilisateurDetails.getMotdepasse().isBlank()) {
-            utilisateurDetails.setMotdepasse(null);
+        if (profilForm.getMotdepasse() != null && profilForm.getMotdepasse().isBlank()) {
+            profilForm.setMotdepasse(null);
         }
-        utilisateurDetails.setPrefSportives(null);
-        utilisateurService.modifierUtilisateur(utilisateurDetails.getId(), utilisateurDetails);
+        profilForm.setPrefSportivesIds(null);
+        utilisateurService.modifierUtilisateur(profilForm.getId(), profilForm);
         return "redirect:/profile/edit";
     }
 

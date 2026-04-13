@@ -1,5 +1,6 @@
 package com.jocf.sporttrack.controller;
 
+import com.jocf.sporttrack.dto.ModifierUtilisateurRequest;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -72,7 +73,7 @@ public class UtilisateurController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Modifier un utilisateur")
-    public ResponseEntity<Utilisateur> updateUtilisateur(@PathVariable Long id, @RequestBody Utilisateur utilisateurDetails) {
+    public ResponseEntity<Utilisateur> updateUtilisateur(@PathVariable Long id, @RequestBody ModifierUtilisateurRequest utilisateurDetails) {
         try {
             Utilisateur updated = utilisateurService.modifierUtilisateur(id, utilisateurDetails);
             return ResponseEntity.ok(updated);

@@ -1,6 +1,8 @@
 package com.jocf.sporttrack.service;
 
+import com.jocf.sporttrack.dto.CreerChallengeRequest;
 import com.jocf.sporttrack.dto.LigneClassementChallenge;
+import com.jocf.sporttrack.dto.ModifierChallengeRequest;
 import com.jocf.sporttrack.model.Challenge;
 import com.jocf.sporttrack.model.ChallengeSaisieQuotidienne;
 import com.jocf.sporttrack.model.Utilisateur;
@@ -10,6 +12,7 @@ import com.jocf.sporttrack.repository.UtilisateurRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -41,27 +44,37 @@ public class ChallengeService {
         return challengeRepository.findById(id);
     }
 
-    public Challenge creerChallenge(Challenge challenge, Long organisateurId) {
+    public Challenge creerChallenge(CreerChallengeRequest req, Long organisateurId) {
         Utilisateur organisateur = utilisateurRepository.findById(organisateurId)
                 .orElseThrow(() -> new IllegalArgumentException("Organisateur introuvable : " + organisateurId));
 
-        if (challenge.getDateFin() != null && challenge.getDateDebut() != null
-                && challenge.getDateFin().before(challenge.getDateDebut())) {
+        Date dateDebut = Date.valueOf(req.dateDebut());
+        Date dateFin = req.dateFin() != null ? Date.valueOf(req.dateFin()) : null;
+
+        if (dateFin != null && dateFin.before(dateDebut)) {
             throw new IllegalArgumentException("La date de fin doit être après la date de début.");
         }
 
-        challenge.setId(null);
+        Challenge challenge = Challenge.builder()
+                .nom(req.nom())
+                .dateDebut(dateDebut)
+                .dateFin(dateFin)
+                .build();
         challenge.setOrganisateur(organisateur);
         return challengeRepository.save(challenge);
     }
 
-    public Challenge modifierChallenge(Long id, Challenge challengeDetails) {
+    public Challenge modifierChallenge(Long id, ModifierChallengeRequest req) {
         Challenge challenge = challengeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + id));
 
-        challenge.setNom(challengeDetails.getNom());
-        challenge.setDateDebut(challengeDetails.getDateDebut());
-        challenge.setDateFin(challengeDetails.getDateFin());
+        challenge.setNom(req.nom());
+        if (req.dateDebut() != null) {
+            challenge.setDateDebut(Date.valueOf(req.dateDebut()));
+        }
+        if (req.dateFin() != null) {
+            challenge.setDateFin(Date.valueOf(req.dateFin()));
+        }
 
         return challengeRepository.save(challenge);
     }
