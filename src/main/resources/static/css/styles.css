@@ -1913,6 +1913,148 @@ body.profile-page .preference-add-form .form-group {
     flex: 1;
 }
 
+/* Interrupteur compte privé : checkbox sr-only + rail stylé (clic = <label>, pas de calque opaque) */
+body.profile-page .compte-prive-switch {
+    width: 100%;
+}
+
+body.profile-page .compte-prive-switch__label {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--border-light);
+    background: var(--bg-input);
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-main);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+body.profile-page .compte-prive-switch__label:hover {
+    border-color: rgba(33, 162, 215, 0.35);
+    background: var(--bg-card);
+}
+
+body.profile-page .compte-prive-switch__track-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 52px;
+    height: 30px;
+    margin-top: 1px;
+}
+
+/* Case native hors écran (Spring insère un input hidden avant la checkbox : sélecteur ~ pour l’état coché) */
+body.profile-page .compte-prive-switch__input[type="checkbox"] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+body.profile-page .compte-prive-switch__input[type="checkbox"]:focus {
+    outline: none;
+}
+
+body.profile-page .compte-prive-switch__track {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.45);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+body.profile-page .compte-prive-switch__track::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 4px;
+    width: 22px;
+    height: 22px;
+    margin-top: -11px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.profile-page .compte-prive-switch__input:checked ~ .compte-prive-switch__track {
+    background: var(--brand-light-blue);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+body.profile-page .compte-prive-switch__input:checked ~ .compte-prive-switch__track::after {
+    transform: translateX(22px);
+}
+
+body.profile-page .compte-prive-switch__input:focus-visible ~ .compte-prive-switch__track {
+    outline: 2px solid var(--brand-light-blue);
+    outline-offset: 3px;
+}
+
+body.profile-page .compte-prive-switch__text {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.45;
+    font-size: 14px;
+    font-weight: 500;
+    user-select: none;
+}
+
+body.profile-page .profile-private-gate {
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+body.profile-page .profile-private-gate-inner {
+    text-align: center;
+    padding: 0.5rem 0 0.25rem;
+}
+
+body.profile-page .profile-private-placeholder-img {
+    border-radius: 50%;
+    background: var(--bg-muted, #f1f5f9);
+    margin-bottom: 1rem;
+}
+
+body.profile-page .profile-private-title {
+    margin: 0 0 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main, #0f172a);
+}
+
+body.profile-page .profile-private-text {
+    margin: 0 0 1.25rem;
+    color: var(--text-muted, #64748b);
+    line-height: 1.5;
+}
+
+body.profile-page .profile-private-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
 body.profile-page .btn-primary {
     /* flex-grow: 1; */
     width: auto;

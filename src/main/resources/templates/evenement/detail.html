@@ -167,7 +167,9 @@
                 <h1 class="header-title" th:text="${evenement.nom}">Titre de l'événement</h1>
                 <div class="header-meta">
                     <span th:text="'📅 ' + ${#temporals.format(evenement.date, 'dd MMM yyyy HH:mm')}">Date</span>
-                    <span th:text="'👑 Organisé par ' + ${evenement.organisateur.nom}">Organisateur</span>
+                    <span th:if="${afficherNomOrganisateur}"
+                          th:text="'👑 Organisé par ' + ${evenement.organisateur.prenom} + ' ' + ${evenement.organisateur.nom}">Organisateur</span>
+                    <span th:unless="${afficherNomOrganisateur}" th:text="'👑 Organisé par un profil privé'">Organisateur</span>
                 </div>
             </div>
             <div class="event-actions">
@@ -228,7 +230,8 @@
             </h2>
 
             <div class="participant-list">
-                <a th:each="participant : ${evenement.participants}"
+                <th:block th:each="participant : ${evenement.participants}">
+                <a th:if="${afficherNomParticipant.get(participant.id)}"
                    th:href="@{/profile/{id}(id=${participant.id})}"
                    class="participant-item-link">
 
@@ -236,10 +239,10 @@
                         <div class="avatar-container">
                             <img th:src="${participant.cheminPhotoProfilAffichee()}"
                                  class="user-avatar"
-                                 alt="Photo de profil">
+                                 alt="">
                         </div>
 
-                        <span class="participant-name" th:text="${participant.nom}">Nom</span>
+                        <span class="participant-name" th:text="${participant.prenom + ' ' + participant.nom}">Nom</span>
                     </div>
 
                     <button th:if="${isOrganisateur}"
@@ -248,6 +251,27 @@
                         ✕
                     </button>
                 </a>
+                <div th:unless="${afficherNomParticipant.get(participant.id)}"
+                     class="participant-item-link"
+                     style="cursor: default;">
+
+                    <div class="participant-content">
+                        <div class="avatar-container">
+                            <img th:src="@{/images/profile-placeholder.svg}"
+                                 class="user-avatar"
+                                 alt="">
+                        </div>
+
+                        <span class="participant-name text-muted">Profil privé</span>
+                    </div>
+
+                    <button th:if="${isOrganisateur}"
+                            class="btn-kick"
+                            th:attr="onclick=|event.preventDefault(); retirerParticipant(${evenement.id}, ${participant.id})|">
+                        ✕
+                    </button>
+                </div>
+                </th:block>
             </div>
         </div>
 
