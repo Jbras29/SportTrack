@@ -15,6 +15,7 @@ import com.jocf.sporttrack.repository.ChallengeSaisieQuotidienneRepository;
 import com.jocf.sporttrack.repository.CommentaireRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,13 +43,17 @@ public class NotificationService {
     @Value("${sporttrack.notifications.jours-sans-activite-rappel:7}")
     private int joursSansActiviteRappel;
 
+    private final NotificationService self;
+
     public NotificationService(
+            @Lazy NotificationService self,
             CommentaireRepository commentaireRepository,
             AnnonceRepository annonceRepository,
             ActiviteRepository activiteRepository,
             ChallengeRepository challengeRepository,
             ChallengeSaisieQuotidienneRepository challengeSaisieQuotidienneRepository,
             UtilisateurRepository utilisateurRepository) {
+        this.self = self;
         this.commentaireRepository = commentaireRepository;
         this.annonceRepository = annonceRepository;
         this.activiteRepository = activiteRepository;
@@ -158,7 +163,7 @@ public class NotificationService {
         LocalDateTime derniere = utilisateurRepository.findById(utilisateurId)
                 .map(Utilisateur::getDerniereConsultationNotifications)
                 .orElse(null);
-        return listerPourUtilisateur(utilisateurId, derniere).stream()
+        return self.listerPourUtilisateur(utilisateurId, derniere).stream()
                 .filter(NotificationItem::nonLue)
                 .count();
     }
@@ -229,9 +234,6 @@ public class NotificationService {
         if (c.getDateDebut() != null && jour.isBefore(c.getDateDebut().toLocalDate())) {
             return false;
         }
-        if (c.getDateFin() != null && jour.isAfter(c.getDateFin().toLocalDate())) {
-            return false;
-        }
-        return true;
+        return c.getDateFin() == null || !jour.isAfter(c.getDateFin().toLocalDate());
     }
 }

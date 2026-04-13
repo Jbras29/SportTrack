@@ -115,8 +115,8 @@ public class ActiviteService {
         OpenMeteoService.WeatherInfo meteo =
                 openMeteoService.getWeatherForLocationAndDate(activite.getLocation(), activite.getDate());
         if (meteo != null) {
-            activite.setMeteoTemperature(meteo.temperature);
-            activite.setMeteoCondition(meteo.condition);
+            activite.setMeteoTemperature(meteo.temperature());
+            activite.setMeteoCondition(meteo.condition());
         }
 
         Activite sauvegardee = activiteRepository.save(activite);
@@ -170,8 +170,8 @@ public class ActiviteService {
             OpenMeteoService.WeatherInfo meteo =
                     openMeteoService.getWeatherForLocationAndDate(activite.getLocation(), activite.getDate());
             if (meteo != null) {
-                activite.setMeteoTemperature(meteo.temperature);
-                activite.setMeteoCondition(meteo.condition);
+                activite.setMeteoTemperature(meteo.temperature());
+                activite.setMeteoCondition(meteo.condition());
             }
         }
 

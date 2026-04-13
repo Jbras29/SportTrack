@@ -22,6 +22,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MessageController {
 
+    private static final String SESSION_UTILISATEUR_ID = "utilisateurId";
+    private static final String ATTR_UTILISATEUR = "utilisateur";
+    private static final String REDIRECT_LOGIN = "redirect:/login";
+    private static final String REDIRECT_MESSAGES_OPEN = "redirect:/messages?open=";
+
     private final MessageService messageService;
     private final UtilisateurService utilisateurService;
 
@@ -29,16 +34,16 @@ public class MessageController {
     public String afficherMessages(@RequestParam(required = false) Long open,
                                    HttpSession session,
                                    Model model) {
-        Long utilisateurId = (Long) session.getAttribute("utilisateurId");
+        Long utilisateurId = (Long) session.getAttribute(SESSION_UTILISATEUR_ID);
         if (utilisateurId == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         Utilisateur utilisateur = utilisateurService.findByIdWithAmis(utilisateurId);
         List<Message> derniersMessages = messageService.getDerniersMessagesAvecChaqueUtilisateur(utilisateur);
         long messagesNonLus = messageService.compterMessagesNonLus(utilisateur);
 
-        model.addAttribute("utilisateur", utilisateur);
+        model.addAttribute(ATTR_UTILISATEUR, utilisateur);
         model.addAttribute("amis", utilisateurService.listerAmisTries(utilisateur));
         model.addAttribute("derniersMessages", derniersMessages);
         model.addAttribute("messagesNonLus", messagesNonLus);
@@ -57,7 +62,7 @@ public class MessageController {
     public String conversationPanelFragment(@PathVariable Long destinataireId,
                                             HttpSession session,
                                             Model model) {
-        Long utilisateurId = (Long) session.getAttribute("utilisateurId");
+        Long utilisateurId = (Long) session.getAttribute(SESSION_UTILISATEUR_ID);
         if (utilisateurId == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
@@ -68,7 +73,7 @@ public class MessageController {
 
     @GetMapping("/conversation/{destinataireId}")
     public String afficherConversation(@PathVariable Long destinataireId) {
-        return "redirect:/messages?open=" + destinataireId;
+        return REDIRECT_MESSAGES_OPEN + destinataireId;
     }
 
     private void chargerConversationPourPanneau(Utilisateur utilisateurConnecte,
@@ -79,8 +84,8 @@ public class MessageController {
                 messageService.getConversationEtMarquerRecusCommeLus(utilisateurConnecte, destinataire);
         model.addAttribute("destinataire", destinataire);
         model.addAttribute("conversation", conversation);
-        if (!model.containsAttribute("utilisateur")) {
-            model.addAttribute("utilisateur", utilisateurConnecte);
+        if (!model.containsAttribute(ATTR_UTILISATEUR)) {
+            model.addAttribute(ATTR_UTILISATEUR, utilisateurConnecte);
         }
     }
 
@@ -90,10 +95,10 @@ public class MessageController {
                                HttpSession session,
                                RedirectAttributes redirectAttributes) {
         try {
-            Long utilisateurId = (Long) session.getAttribute("utilisateurId");
+            Long utilisateurId = (Long) session.getAttribute(SESSION_UTILISATEUR_ID);
             if (utilisateurId == null) {
                 redirectAttributes.addFlashAttribute("error", "Vous devez être connecté.");
-                return "redirect:/login";
+                return REDIRECT_LOGIN;
             }
 
             Utilisateur expediteur = utilisateurService.findById(utilisateurId);
@@ -101,7 +106,7 @@ public class MessageController {
 
             if (contenu == null || contenu.trim().isEmpty()) {
                 redirectAttributes.addFlashAttribute("error", "Le message ne peut pas être vide.");
-                return "redirect:/messages?open=" + destinataireId;
+                return REDIRECT_MESSAGES_OPEN + destinataireId;
             }
 
             messageService.envoyerMessage(expediteur, destinataire, contenu);
@@ -109,19 +114,19 @@ public class MessageController {
             redirectAttributes.addFlashAttribute("success", "Message envoyé avec succès.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors de l'envoi du message: " + e.getMessage());
-            return "redirect:/messages?open=" + destinataireId;
+            return REDIRECT_MESSAGES_OPEN + destinataireId;
         }
 
-        return "redirect:/messages?open=" + destinataireId;
+        return REDIRECT_MESSAGES_OPEN + destinataireId;
     }
 
     @PostMapping("/api/envoyer")
     @ResponseBody
-    public ResponseEntity<?> envoyerMessageAjax(@RequestParam Long destinataireId,
+    public ResponseEntity<Object> envoyerMessageAjax(@RequestParam Long destinataireId,
                                               @RequestParam String contenu,
                                               HttpSession session) {
         try {
-            Long utilisateurId = (Long) session.getAttribute("utilisateurId");
+            Long utilisateurId = (Long) session.getAttribute(SESSION_UTILISATEUR_ID);
             if (utilisateurId == null) {
                 return ResponseEntity.status(401).body("Vous devez être connecté.");
             }
@@ -144,7 +149,7 @@ public class MessageController {
     @GetMapping("/api/non-lus")
     @ResponseBody
     public ResponseEntity<Long> compterMessagesNonLus(HttpSession session) {
-        Long utilisateurId = (Long) session.getAttribute("utilisateurId");
+        Long utilisateurId = (Long) session.getAttribute(SESSION_UTILISATEUR_ID);
         if (utilisateurId == null) {
             return ResponseEntity.status(401).build();
         }

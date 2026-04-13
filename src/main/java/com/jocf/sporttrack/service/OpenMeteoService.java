@@ -1,123 +1,112 @@
 package com.jocf.sporttrack.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 
 @Service
 public class OpenMeteoService {
 
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
+    private static final Logger log = LoggerFactory.getLogger(OpenMeteoService.class);
+    private static final String JSON_RESULTS = "results";
+    private static final String JSON_DAILY = "daily";
 
-    public OpenMeteoService() {
-        this.restTemplate = new RestTemplate();
-        this.objectMapper = new ObjectMapper();
-    }
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static class WeatherInfo {
-        public Double temperature;
-        public String condition;
-        
-        public WeatherInfo(Double temperature, String condition) {
-            this.temperature = temperature;
-            this.condition = condition;
-        }
-    }
+    public record WeatherInfo(Double temperature, String condition) {}
 
     public WeatherInfo getWeatherForLocationAndDate(String location, LocalDate date) {
         if (location == null || location.trim().isEmpty() || date == null) {
             return null;
         }
-
         try {
-            // 1. Geocoding
-            String geoUrl = UriComponentsBuilder.fromUriString("https://geocoding-api.open-meteo.com/v1/search")
-                    .queryParam("name", location)
-                    .queryParam("count", 1)
-                    .queryParam("language", "fr")
-                    .queryParam("format", "json")
-                    .toUriString();
-
-            String geoResponseStr = restTemplate.getForObject(geoUrl, String.class);
-            JsonNode geoNode = objectMapper.readTree(geoResponseStr);
-
-            if (!geoNode.has("results") || geoNode.get("results").size() == 0) {
-                System.err.println("OpenMeteoService : ville introuvable pour -> " + location);
+            GeoCoords coords = resolveGeo(location);
+            if (coords == null) {
                 return null;
             }
-
-            JsonNode resultNode = geoNode.get("results").get(0);
-            double lat = resultNode.get("latitude").asDouble();
-            double lon = resultNode.get("longitude").asDouble();
-
-            // 2. Weather — archive pour les dates passées, forecast pour aujourd'hui/futur
-            String dateStr = date.toString();
-            LocalDate today = LocalDate.now();
-            String baseUrl;
-            if (date.isBefore(today)) {
-                // API d'archive historique
-                baseUrl = "https://archive-api.open-meteo.com/v1/archive";
-            } else {
-                // API de prévision
-                baseUrl = "https://api.open-meteo.com/v1/forecast";
-            }
-
-            String weatherUrl = UriComponentsBuilder.fromUriString(baseUrl)
-                    .queryParam("latitude", lat)
-                    .queryParam("longitude", lon)
-                    .queryParam("daily", "weathercode,temperature_2m_max,temperature_2m_min")
-                    .queryParam("timezone", "auto")
-                    .queryParam("start_date", dateStr)
-                    .queryParam("end_date", dateStr)
-                    .toUriString();
-
-            String weatherResponseStr = restTemplate.getForObject(weatherUrl, String.class);
-            JsonNode weatherNode = objectMapper.readTree(weatherResponseStr);
-
-            if (!weatherNode.has("daily")) {
-                System.err.println("OpenMeteoService : pas de données 'daily' dans la réponse.");
+            JsonNode weatherNode = fetchWeatherRoot(coords, date);
+            if (weatherNode == null || !weatherNode.has(JSON_DAILY)) {
+                log.warn("OpenMeteoService : pas de données '{}' dans la réponse.", JSON_DAILY);
                 return null;
             }
-            JsonNode dailyNode = weatherNode.get("daily");
-
-            if (dailyNode.get("temperature_2m_max").size() == 0) {
-                System.err.println("OpenMeteoService : données météo vides pour la date " + dateStr);
-                return null;
-            }
-
-            double tMax = dailyNode.get("temperature_2m_max").get(0).asDouble();
-            double tMin = dailyNode.get("temperature_2m_min").get(0).asDouble();
-            int weatherCode = dailyNode.get("weathercode").get(0).asInt();
-
-            double avgTemp = (tMax + tMin) / 2.0;
-            String condition = getWeatherConditionFromCode(weatherCode);
-
-            System.out.println("OpenMeteoService OK : " + location + " le " + dateStr + " → " + condition + " " + avgTemp + "°C");
-            return new WeatherInfo(Math.round(avgTemp * 10.0) / 10.0, condition);
-
+            return buildWeatherInfo(location, date, weatherNode.get(JSON_DAILY));
         } catch (Exception e) {
-            // En cas d'erreur (réseau, pas de donnée...), on log discrètement et on retourne null.
-            System.err.println("Erreur OpenMeteoService : " + e.getMessage());
+            log.warn("Erreur OpenMeteoService : {}", e.getMessage());
             return null;
         }
     }
 
-    private String getWeatherConditionFromCode(int code) {
-        if (code == 0) return "Ensoleillé";
-        if (code >= 1 && code <= 3) return "Nuageux";
-        if (code == 45 || code == 48) return "Brouillard";
-        if (code >= 51 && code <= 57) return "Bruine";
-        if (code >= 61 && code <= 67) return "Pluie";
-        if (code >= 71 && code <= 77) return "Neige";
-        if (code >= 80 && code <= 82) return "Averses de pluie";
-        if (code >= 85 && code <= 86) return "Averses de neige";
-        if (code >= 95 && code <= 99) return "Orage";
-        return "Inconnu";
+    private GeoCoords resolveGeo(String location) throws com.fasterxml.jackson.core.JsonProcessingException {
+        String geoUrl = UriComponentsBuilder.fromUriString("https://geocoding-api.open-meteo.com/v1/search")
+                .queryParam("name", location)
+                .queryParam("count", 1)
+                .queryParam("language", "fr")
+                .queryParam("format", "json")
+                .toUriString();
+        String geoResponseStr = restTemplate.getForObject(geoUrl, String.class);
+        JsonNode geoNode = objectMapper.readTree(geoResponseStr);
+        if (!geoNode.has(JSON_RESULTS) || geoNode.get(JSON_RESULTS).size() == 0) {
+            log.warn("OpenMeteoService : ville introuvable pour -> {}", location);
+            return null;
+        }
+        JsonNode resultNode = geoNode.get(JSON_RESULTS).get(0);
+        return new GeoCoords(resultNode.get("latitude").asDouble(), resultNode.get("longitude").asDouble());
     }
+
+    private JsonNode fetchWeatherRoot(GeoCoords coords, LocalDate date) throws com.fasterxml.jackson.core.JsonProcessingException {
+        String dateStr = date.toString();
+        LocalDate today = LocalDate.now();
+        String baseUrl = date.isBefore(today)
+                ? "https://archive-api.open-meteo.com/v1/archive"
+                : "https://api.open-meteo.com/v1/forecast";
+        String weatherUrl = UriComponentsBuilder.fromUriString(baseUrl)
+                .queryParam("latitude", coords.lat())
+                .queryParam("longitude", coords.lon())
+                .queryParam("daily", "weathercode,temperature_2m_max,temperature_2m_min")
+                .queryParam("timezone", "auto")
+                .queryParam("start_date", dateStr)
+                .queryParam("end_date", dateStr)
+                .toUriString();
+        String weatherResponseStr = restTemplate.getForObject(weatherUrl, String.class);
+        return objectMapper.readTree(weatherResponseStr);
+    }
+
+    private WeatherInfo buildWeatherInfo(String location, LocalDate date, JsonNode dailyNode) {
+        String dateStr = date.toString();
+        if (dailyNode.get("temperature_2m_max").size() == 0) {
+            log.warn("OpenMeteoService : données météo vides pour la date {}", dateStr);
+            return null;
+        }
+        double tMax = dailyNode.get("temperature_2m_max").get(0).asDouble();
+        double tMin = dailyNode.get("temperature_2m_min").get(0).asDouble();
+        int weatherCode = dailyNode.get("weathercode").get(0).asInt();
+        double avgTemp = (tMax + tMin) / 2.0;
+        String condition = weatherLabelFromCode(weatherCode);
+        log.info("OpenMeteoService OK : {} le {} → {} {}°C", location, dateStr, condition, avgTemp);
+        return new WeatherInfo(Math.round(avgTemp * 10.0) / 10.0, condition);
+    }
+
+    private static String weatherLabelFromCode(int code) {
+        return switch (code) {
+            case 0 -> "Ensoleillé";
+            case 1, 2, 3 -> "Nuageux";
+            case 45, 48 -> "Brouillard";
+            case 51, 52, 53, 54, 55, 56, 57 -> "Bruine";
+            case 61, 62, 63, 64, 65, 66, 67 -> "Pluie";
+            case 71, 72, 73, 74, 75, 76, 77 -> "Neige";
+            case 80, 81, 82 -> "Averses de pluie";
+            case 85, 86 -> "Averses de neige";
+            case 95, 96, 97, 98, 99 -> "Orage";
+            default -> "Inconnu";
+        };
+    }
+
+    private record GeoCoords(double lat, double lon) {}
 }

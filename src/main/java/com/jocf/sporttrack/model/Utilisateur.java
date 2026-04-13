@@ -231,7 +231,7 @@ public class Utilisateur {
     /** HP affichable (0–100), avec valeur par défaut à 100 si non renseigné. */
     public int getHpNormalise() {
         int h = hp != null ? hp : 100;
-        return Math.max(0, Math.min(100, h));
+        return Math.clamp(h, 0, 100);
     }
 
     /**

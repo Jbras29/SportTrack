@@ -164,7 +164,7 @@ public class FriendPageController {
 
         String dateRelative = formaterDateRelative(activite.getDate());
         if (!dateRelative.isBlank()) {
-            if (details.length() > 0) {
+            if (!details.isEmpty()) {
                 details.append(" • ");
             }
             details.append(dateRelative);
@@ -172,13 +172,13 @@ public class FriendPageController {
 
         String distance = formaterDistance(activite.getDistance());
         if (!distance.isBlank()) {
-            if (details.length() > 0) {
+            if (!details.isEmpty()) {
                 details.append(" • ");
             }
             details.append(distance);
         }
 
-        return details.length() > 0 ? details.toString() : "Activite recente";
+        return !details.isEmpty() ? details.toString() : "Activite recente";
     }
 
     private String formaterTypeSport(TypeSport typeSport) {

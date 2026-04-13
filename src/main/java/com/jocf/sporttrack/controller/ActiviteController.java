@@ -9,7 +9,6 @@ import com.jocf.sporttrack.service.PrefSportiveService;
 import com.jocf.sporttrack.service.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -30,17 +29,21 @@ import org.springframework.security.core.Authentication;
 @Tag(name = "Activités", description = "Gestion des activités sportives")
 public class ActiviteController {
 
-    @Autowired
-    private ActiviteService activiteService;
+    private final ActiviteService activiteService;
+    private final PrefSportiveService prefSportiveService;
+    private final UtilisateurService utilisateurService;
+    private final OpenMeteoService openMeteoService;
 
-    @Autowired
-    private PrefSportiveService prefSportiveService;
-
-    @Autowired
-    private UtilisateurService utilisateurService;
-
-    @Autowired
-    private OpenMeteoService openMeteoService;
+    public ActiviteController(
+            ActiviteService activiteService,
+            PrefSportiveService prefSportiveService,
+            UtilisateurService utilisateurService,
+            OpenMeteoService openMeteoService) {
+        this.activiteService = activiteService;
+        this.prefSportiveService = prefSportiveService;
+        this.utilisateurService = utilisateurService;
+        this.openMeteoService = openMeteoService;
+    }
 
     @GetMapping
     @Operation(summary = "Récupérer toutes les activités")
@@ -185,8 +188,8 @@ public class ActiviteController {
         Map<String, Object> result = new HashMap<>();
         if (info != null) {
             result.put("ok", true);
-            result.put("condition", info.condition);
-            result.put("temperature", info.temperature);
+            result.put("condition", info.condition());
+            result.put("temperature", info.temperature());
         } else {
             result.put("ok", false);
         }
