@@ -1,14 +1,18 @@
 package com.jocf.sporttrack.controller;
 
 import com.jocf.sporttrack.model.Challenge;
+import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.ChallengeService;
+import com.jocf.sporttrack.service.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/api/challenges")
@@ -16,9 +20,11 @@ import java.util.List;
 public class ChallengeController {
 
     private final ChallengeService challengeService;
+    private final UtilisateurService utilisateurService;
 
-    public ChallengeController(ChallengeService challengeService) {
+    public ChallengeController(ChallengeService challengeService, UtilisateurService utilisateurService) {
         this.challengeService = challengeService;
+        this.utilisateurService = utilisateurService;
     }
 
     @GetMapping
@@ -38,11 +44,29 @@ public class ChallengeController {
 
     @PostMapping
     @Operation(summary = "Créer un nouveau challenge")
-    public ResponseEntity<Challenge> createChallenge(@RequestBody Challenge challenge, @RequestParam Long organisateurId) {
+    public ResponseEntity<?> createChallenge(@RequestBody Challenge challenge, @RequestParam Long organisateurId) {
+
+        Optional<Utilisateur> organisateurOpt = utilisateurService.trouverParId(organisateurId);
+
+
+        if (organisateurOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utilisateur non trouvé.");
+        }
+
+
+        Utilisateur organisateur = organisateurOpt.get();
+
+        if (organisateur.getHpNormalise() <= 0) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Action impossible : Votre barre de vie est à 0.");
+        }
+
         try {
+
             Challenge created = challengeService.creerChallenge(challenge, organisateurId);
             return ResponseEntity.ok(created);
         } catch (IllegalArgumentException e) {
+
             return ResponseEntity.badRequest().build();
         }
     }

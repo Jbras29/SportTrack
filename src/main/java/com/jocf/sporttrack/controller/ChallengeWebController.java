@@ -1,29 +1,39 @@
 package com.jocf.sporttrack.controller;
 
 import com.jocf.sporttrack.model.Challenge;
+import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.ChallengeService;
+import com.jocf.sporttrack.service.UtilisateurService;
 import com.jocf.sporttrack.web.SessionKeys;
 import com.jocf.sporttrack.web.SessionUtilisateur;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
+import java.util.Optional;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/challenges")
 public class ChallengeWebController {
 
     private final ChallengeService challengeService;
+    private final UtilisateurService utilisateurService;
 
-    public ChallengeWebController(ChallengeService challengeService) {
+    public ChallengeWebController(ChallengeService challengeService, UtilisateurService utilisateurService) {
         this.challengeService = challengeService;
+        this.utilisateurService = utilisateurService;
     }
 
     @GetMapping("/creer")
     public String afficherFormulaireCreation(Model model, HttpSession session) {
         SessionUtilisateur user = (SessionUtilisateur) session.getAttribute(SessionKeys.UTILISATEUR);
         if (user == null) return "redirect:/login";
+        utilisateurService.trouverParId(user.id()).ifPresent(u -> {
+            model.addAttribute("sessionUserHp", u.getHpNormalise());
+        });
         model.addAttribute("navRequestPath", "/challenges");
         return "challenges/creer-challenge";
     }
@@ -48,6 +58,9 @@ public class ChallengeWebController {
             challengeService.creerChallenge(challenge, user.id());
             return "redirect:/challenges";
         } catch (IllegalArgumentException e) {
+            utilisateurService.trouverParId(user.id()).ifPresent(u -> {
+                model.addAttribute("sessionUserHp", u.getHpNormalise());
+            });
             model.addAttribute("erreur", e.getMessage());
             model.addAttribute("navRequestPath", "/challenges");
             return "challenges/creer-challenge";
@@ -67,6 +80,10 @@ public String listeDesDefis(Model model, HttpSession session) {
 public String detailChallenge(@PathVariable Long id, Model model, HttpSession session) {
     SessionUtilisateur sessionUser = (SessionUtilisateur) session.getAttribute(SessionKeys.UTILISATEUR);
     if (sessionUser == null) return "redirect:/login";
+
+    utilisateurService.trouverParId(sessionUser.id()).ifPresent(u -> {
+        model.addAttribute("sessionUserHp", u.getHpNormalise());
+    });
 
     Challenge challenge = challengeService.trouverParId(id)
             .orElseThrow(() -> new IllegalArgumentException("Challenge introuvable : " + id));
@@ -92,15 +109,28 @@ public String detailChallenge(@PathVariable Long id, Model model, HttpSession se
 }
 
     @PostMapping("/{id}/rejoindre")
-    public String rejoindreChallenge(@PathVariable Long id, HttpSession session) {
+    public String rejoindreChallenge(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        // 1. Vérifier si l'utilisateur est connecté via la session
         SessionUtilisateur user = (SessionUtilisateur) session.getAttribute(SessionKeys.UTILISATEUR);
         if (user == null) return "redirect:/login";
 
+
+        Optional<Utilisateur> uOpt = utilisateurService.trouverParId(user.id());
+
+
+        if (uOpt.isPresent() && uOpt.get().getHpNormalise() <= 0) {
+
+            redirectAttributes.addFlashAttribute("errorHp", "Action bloquée : Votre barre de vie est à 0 !");
+            return "redirect:/challenges/" + id;
+        }
+
         try {
+            // 4. Si les HP sont OK, on procède à l'inscription
             challengeService.rejoindreChallenge(id, user.id());
         } catch (IllegalArgumentException e) {
-            // challenge terminé ou introuvable, on redirige quand même
+            // Challenge terminé ou introuvable
         }
+
         return "redirect:/challenges/" + id;
     }
 
