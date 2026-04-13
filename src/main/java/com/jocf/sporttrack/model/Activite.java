@@ -88,7 +88,7 @@ public class Activite {
     public List<Commentaire> getCommentairesMessages() {
         return commentaires.stream()
                 .filter(c -> c.getType() == TypeCommentaire.MESSAGE)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

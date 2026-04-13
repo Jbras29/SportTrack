@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class RootController {
+
+    private static final String REDIRECT_LOGIN = "redirect:/login";
+
     private final UtilisateurService utilisateurService;
     private final ActiviteService activiteService;
     private final CommentaireService commentaireService;
@@ -39,7 +42,7 @@ public class RootController {
                 && !(authentication instanceof AnonymousAuthenticationToken)) {
             return "redirect:/home";
         }
-        return "redirect:/login";
+        return REDIRECT_LOGIN;
     }
 
     @GetMapping("/home")
@@ -47,7 +50,7 @@ public class RootController {
         if (authentication == null
                 || !authentication.isAuthenticated()
                 || authentication instanceof AnonymousAuthenticationToken) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         String email = authentication.getName();
@@ -76,7 +79,7 @@ public class RootController {
         if (authentication == null
                 || !authentication.isAuthenticated()
                 || authentication instanceof AnonymousAuthenticationToken) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         String email = authentication.getName();
@@ -109,7 +112,7 @@ public class RootController {
         if (authentication == null
                 || !authentication.isAuthenticated()
                 || authentication instanceof AnonymousAuthenticationToken) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
         String email = authentication.getName();
         Utilisateur user = utilisateurService.trouverParEmail(email);

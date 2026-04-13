@@ -98,12 +98,7 @@ public class UtilisateurController {
     public ResponseEntity<List<Map<String, Object>>> getMesAmis() {
 
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email;
-        if (principal instanceof UserDetails) {
-            email = ((UserDetails) principal).getUsername();
-        } else {
-            email = principal.toString();
-        }
+        String email = principal instanceof UserDetails ud ? ud.getUsername() : principal.toString();
 
         try {
             // 1. Essayer de trouver l'utilisateur.

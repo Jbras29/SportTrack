@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/friend")
 public class FriendPageController {
 
+    private static final String REDIRECT_LOGIN = "redirect:/login";
+
     private final UtilisateurService utilisateurService;
     private final UtilisateurRepository utilisateurRepository;
     private final ActiviteService activiteService;
@@ -43,7 +45,7 @@ public class FriendPageController {
             Authentication authentication,
             Model model) {
         if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         Utilisateur utilisateurCourant = utilisateurService.trouverParEmailAvecAmis(authentication.getName());
@@ -164,7 +166,7 @@ public class FriendPageController {
 
         String dateRelative = formaterDateRelative(activite.getDate());
         if (!dateRelative.isBlank()) {
-            if (details.length() > 0) {
+            if (!details.isEmpty()) {
                 details.append(" • ");
             }
             details.append(dateRelative);
@@ -172,13 +174,13 @@ public class FriendPageController {
 
         String distance = formaterDistance(activite.getDistance());
         if (!distance.isBlank()) {
-            if (details.length() > 0) {
+            if (!details.isEmpty()) {
                 details.append(" • ");
             }
             details.append(distance);
         }
 
-        return details.length() > 0 ? details.toString() : "Activite recente";
+        return !details.isEmpty() ? details.toString() : "Activite recente";
     }
 
     private String formaterTypeSport(TypeSport typeSport) {
@@ -251,12 +253,12 @@ public class FriendPageController {
     @GetMapping("/remove")
     public String supprimerAmi(@RequestParam Long id, Authentication authentication) {
         if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         Utilisateur utilisateurCourant = utilisateurService.trouverParEmail(authentication.getName());
         if (utilisateurCourant == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
 
         utilisateurService.supprimerAmi(utilisateurCourant.getId(), id);

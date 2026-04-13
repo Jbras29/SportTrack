@@ -14,11 +14,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Règles de déblocage des badges après création d’une activité (logique volontairement hardcodée).
+ * Règles de déblocage des badges après création d'une activité (logique volontairement hardcodée).
  * <p>
  * Badges non implémentés faute de données dans {@link Activite} :
  * <ul>
- *   <li>{@code EARLY_BIRD} — il n’y a pas d’heure (seulement {@link java.time.LocalDate})</li>
+ *   <li>{@code EARLY_BIRD} — il n'y a pas d'heure (seulement {@link java.time.LocalDate})</li>
  *   <li>{@code NO_EXCUSES} — pas de météo / conditions difficiles</li>
  * </ul>
  * Heuristiques approximatives :
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class ActiviteBadgeEvaluationService {
 
     private static final EnumSet<TypeSport> DISCIPLINES_NATATION = EnumSet.of(TypeSport.NATATION);
-    private static final EnumSet<TypeSport> DISCIPLINESVELO = EnumSet.of(
+    private static final EnumSet<TypeSport> DISCIPLINES_VELO = EnumSet.of(
             TypeSport.CYCLISME, TypeSport.VELO_ROUTE, TypeSport.VTT);
     private static final EnumSet<TypeSport> DISCIPLINES_COURSE = EnumSet.of(
             TypeSport.COURSE, TypeSport.COURSE_A_PIED, TypeSport.MARATHON, TypeSport.TRAIL);
@@ -50,7 +50,7 @@ public class ActiviteBadgeEvaluationService {
     }
 
     /**
-     * À appeler juste après la persistance de l’activité (incluse dans les agrégats).
+     * À appeler juste après la persistance de l'activité (incluse dans les agrégats).
      */
     @Transactional
     public void evaluerEtAttribuerBadges(Activite activite) {
@@ -64,11 +64,18 @@ public class ActiviteBadgeEvaluationService {
         double kmCourant = Utilisateur.distanceEnKmPourFormuleXp(activite.getDistance());
         Integer tempsCourant = activite.getTemps();
 
-        // --- Premiers pas & volume ---
+        evaluerPremiersPasEtVolume(utilisateurId, toutes, kmCourant);
+        evaluerTempsEtChrono(utilisateurId, toutes, tempsCourant);
+        evaluerRecordPersonnel(utilisateurId, activite, toutes, kmCourant, tempsCourant);
+        evaluerSeriesEtVolumeActivites(utilisateurId, activite, toutes);
+        evaluerLieuxEtNature(utilisateurId, activite, toutes);
+        evaluerMultiSports(utilisateurId, toutes);
+    }
+
+    private void evaluerPremiersPasEtVolume(Long utilisateurId, List<Activite> toutes, double kmCourant) {
         if (toutes.size() == 1) {
             badgeService.attribuerBadgeParCodeSiPresent(utilisateurId, "PREMIER_PAS");
         }
-
         if (kmCourant >= 5.0) {
             badgeService.attribuerBadgeParCodeSiPresent(utilisateurId, "CINQ_K_STARTER");
         }
@@ -81,15 +88,15 @@ public class ActiviteBadgeEvaluationService {
         if (kmCourant >= 42.0) {
             badgeService.attribuerBadgeParCodeSiPresent(utilisateurId, "MARATHONIEN");
         }
-
         double kmCumules = toutes.stream()
                 .mapToDouble(a -> Utilisateur.distanceEnKmPourFormuleXp(a.getDistance()))
                 .sum();
         if (kmCumules >= 100.0) {
             badgeService.attribuerBadgeParCodeSiPresent(utilisateurId, "CENT_KM_CUMULES");
         }
+    }
 
-        // --- Temps & chrono ---
+    private void evaluerTempsEtChrono(Long utilisateurId, List<Activite> toutes, Integer tempsCourant) {
         long activitesAvecTemps = toutes.stream()
                 .filter(a -> a.getTemps() != null && a.getTemps() > 0)
                 .count();
@@ -104,29 +111,37 @@ public class ActiviteBadgeEvaluationService {
                 badgeService.attribuerBadgeParCodeSiPresent(utilisateurId, "IRON_WILL_2H");
             }
         }
+    }
 
-        // Record personnel : au moins 2 activités ; meilleure distance ou meilleur temps qu’avant
-        if (toutes.size() >= 2) {
-            double maxKmAutres = toutes.stream()
-                    .filter(a -> activite.getId() == null || !activite.getId().equals(a.getId()))
-                    .mapToDouble(a -> Utilisateur.distanceEnKmPourFormuleXp(a.getDistance()))
-                    .max()
-                    .orElse(0.0);
-            int maxTempsAutres = toutes.stream()
-                    .filter(a -> activite.getId() == null || !activite.getId().equals(a.getId()))
-                    .mapToInt(a -> a.getTemps() != null ? a.getTemps() : 0)
-                    .max()
-                    .orElse(0);
-
-            boolean recordDistance = kmCourant > maxKmAutres && kmCourant > 0;
-            boolean recordTemps = tempsCourant != null && tempsCourant > maxTempsAutres;
-
-            if (recordDistance || recordTemps) {
-                badgeService.attribuerBadgeParCodeSiPresent(utilisateurId, "RECORD_PERSONNEL");
-            }
+    private void evaluerRecordPersonnel(
+            Long utilisateurId,
+            Activite activite,
+            List<Activite> toutes,
+            double kmCourant,
+            Integer tempsCourant) {
+        if (toutes.size() < 2) {
+            return;
         }
+        double maxKmAutres = toutes.stream()
+                .filter(a -> activite.getId() == null || !activite.getId().equals(a.getId()))
+                .mapToDouble(a -> Utilisateur.distanceEnKmPourFormuleXp(a.getDistance()))
+                .max()
+                .orElse(0.0);
+        int maxTempsAutres = toutes.stream()
+                .filter(a -> activite.getId() == null || !activite.getId().equals(a.getId()))
+                .mapToInt(a -> a.getTemps() != null ? a.getTemps() : 0)
+                .max()
+                .orElse(0);
 
-        // --- Séries (fenêtre se terminant à la date de l’activité créée) ---
+        boolean recordDistance = kmCourant > maxKmAutres && kmCourant > 0;
+        boolean recordTemps = tempsCourant != null && tempsCourant > maxTempsAutres;
+
+        if (recordDistance || recordTemps) {
+            badgeService.attribuerBadgeParCodeSiPresent(utilisateurId, "RECORD_PERSONNEL");
+        }
+    }
+
+    private void evaluerSeriesEtVolumeActivites(Long utilisateurId, Activite activite, List<Activite> toutes) {
         Set<java.time.LocalDate> dates = toutes.stream()
                 .map(Activite::getDate)
                 .collect(Collectors.toSet());
@@ -137,12 +152,12 @@ public class ActiviteBadgeEvaluationService {
         if (d != null && suiteConsecutiveDepuis(d, dates, 30)) {
             badgeService.attribuerBadgeParCodeSiPresent(utilisateurId, "STREAK_30_JOURS");
         }
-
         if (toutes.size() >= 100) {
             badgeService.attribuerBadgeParCodeSiPresent(utilisateurId, "CENT_ACTIVITES");
         }
+    }
 
-        // --- Lieux ---
+    private void evaluerLieuxEtNature(Long utilisateurId, Activite activite, List<Activite> toutes) {
         long lieuxDistincts = toutes.stream()
                 .map(Activite::getLocation)
                 .filter(s -> s != null && !s.isBlank())
@@ -160,15 +175,16 @@ public class ActiviteBadgeEvaluationService {
         if (loc != null && !loc.isBlank() && locationSembleNature(loc)) {
             badgeService.attribuerBadgeParCodeSiPresent(utilisateurId, "NATURE_LOVER");
         }
+    }
 
-        // --- Multi-sports ---
+    private void evaluerMultiSports(Long utilisateurId, List<Activite> toutes) {
         long typesDistincts = toutes.stream().map(Activite::getTypeSport).distinct().count();
         if (typesDistincts >= 3) {
             badgeService.attribuerBadgeParCodeSiPresent(utilisateurId, "POLYVALENT_3_SPORTS");
         }
 
         boolean aNatation = toutes.stream().anyMatch(a -> DISCIPLINES_NATATION.contains(a.getTypeSport()));
-        boolean aVelo = toutes.stream().anyMatch(a -> DISCIPLINESVELO.contains(a.getTypeSport()));
+        boolean aVelo = toutes.stream().anyMatch(a -> DISCIPLINES_VELO.contains(a.getTypeSport()));
         boolean aCourse = toutes.stream().anyMatch(a -> DISCIPLINES_COURSE.contains(a.getTypeSport()));
         if (aNatation && aVelo && aCourse) {
             badgeService.attribuerBadgeParCodeSiPresent(utilisateurId, "TRIATHLETE");

@@ -29,6 +29,9 @@ import java.nio.charset.StandardCharsets;
 public class FriendSearchController {
 
     private static final int NOMBRE_MAX_SUGGESTIONS = 5;
+    private static final String MSG_UTILISATEUR_INTROUVABLE = "Utilisateur introuvable : ";
+    private static final String FLASH_ERROR_MESSAGE = "errorMessage";
+    private static final String FLASH_SUCCESS_MESSAGE = "successMessage";
 
     private final UtilisateurService utilisateurService;
     private final UtilisateurRepository utilisateurRepository;
@@ -62,16 +65,16 @@ public class FriendSearchController {
             RedirectAttributes redirectAttributes) {
         Utilisateur utilisateurCourant = getUtilisateurCourant(authentication);
         Utilisateur destinataire = utilisateurRepository.findById(destinataireId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + destinataireId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + destinataireId));
 
         if (utilisateurCourant.getId().equals(destinataire.getId())) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Vous ne pouvez pas vous ajouter vous-meme.");
+            redirectAttributes.addFlashAttribute(FLASH_ERROR_MESSAGE, "Vous ne pouvez pas vous ajouter vous-meme.");
             return construireRedirection(recherche, redirectPage, destinataireId);
         }
 
         Set<Long> amisIds = new LinkedHashSet<>(utilisateurRepository.findAmiIdsByUtilisateurId(utilisateurCourant.getId()));
         if (amisIds.contains(destinataireId)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Cet utilisateur est deja votre ami.");
+            redirectAttributes.addFlashAttribute(FLASH_ERROR_MESSAGE, "Cet utilisateur est deja votre ami.");
             return construireRedirection(recherche, redirectPage, destinataireId);
         }
 
@@ -79,7 +82,7 @@ public class FriendSearchController {
                 .map(Utilisateur::getId)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         if (demandesRecuesIds.contains(destinataireId)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Cet utilisateur vous a deja envoye une demande.");
+            redirectAttributes.addFlashAttribute(FLASH_ERROR_MESSAGE, "Cet utilisateur vous a deja envoye une demande.");
             return construireRedirection(recherche, redirectPage, destinataireId);
         }
 
@@ -88,7 +91,7 @@ public class FriendSearchController {
         if (!demandesEnvoyeesIds.contains(destinataireId)) {
             utilisateurCourant.getDemandesAmisEnvoyees().add(destinataire);
             utilisateurRepository.save(utilisateurCourant);
-            redirectAttributes.addFlashAttribute("successMessage", "Demande d'ami envoyee.");
+            redirectAttributes.addFlashAttribute(FLASH_SUCCESS_MESSAGE, "Demande d'ami envoyee.");
         }
 
         return construireRedirection(recherche, redirectPage, destinataireId);
@@ -104,13 +107,13 @@ public class FriendSearchController {
             RedirectAttributes redirectAttributes) {
         Utilisateur utilisateurCourant = getUtilisateurCourant(authentication);
         Utilisateur expediteur = utilisateurRepository.findById(expediteurId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + expediteurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + expediteurId));
 
         boolean demandeTrouvee = expediteur.getDemandesAmisEnvoyees()
                 .removeIf(destinataire -> destinataire.getId().equals(utilisateurCourant.getId()));
 
         if (!demandeTrouvee) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Cette demande d'ami est introuvable.");
+            redirectAttributes.addFlashAttribute(FLASH_ERROR_MESSAGE, "Cette demande d'ami est introuvable.");
             return construireRedirection(recherche, redirectPage);
         }
 
@@ -123,7 +126,7 @@ public class FriendSearchController {
 
         utilisateurRepository.save(expediteur);
         utilisateurRepository.save(utilisateurCourant);
-        redirectAttributes.addFlashAttribute("successMessage", "Demande d'ami acceptee.");
+        redirectAttributes.addFlashAttribute(FLASH_SUCCESS_MESSAGE, "Demande d'ami acceptee.");
         return construireRedirection(recherche, redirectPage);
     }
 
@@ -137,16 +140,16 @@ public class FriendSearchController {
             RedirectAttributes redirectAttributes) {
         Utilisateur utilisateurCourant = getUtilisateurCourant(authentication);
         Utilisateur expediteur = utilisateurRepository.findById(expediteurId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + expediteurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + expediteurId));
 
         boolean demandeTrouvee = expediteur.getDemandesAmisEnvoyees()
                 .removeIf(destinataire -> destinataire.getId().equals(utilisateurCourant.getId()));
 
         if (demandeTrouvee) {
             utilisateurRepository.save(expediteur);
-            redirectAttributes.addFlashAttribute("successMessage", "Demande d'ami refusee.");
+            redirectAttributes.addFlashAttribute(FLASH_SUCCESS_MESSAGE, "Demande d'ami refusee.");
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Cette demande d'ami est introuvable.");
+            redirectAttributes.addFlashAttribute(FLASH_ERROR_MESSAGE, "Cette demande d'ami est introuvable.");
         }
 
         return construireRedirection(recherche, redirectPage);

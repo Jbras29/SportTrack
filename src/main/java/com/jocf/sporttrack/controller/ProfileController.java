@@ -27,6 +27,15 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class ProfileController {
 
+    private static final String SESSION_UTILISATEUR_ID = "utilisateurId";
+    private static final String ATTR_UTILISATEUR = "utilisateur";
+    private static final String ATTR_ACTIVITES = "activites";
+    private static final String ATTR_EVENEMENTS_ORGANISES = "evenementsOrganises";
+    private static final String ATTR_EVENEMENTS_PARTICIPE = "evenementsParticipe";
+    private static final String REDIRECT_LOGIN = "redirect:/login";
+    private static final String REDIRECT_PROFILE_EDIT = "redirect:/profile/edit";
+    private static final String MSG_UTILISATEUR_INTROUVABLE = "Utilisateur introuvable : ";
+
     private final UtilisateurService utilisateurService;
     private final PhotoProfilStorageService photoProfilStorageService;
     private final ActiviteService activiteService;
@@ -45,19 +54,19 @@ public class ProfileController {
 
     @GetMapping("/profile/edit")
     public String editProfileForm(@RequestParam(required = false) Long id, HttpSession session, Model model) {
-        Long idSession = (Long) session.getAttribute("utilisateurId");
+        Long idSession = (Long) session.getAttribute(SESSION_UTILISATEUR_ID);
         if (idSession == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
         Long idEffectif = id != null ? id : idSession;
         if (!idEffectif.equals(idSession)) {
-            return "redirect:/profile/edit";
+            return REDIRECT_PROFILE_EDIT;
         }
         Utilisateur utilisateur = utilisateurService.trouverParId(idEffectif)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + idEffectif));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + idEffectif));
         utilisateur.getPrefSportives().sort(Comparator.comparing(
                 pref -> pref.getNom() != null ? pref.getNom().toLowerCase() : ""));
-        model.addAttribute("utilisateur", utilisateur);
+        model.addAttribute(ATTR_UTILISATEUR, utilisateur);
         model.addAttribute("profilForm", ModifierUtilisateurRequest.fromUtilisateur(utilisateur));
         model.addAttribute("niveauxPratique", NiveauPratiqueSportive.values());
         return "profile/edit";
@@ -65,16 +74,16 @@ public class ProfileController {
 
     @PostMapping("/profile/edit")
     public String editProfileSubmit(@ModelAttribute("profilForm") ModifierUtilisateurRequest profilForm, HttpSession session) {
-        Long idSession = (Long) session.getAttribute("utilisateurId");
+        Long idSession = (Long) session.getAttribute(SESSION_UTILISATEUR_ID);
         if (idSession == null || !profilForm.getId().equals(idSession)) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
         if (profilForm.getMotdepasse() != null && profilForm.getMotdepasse().isBlank()) {
             profilForm.setMotdepasse(null);
         }
         profilForm.setPrefSportivesIds(null);
         utilisateurService.modifierUtilisateur(profilForm.getId(), profilForm);
-        return "redirect:/profile/edit";
+        return REDIRECT_PROFILE_EDIT;
     }
 
     @PostMapping("/profile/preferences")
@@ -83,12 +92,12 @@ public class ProfileController {
             @RequestParam String nomPreference,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
-        Long idSession = (Long) session.getAttribute("utilisateurId");
+        Long idSession = (Long) session.getAttribute(SESSION_UTILISATEUR_ID);
         if (idSession == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
         if (id != null && !id.equals(idSession)) {
-            return "redirect:/profile/edit";
+            return REDIRECT_PROFILE_EDIT;
         }
 
         try {
@@ -98,7 +107,7 @@ public class ProfileController {
             redirectAttributes.addFlashAttribute("preferenceErreur", exception.getMessage());
         }
 
-        return "redirect:/profile/edit";
+        return REDIRECT_PROFILE_EDIT;
     }
 
     @PostMapping("/profile/preferences/{prefSportiveId}/delete")
@@ -107,12 +116,12 @@ public class ProfileController {
             @RequestParam(required = false) Long id,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
-        Long idSession = (Long) session.getAttribute("utilisateurId");
+        Long idSession = (Long) session.getAttribute(SESSION_UTILISATEUR_ID);
         if (idSession == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
         if (id != null && !id.equals(idSession)) {
-            return "redirect:/profile/edit";
+            return REDIRECT_PROFILE_EDIT;
         }
 
         try {
@@ -122,7 +131,7 @@ public class ProfileController {
             redirectAttributes.addFlashAttribute("preferenceErreur", exception.getMessage());
         }
 
-        return "redirect:/profile/edit";
+        return REDIRECT_PROFILE_EDIT;
     }
 
     @PostMapping("/profile/photo")
@@ -130,9 +139,9 @@ public class ProfileController {
             @RequestParam("file") MultipartFile fichier,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
-        Long idSession = (Long) session.getAttribute("utilisateurId");
+        Long idSession = (Long) session.getAttribute(SESSION_UTILISATEUR_ID);
         if (idSession == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
         try {
             String chemin = photoProfilStorageService.enregistrerPhotoProfil(fichier, idSession);
@@ -143,42 +152,35 @@ public class ProfileController {
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("photoErreur", "Impossible d'enregistrer la photo.");
         }
-        return "redirect:/profile/edit?id=" + idSession;
+        return REDIRECT_PROFILE_EDIT + "?id=" + idSession;
     }
-
-    //1 profile/ et profile/edit
-
-    //Dans profile
-    //Toutes les activités de l'utilisateur,son propre info, ces defis, ces defauts, ces amis,les évènements auxquels il participe
 
     @GetMapping("/profile")
     public String viewProfile(HttpSession session, Model model) {
-        Long idSession = (Long) session.getAttribute("utilisateurId");
+        Long idSession = (Long) session.getAttribute(SESSION_UTILISATEUR_ID);
         if (idSession == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
         Utilisateur utilisateur = utilisateurService.trouverParId(idSession)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + idSession));
-        model.addAttribute("utilisateur", utilisateur);
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + idSession));
+        model.addAttribute(ATTR_UTILISATEUR, utilisateur);
         model.addAttribute("user", utilisateur);
-        model.addAttribute("activites", activiteService.recupererActivitesPourProfil(utilisateur));
-        //model.addAttribute("defis", utilisateur.getDefis());
-        //model.addAttribute("defauts", utilisateur.getDefauts());
+        model.addAttribute(ATTR_ACTIVITES, activiteService.recupererActivitesPourProfil(utilisateur));
         model.addAttribute("amis", utilisateur.getAmis());
-        model.addAttribute("evenementsOrganises", utilisateur.getEvenementsOrganises());
-        model.addAttribute("evenementsParticipe", utilisateur.getEvenementsParticipes());
+        model.addAttribute(ATTR_EVENEMENTS_ORGANISES, utilisateur.getEvenementsOrganises());
+        model.addAttribute(ATTR_EVENEMENTS_PARTICIPE, utilisateur.getEvenementsParticipes());
         model.addAttribute("profilCompletVisible", true);
         return "profile/view";
     }
 
-   @GetMapping("/profile/{id}")
+    @GetMapping("/profile/{id}")
     public String viewProfile(@PathVariable Long id, HttpSession session, Model model) {
-        Long idSession = (Long) session.getAttribute("utilisateurId");
+        Long idSession = (Long) session.getAttribute(SESSION_UTILISATEUR_ID);
         if (idSession == null) {
-            return "redirect:/login";
+            return REDIRECT_LOGIN;
         }
         Utilisateur utilisateur = utilisateurService.trouverParId(id)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + id));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + id));
         Utilisateur connecte = utilisateurService.findByIdWithAmis(idSession);
 
         boolean estAmi = connecte.getAmis().stream()
@@ -187,21 +189,21 @@ public class ProfileController {
         boolean estProprietaire = idSession.equals(id);
         boolean profilCompletVisible = estProprietaire || !utilisateur.isComptePrive() || estAmi;
 
-        model.addAttribute("utilisateur", utilisateur);
+        model.addAttribute(ATTR_UTILISATEUR, utilisateur);
         model.addAttribute("user", connecte);
         model.addAttribute("estAmi", estAmi);
         model.addAttribute("profilCompletVisible", profilCompletVisible);
 
         if (profilCompletVisible) {
-            model.addAttribute("activites", activiteService.recupererActivitesPourProfil(utilisateur));
+            model.addAttribute(ATTR_ACTIVITES, activiteService.recupererActivitesPourProfil(utilisateur));
             model.addAttribute("amis", utilisateur.getAmis());
-            model.addAttribute("evenementsOrganises", utilisateur.getEvenementsOrganises());
-            model.addAttribute("evenementsParticipe", utilisateur.getEvenementsParticipes());
+            model.addAttribute(ATTR_EVENEMENTS_ORGANISES, utilisateur.getEvenementsOrganises());
+            model.addAttribute(ATTR_EVENEMENTS_PARTICIPE, utilisateur.getEvenementsParticipes());
         } else {
-            model.addAttribute("activites", List.of());
+            model.addAttribute(ATTR_ACTIVITES, List.of());
             model.addAttribute("amis", List.of());
-            model.addAttribute("evenementsOrganises", List.of());
-            model.addAttribute("evenementsParticipe", List.of());
+            model.addAttribute(ATTR_EVENEMENTS_ORGANISES, List.of());
+            model.addAttribute(ATTR_EVENEMENTS_PARTICIPE, List.of());
 
             Set<Long> demandesEnvoyeesIds = new LinkedHashSet<>(
                     utilisateurRepository.findDemandesAmisEnvoyeesIdsByUtilisateurId(idSession));
@@ -210,7 +212,7 @@ public class ProfileController {
                     .collect(Collectors.toCollection(LinkedHashSet::new));
             boolean demandeEnvoyee = demandesEnvoyeesIds.contains(id);
             boolean demandeRecue = demandesRecuesIds.contains(id);
-            boolean peutEnvoyerDemandeAmiProfil = !estAmi && !demandeEnvoyee && !demandeRecue && !estProprietaire;
+            boolean peutEnvoyerDemandeAmiProfil = !demandeEnvoyee && !demandeRecue && !estProprietaire;
             model.addAttribute("demandeEnvoyeeProfil", demandeEnvoyee);
             model.addAttribute("demandeRecueProfil", demandeRecue);
             model.addAttribute("peutEnvoyerDemandeAmiProfil", peutEnvoyerDemandeAmiProfil);
