@@ -59,5 +59,36 @@
 
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:inline="javascript">
+        /*  (Vérification de l'erreur côté serveur) */
+        const errorMessage = [[${erreur}]];
+
+        if (errorMessage) {
+            Swal.fire({
+                title: 'ACTION BLOQUÉE',
+                text: errorMessage,
+                icon: 'error',
+                confirmButtonColor: '#1E1E1E', /* 黑色按钮，匹配你的工业风 */
+                confirmButtonText: 'COMPRIS',
+                customClass: {
+                    popup: 'swal-industrial-popup'
+                }
+            });
+        }
+
+        /*  (Sécurité supplémentaire : bouton désactivé si HP=0) */
+        const userHp = [[${user.hpNormalise}]];
+        if (userHp <= 0) {
+            const submitBtn = document.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+                submitBtn.innerText = '🔒 COMPTE RESTREINT';
+            }
+        }
+    </script>
+
 </body>
 </html>

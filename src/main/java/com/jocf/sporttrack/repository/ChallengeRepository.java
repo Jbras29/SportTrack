@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ChallengeRepository extends JpaRepository<Challenge, Long> {
 
     List<Challenge> findByParticipants_IdOrderByDateFinAsc(Long utilisateurId);
+    List<Challenge> findByDateFin(java.sql.Date dateFin);
 }

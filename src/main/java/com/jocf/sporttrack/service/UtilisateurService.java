@@ -271,4 +271,14 @@ public class UtilisateurService implements UserDetailsService {
             utilisateurRepository.save(utilisateur);
             utilisateurRepository.save(ami);
         }
+
+
+    @Transactional
+    public void appliquerPunitionChallenge(Long userId, int pointsARetirer) {
+        utilisateurRepository.findById(userId).ifPresent(user -> {
+            // Appliquer la soustraction (via ta méthode dans Utilisateur.java)
+            user.soustraireHp(pointsARetirer);
+            utilisateurRepository.save(user);
+        });
+    }
     }

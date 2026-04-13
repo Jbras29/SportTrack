@@ -290,4 +290,19 @@ public class Utilisateur {
         }
         return 100.0 * (getXpEffectif() - bas) / plage;
     }
+
+    public boolean estMort() {
+        return getHpNormalise() <= 0;
+    }
+
+
+    public void soustraireHp(int points) {
+        int currentHp = (this.hp != null) ? this.hp : 100;
+        this.hp = Math.max(0, currentHp - points);
+    }
+
+    public boolean estRestreintPourDefis() {
+        // Utilisation de la méthode existante getHpNormalise()
+        return getHpNormalise() <= 0;
+    }
 }

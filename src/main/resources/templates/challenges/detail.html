@@ -126,5 +126,33 @@
 
 </div>
 
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:inline="javascript">
+    /* Capturer l'attribut Flash "errorHp" */
+    const errorHp = [[${errorHp}]];
+
+    if (errorHp) {
+        Swal.fire({
+            title: 'SANTÉ INSUFFISANTE',
+            text: errorHp,
+            icon: 'warning',
+            confirmButtonColor: '#1E1E1E',
+            confirmButtonText: 'RETOUR',
+            background: '#ffffff'
+        });
+    }
+
+    /*  (Masquer le bouton rejoindre si mort) */
+    const currentUserHp = [[${sessionUserHp}]]; //
+    if (currentUserHp <= 0) {
+        const joinBtn = document.querySelector('form[th\\:action*="rejoindre"] button');
+        if (joinBtn) {
+            joinBtn.classList.replace('btn-primary', 'btn-secondary');
+            joinBtn.disabled = true;
+            joinBtn.innerText = '🔒 HP ÉPUISÉ';
+        }
+    }
+</script>
 </body>
 </html>
