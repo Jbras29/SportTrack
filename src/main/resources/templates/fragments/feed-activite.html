@@ -47,14 +47,14 @@
             <div class="value">—</div>
             <div class="label">Durée</div>
         </div>
-        <div class="stat-item" th:if="${activite.distance != null and activite.distance > 0 and activite.temps != null and activite.temps > 0}">
+        <div class="stat-item" th:if="${activite.temps != null}">
             <div class="value value-accent"
-                 th:text="${#numbers.formatDecimal(activite.temps / activite.distance, 1, 1)}">0</div>
-            <div class="label">Allure (min/km)</div>
+                 th:text="${#numbers.formatDecimal(@activiteService.calculerKilocaloriesPourActivite(activite), 1, 0)}">0</div>
+            <div class="label">kcal</div>
         </div>
-        <div class="stat-item" th:unless="${activite.distance != null and activite.distance > 0 and activite.temps != null and activite.temps > 0}">
+        <div class="stat-item" th:unless="${activite.temps != null}">
             <div class="value">—</div>
-            <div class="label">Allure</div>
+            <div class="label">kcal</div>
         </div>
         <div class="stat-item" th:if="${activite.calories != null}">
             <div class="value" th:text="${activite.calories}">0</div>

@@ -66,13 +66,13 @@ public class FriendSearchController {
 
         if (utilisateurCourant.getId().equals(destinataire.getId())) {
             redirectAttributes.addFlashAttribute("errorMessage", "Vous ne pouvez pas vous ajouter vous-meme.");
-            return construireRedirection(recherche, redirectPage);
+            return construireRedirection(recherche, redirectPage, destinataireId);
         }
 
         Set<Long> amisIds = new LinkedHashSet<>(utilisateurRepository.findAmiIdsByUtilisateurId(utilisateurCourant.getId()));
         if (amisIds.contains(destinataireId)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Cet utilisateur est deja votre ami.");
-            return construireRedirection(recherche, redirectPage);
+            return construireRedirection(recherche, redirectPage, destinataireId);
         }
 
         Set<Long> demandesRecuesIds = utilisateurRepository.findDemandesAmisRecuesByUtilisateurId(utilisateurCourant.getId()).stream()
@@ -80,7 +80,7 @@ public class FriendSearchController {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         if (demandesRecuesIds.contains(destinataireId)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Cet utilisateur vous a deja envoye une demande.");
-            return construireRedirection(recherche, redirectPage);
+            return construireRedirection(recherche, redirectPage, destinataireId);
         }
 
         Set<Long> demandesEnvoyeesIds = new LinkedHashSet<>(
@@ -91,7 +91,7 @@ public class FriendSearchController {
             redirectAttributes.addFlashAttribute("successMessage", "Demande d'ami envoyee.");
         }
 
-        return construireRedirection(recherche, redirectPage);
+        return construireRedirection(recherche, redirectPage, destinataireId);
     }
 
     @PostMapping("/requests/{expediteurId}/accept")
@@ -243,6 +243,13 @@ public class FriendSearchController {
     }
 
     private String construireRedirection(String recherche, String redirectPage) {
+        return construireRedirection(recherche, redirectPage, null);
+    }
+
+    private String construireRedirection(String recherche, String redirectPage, Long idProfilCible) {
+        if ("profile".equalsIgnoreCase(redirectPage) && idProfilCible != null) {
+            return "redirect:/profile/" + idProfilCible;
+        }
         if ("friend".equalsIgnoreCase(redirectPage)) {
             if (recherche == null || recherche.isBlank()) {
                 return "redirect:/friend";

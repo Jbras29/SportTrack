@@ -13,6 +13,7 @@
 
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
+    <th:block th:if="${profilCompletVisible}">
     <div class="main-wrapper main-wrapper--stack main-wrapper--profile-split">
 
         <div class="profile-split">
@@ -209,6 +210,31 @@
         </div>
 
     </div>
+    </th:block>
+
+    <th:block th:unless="${profilCompletVisible}">
+        <div class="main-wrapper main-wrapper--centered">
+            <div class="form-card profile-private-gate">
+                <div th:if="${successMessage}" class="flash-banner ok" th:text="${successMessage}"></div>
+                <div th:if="${errorMessage}" class="flash-banner err" th:text="${errorMessage}"></div>
+                <div class="profile-private-gate-inner">
+                    <img th:src="@{/images/profile-placeholder.svg}" alt="" width="96" height="96" class="profile-private-placeholder-img">
+                    <h1 class="profile-private-title">Profil privé</h1>
+                    <p class="profile-private-text">Ce membre a choisi de limiter la visibilité de son profil. Seuls ses amis peuvent voir ses informations, activités et listes.</p>
+                    <div class="profile-private-actions">
+                        <form th:if="${peutEnvoyerDemandeAmiProfil}"
+                              th:action="@{/friend/search/request/{id}(id=${utilisateur.id})}"
+                              method="post">
+                            <input type="hidden" name="redirectPage" value="profile">
+                            <button type="submit" class="btn btn-primary">Demander en ami</button>
+                        </form>
+                        <button th:if="${demandeEnvoyeeProfil}" type="button" class="btn btn-secondary" disabled>Demande envoyée</button>
+                        <button th:if="${demandeRecueProfil}" type="button" class="btn btn-secondary" disabled>Demande reçue</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </th:block>
 
     <div id="home-feedback-toast"
          class="home-feedback-toast"

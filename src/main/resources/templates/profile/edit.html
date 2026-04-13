@@ -132,6 +132,24 @@
                     </div>
                 </div>
 
+                <div class="section-title">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    Confidentialité
+                </div>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <div class="compte-prive-switch">
+                            <label class="compte-prive-switch__label">
+                                <span class="compte-prive-switch__track-wrap">
+                                    <input class="compte-prive-switch__input" type="checkbox" th:field="*{comptePrive}">
+                                    <span class="compte-prive-switch__track" aria-hidden="true"></span>
+                                </span>
+                                <span class="compte-prive-switch__text">Compte privé — seuls vos amis voient votre profil détaillé, votre nom sur les événements et le classement des challenges</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="action-buttons">
                     <button type="button" class="btn btn-secondary">Annuler</button>
                     <button type="submit" class="btn btn-primary">

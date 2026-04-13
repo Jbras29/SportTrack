@@ -8,6 +8,11 @@ import com.jocf.sporttrack.service.UtilisateurService;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import com.jocf.sporttrack.repository.UtilisateurRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,14 +29,17 @@ public class ProfileController {
     private final UtilisateurService utilisateurService;
     private final PhotoProfilStorageService photoProfilStorageService;
     private final ActiviteService activiteService;
+    private final UtilisateurRepository utilisateurRepository;
 
     public ProfileController(
             UtilisateurService utilisateurService,
             PhotoProfilStorageService photoProfilStorageService,
-            ActiviteService activiteService) {
+            ActiviteService activiteService,
+            UtilisateurRepository utilisateurRepository) {
         this.utilisateurService = utilisateurService;
         this.photoProfilStorageService = photoProfilStorageService;
         this.activiteService = activiteService;
+        this.utilisateurRepository = utilisateurRepository;
     }
 
     @GetMapping("/profile/edit")
@@ -157,6 +165,7 @@ public class ProfileController {
         model.addAttribute("amis", utilisateur.getAmis());
         model.addAttribute("evenementsOrganises", utilisateur.getEvenementsOrganises());
         model.addAttribute("evenementsParticipe", utilisateur.getEvenementsParticipes());
+        model.addAttribute("profilCompletVisible", true);
         return "profile/view";
     }
 
@@ -170,22 +179,40 @@ public class ProfileController {
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + id));
         Utilisateur connecte = utilisateurService.findByIdWithAmis(idSession);
 
-        connecte.getAmis().forEach(ami ->
-            System.out.println("DEBUG ami.id = " + ami.getId() + " | id visité = " + id)
-        );
-
         boolean estAmi = connecte.getAmis().stream()
                 .anyMatch(ami -> ami.getId().longValue() == id.longValue());
 
-        System.out.println("DEBUG estAmi = " + estAmi + " | amis = " + connecte.getAmis().size());
+        boolean estProprietaire = idSession.equals(id);
+        boolean profilCompletVisible = estProprietaire || !utilisateur.isComptePrive() || estAmi;
 
         model.addAttribute("utilisateur", utilisateur);
         model.addAttribute("user", connecte);
         model.addAttribute("estAmi", estAmi);
-        model.addAttribute("activites", activiteService.recupererActivitesPourProfil(utilisateur));
-        model.addAttribute("amis", utilisateur.getAmis());
-        model.addAttribute("evenementsOrganises", utilisateur.getEvenementsOrganises());
-        model.addAttribute("evenementsParticipe", utilisateur.getEvenementsParticipes());
+        model.addAttribute("profilCompletVisible", profilCompletVisible);
+
+        if (profilCompletVisible) {
+            model.addAttribute("activites", activiteService.recupererActivitesPourProfil(utilisateur));
+            model.addAttribute("amis", utilisateur.getAmis());
+            model.addAttribute("evenementsOrganises", utilisateur.getEvenementsOrganises());
+            model.addAttribute("evenementsParticipe", utilisateur.getEvenementsParticipes());
+        } else {
+            model.addAttribute("activites", List.of());
+            model.addAttribute("amis", List.of());
+            model.addAttribute("evenementsOrganises", List.of());
+            model.addAttribute("evenementsParticipe", List.of());
+
+            Set<Long> demandesEnvoyeesIds = new LinkedHashSet<>(
+                    utilisateurRepository.findDemandesAmisEnvoyeesIdsByUtilisateurId(idSession));
+            Set<Long> demandesRecuesIds = utilisateurRepository.findDemandesAmisRecuesByUtilisateurId(idSession).stream()
+                    .map(Utilisateur::getId)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            boolean demandeEnvoyee = demandesEnvoyeesIds.contains(id);
+            boolean demandeRecue = demandesRecuesIds.contains(id);
+            boolean peutEnvoyerDemandeAmiProfil = !estAmi && !demandeEnvoyee && !demandeRecue && !estProprietaire;
+            model.addAttribute("demandeEnvoyeeProfil", demandeEnvoyee);
+            model.addAttribute("demandeRecueProfil", demandeRecue);
+            model.addAttribute("peutEnvoyerDemandeAmiProfil", peutEnvoyerDemandeAmiProfil);
+        }
         return "profile/view";
     }
 }
