@@ -21,7 +21,9 @@
                 <span th:if="${challenge.dateDebut != null and challenge.dateFin != null}"
                       th:text="|${#dates.format(challenge.dateDebut, 'dd/MM/yyyy')} — ${#dates.format(challenge.dateFin, 'dd/MM/yyyy')}|">
                 </span>
-                <span th:text="|Organisé par ${challenge.organisateur.prenom} ${challenge.organisateur.nom}|"></span>
+                <span th:if="${afficherNomOrganisateurChallenge}"
+                      th:text="|Organisé par ${challenge.organisateur.prenom} ${challenge.organisateur.nom}|"></span>
+                <span th:unless="${afficherNomOrganisateurChallenge}" th:text="'Organisé par un profil privé'"></span>
                 <span th:text="|${challenge.participants.size()} participant(s)|"></span>
             </div>
         </div>
@@ -105,7 +107,9 @@
                               th:text="${stat.index + 1}">1</span>
                     </td>
                     <td>
-                        <span th:text="|${ligne.utilisateur.prenom} ${ligne.utilisateur.nom}|">Prénom Nom</span>
+                        <span th:if="${afficherNomClassement.get(ligne.utilisateur.id)}"
+                              th:text="|${ligne.utilisateur.prenom} ${ligne.utilisateur.nom}|">Prénom Nom</span>
+                        <span th:unless="${afficherNomClassement.get(ligne.utilisateur.id)}" class="text-muted">Profil privé</span>
                         <span class="you-badge" th:if="${ligne.utilisateur.id == sessionUser.id()}">vous</span>
                     </td>
                     <td>

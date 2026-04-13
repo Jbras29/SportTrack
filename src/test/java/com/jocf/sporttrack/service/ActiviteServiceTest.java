@@ -39,12 +39,19 @@ class ActiviteServiceTest {
     @Mock
     private ActiviteBadgeEvaluationService activiteBadgeEvaluationService;
 
+    @Mock
+    private OpenMeteoService openMeteoService;
+
     private ActiviteService activiteService;
 
     @BeforeEach
     void setUp() {
         activiteService = new ActiviteService(
-                activiteRepository, utilisateurRepository, utilisateurService, activiteBadgeEvaluationService);
+                activiteRepository,
+                utilisateurRepository,
+                utilisateurService,
+                activiteBadgeEvaluationService,
+                openMeteoService);
     }
 
     @Test
@@ -158,7 +165,7 @@ class ActiviteServiceTest {
         when(activiteRepository.save(any(Activite.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Activite resultat = activiteService.creerActivite(
-                1L, "Course", TypeSport.COURSE, date, distanceKm, minutes, "Parc", 4);
+                1L, "Course", TypeSport.COURSE, date, distanceKm, minutes, "Parc", 4, null);
 
         assertEquals(xpAttendu, resultat.getXpGagne());
         verify(utilisateurService).crediterExperience(utilisateur, xpAttendu);
@@ -198,7 +205,7 @@ class ActiviteServiceTest {
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
                 () -> activiteService.creerActivite(
-                        1L, "Futur", TypeSport.COURSE, demain, 5.0, 30, "Lieu", 3));
+                        1L, "Futur", TypeSport.COURSE, demain, 5.0, 30, "Lieu", 3, null));
 
         assertEquals("La date de l'activité ne peut pas être dans le futur.", exception.getMessage());
         verify(utilisateurRepository, never()).findById(any());
@@ -299,100 +306,96 @@ class ActiviteServiceTest {
     }
 
     @Test
-void calculerKilocaloriesAvecActiviteValide() {
-    Utilisateur utilisateur = Utilisateur.builder()
-        .id(1L).poids(70.0)
-        .build();
+    void calculerKilocaloriesAvecActiviteValide() {
+        Utilisateur utilisateur = Utilisateur.builder()
+                .id(1L).poids(70.0)
+                .build();
+        Activite activite = Activite.builder()
+                .id(1L)
+                .nom("Footing matinal")
+                .typeSport(TypeSport.COURSE_A_PIED)
+                .temps(60)
+                .date(LocalDate.now())
+                .utilisateur(utilisateur)
+                .build();
 
-    Activite activite = Activite.builder()
-        .id(1L)
-        .nom("Footing matinal")
-        .typeSport(TypeSport.COURSE_A_PIED)
-        .temps(60) // 60 minutes = 1 heure
-        .date(LocalDate.now())
-        .utilisateur(utilisateur)
-        .build();
+        when(activiteRepository.findById(1L)).thenReturn(Optional.of(activite));
 
-    when(activiteRepository.findById(1L)).thenReturn(Optional.of(activite));
+        Double kcal = activiteService.calculerKilocalories(1L);
 
-    Double kcal = activiteService.calculerKilocalories(1L);
+        assertNotNull(kcal);
+        assertEquals(700.0, kcal);
+        verify(activiteRepository).findById(1L);
+    }
 
-    assertNotNull(kcal);
-    assertEquals(700.0, kcal); // 10.0 * 70.0 * 1.0
-    verify(activiteRepository).findById(1L);
-}
+    @Test
+    void calculerKilocaloriesAvecPoidsParDefaut() {
+        Utilisateur utilisateur = Utilisateur.builder()
+                .id(1L).poids(null)
+                .build();
+        Activite activite = Activite.builder()
+                .id(1L)
+                .nom("Natation")
+                .typeSport(TypeSport.NATATION)
+                .temps(30)
+                .date(LocalDate.now())
+                .utilisateur(utilisateur)
+                .build();
 
-@Test
-void calculerKilocaloriesAvecPoidsParDefaut() {
-    Utilisateur utilisateur = Utilisateur.builder()
-        .id(1L).poids(null)
-        .build();
+        when(activiteRepository.findById(1L)).thenReturn(Optional.of(activite));
 
-    Activite activite = Activite.builder()
-        .id(1L)
-        .nom("Natation")
-        .typeSport(TypeSport.NATATION)
-        .temps(30) // 30 minutes = 0.5 heure
-        .date(LocalDate.now())
-        .utilisateur(utilisateur)
-        .build();
+        Double kcal = activiteService.calculerKilocalories(1L);
 
-    when(activiteRepository.findById(1L)).thenReturn(Optional.of(activite));
+        assertNotNull(kcal);
+        assertEquals(245.0, kcal);
+        verify(activiteRepository).findById(1L);
+    }
 
-    Double kcal = activiteService.calculerKilocalories(1L);
+    @Test
+    void calculerKilocaloriesRefuseActiviteInexistante() {
+        when(activiteRepository.findById(1L)).thenReturn(Optional.empty());
 
-    assertNotNull(kcal);
-    assertEquals(245.0, kcal); // 7.0 * 70.0 * 0.5
-    verify(activiteRepository).findById(1L);
-}
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> activiteService.calculerKilocalories(1L));
 
-@Test
-void calculerKilocaloriesRefuseActiviteInexistante() {
-    when(activiteRepository.findById(1L)).thenReturn(Optional.empty());
+        assertEquals("Activite introuvable : 1", exception.getMessage());
+        verify(activiteRepository).findById(1L);
+    }
 
-    IllegalArgumentException exception = assertThrows(
-        IllegalArgumentException.class,
-        () -> activiteService.calculerKilocalories(1L)
-    );
+    @Test
+    void consultation_activite_affiche_kilocalories_calculees() {
+        Utilisateur utilisateur = Utilisateur.builder()
+                .id(1L).poids(70.0)
+                .build();
+        Activite activite = Activite.builder()
+                .id(1L)
+                .nom("Footing")
+                .typeSport(TypeSport.COURSE_A_PIED)
+                .temps(60)
+                .distance(10.0)
+                .date(LocalDate.now())
+                .utilisateur(utilisateur)
+                .build();
 
-    assertEquals("Activite introuvable : 1", exception.getMessage());
-    verify(activiteRepository).findById(1L);
-}
+        when(activiteRepository.findById(1L)).thenReturn(Optional.of(activite));
 
-@Test
-void consultation_activite_affiche_kilocalories_calculees() {
-    Utilisateur utilisateur = Utilisateur.builder()
-        .id(1L).poids(70.0)
-        .build();
+        Double kcal = activiteService.calculerKilocalories(1L);
 
-    Activite activite = Activite.builder()
-        .id(1L)
-        .nom("Footing")
-        .typeSport(TypeSport.COURSE_A_PIED)
-        .temps(60)
-        .distance(10.0)
-        .date(LocalDate.now())
-        .utilisateur(utilisateur)
-        .build();
+        assertNotNull(kcal);
+        assertEquals(700.0, kcal);
+        verify(activiteRepository).findById(1L);
+    }
 
-    when(activiteRepository.findById(1L)).thenReturn(Optional.of(activite));
+    @Test
+    void consultation_kilocalories_sans_activite_retourne_liste_vide() {
+        Utilisateur utilisateur = Utilisateur.builder().id(1L).build();
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+        when(activiteRepository.findByUtilisateur(utilisateur)).thenReturn(List.of());
 
-    Double kcal = activiteService.calculerKilocalories(1L);
+        List<Activite> activites = activiteService.recupererActivitesParUtilisateur(1L);
 
-    assertNotNull(kcal);
-    assertEquals(700.0, kcal); // 10.0 (MET) * 70.0 (poids) * 1.0 (heure)
-    verify(activiteRepository).findById(1L);
-}
-
-@Test
-void consultation_kilocalories_sans_activite_retourne_liste_vide() {
-    Utilisateur utilisateur = Utilisateur.builder().id(1L).build();
-    when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
-    when(activiteRepository.findByUtilisateur(utilisateur)).thenReturn(List.of());
-
-    List<Activite> activites = activiteService.recupererActivitesParUtilisateur(1L);
-
-    assertTrue(activites.isEmpty());
-    verify(activiteRepository).findByUtilisateur(utilisateur);
-}
+        assertTrue(activites.isEmpty());
+        verify(activiteRepository).findByUtilisateur(utilisateur);
+    }
 }

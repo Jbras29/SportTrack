@@ -21,16 +21,19 @@ public class ActiviteService {
     private final UtilisateurRepository utilisateurRepository;
     private final UtilisateurService utilisateurService;
     private final ActiviteBadgeEvaluationService activiteBadgeEvaluationService;
+    private final OpenMeteoService openMeteoService;
 
     public ActiviteService(
             ActiviteRepository activiteRepository,
             UtilisateurRepository utilisateurRepository,
             UtilisateurService utilisateurService,
-            ActiviteBadgeEvaluationService activiteBadgeEvaluationService) {
+            ActiviteBadgeEvaluationService activiteBadgeEvaluationService,
+            OpenMeteoService openMeteoService) {
         this.activiteRepository = activiteRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.utilisateurService = utilisateurService;
         this.activiteBadgeEvaluationService = activiteBadgeEvaluationService;
+        this.openMeteoService = openMeteoService;
     }
 
     public List<Activite> recupererToutesLesActivites() {
@@ -47,9 +50,6 @@ public class ActiviteService {
         return activiteRepository.findByUtilisateur(utilisateur);
     }
 
-    /**
-     * Activités d’un profil, les plus récentes en premier (affichage identique au fil d’actualité).
-     */
     public List<Activite> recupererActivitesPourProfil(Utilisateur utilisateur) {
         return activiteRepository.findByUtilisateurOrderByDateDesc(utilisateur);
     }
@@ -58,9 +58,6 @@ public class ActiviteService {
         return activiteRepository.findByTypeSport(typeSport);
     }
 
-    /**
-     * Activités des amis, les plus récentes en premier (par date d’activité).
-     */
     public List<Activite> recupererActivitesDesAmis(Utilisateur utilisateur) {
         List<Utilisateur> amis = utilisateur.getAmis();
         if (amis == null || amis.isEmpty()) {
@@ -70,9 +67,6 @@ public class ActiviteService {
         return activiteRepository.findByUtilisateurIdsWithUtilisateurOrderByDateDesc(ids);
     }
 
-    /**
-     * Fil d’accueil : activités de l’utilisateur et de ses amis, les plus récentes en premier.
-     */
     public List<Activite> recupererActivitesFilActualite(Utilisateur utilisateur) {
         List<Long> ids = new ArrayList<>();
         ids.add(utilisateur.getId());
@@ -85,8 +79,11 @@ public class ActiviteService {
         return activiteRepository.findByUtilisateurIdsWithUtilisateurOrderByDateDesc(ids);
     }
 
-    public Activite creerActivite(Long utilisateurId, String nom, TypeSport typeSport, LocalDate date, Double distance, Integer temps, String location, Integer evaluation) {
+    public Activite creerActivite(Long utilisateurId, String nom, TypeSport typeSport, LocalDate date,
+                                  Double distance, Integer temps, String location, Integer evaluation,
+                                  List<Long> invitesIds) {
         verifierDateActiviteNonFuture(date);
+
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
 
@@ -94,6 +91,10 @@ public class ActiviteService {
         int dureeMin = temps != null ? temps : 0;
         double distanceKm = Utilisateur.distanceEnKmPourFormuleXp(distanceBrute);
         int xpGagne = Utilisateur.calculerXpGagnePourActivite(distanceKm, dureeMin);
+
+        List<Utilisateur> invites = invitesIds != null
+                ? utilisateurRepository.findAllById(invitesIds)
+                : new ArrayList<>();
 
         Activite activite = Activite.builder()
                 .nom(nom)
@@ -105,7 +106,17 @@ public class ActiviteService {
                 .evaluation(evaluation != null ? evaluation : 0)
                 .xpGagne(xpGagne)
                 .utilisateur(utilisateur)
+                .invites(invites)
                 .build();
+
+        activite.setCalories(calculerKcalPourActivite(activite));
+
+        OpenMeteoService.WeatherInfo meteo =
+                openMeteoService.getWeatherForLocationAndDate(activite.getLocation(), activite.getDate());
+        if (meteo != null) {
+            activite.setMeteoTemperature(meteo.temperature);
+            activite.setMeteoCondition(meteo.condition);
+        }
 
         Activite sauvegardee = activiteRepository.save(activite);
         utilisateurService.crediterExperience(utilisateur, xpGagne);
@@ -115,6 +126,7 @@ public class ActiviteService {
 
     public Activite creerActivite(Long utilisateurId, String nom, TypeSport typeSport, LocalDate date) {
         verifierDateActiviteNonFuture(date);
+
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
 
@@ -149,6 +161,18 @@ public class ActiviteService {
         activite.setDate(activiteDetails.getDate());
         activite.setLocation(activiteDetails.getLocation());
         activite.setEvaluation(activiteDetails.getEvaluation());
+        activite.setInvites(activiteDetails.getInvites());
+
+        activite.setCalories(calculerKcalPourActivite(activite));
+
+        if (activite.getLocation() != null && !activite.getLocation().isEmpty()) {
+            OpenMeteoService.WeatherInfo meteo =
+                    openMeteoService.getWeatherForLocationAndDate(activite.getLocation(), activite.getDate());
+            if (meteo != null) {
+                activite.setMeteoTemperature(meteo.temperature);
+                activite.setMeteoCondition(meteo.condition);
+            }
+        }
 
         return activiteRepository.save(activite);
     }
@@ -168,76 +192,51 @@ public class ActiviteService {
 
     public Double calculerKilocalories(Long activiteId) {
         Activite activite = activiteRepository.findById(activiteId)
-            .orElseThrow(() -> new IllegalArgumentException("Activite introuvable : " + activiteId));
-        Double kcal = calculerKilocaloriesPourActivite(activite);
-        if (kcal == null) {
-            throw new IllegalArgumentException("Durée non renseignée pour le calcul des kilocalories");
-        }
-        return kcal;
+                .orElseThrow(() -> new IllegalArgumentException("Activite introuvable : " + activiteId));
+        return calculerKcalPourActivite(activite);
     }
 
-    /**
-     * Estimation MET × poids × durée (même formule que l’API). {@code null} si la durée n’est pas connue.
-     */
-    public Double calculerKilocaloriesPourActivite(Activite activite) {
-        if (activite.getTemps() == null) {
-            return null;
+    public Double calculerKcalPourActivite(Activite activite) {
+        if (activite.getTemps() == null || activite.getTemps() == 0) {
+            return 0.0;
         }
+
         double metValue = metPourTypeSport(activite.getTypeSport());
         double poidsUtilisateur = activite.getUtilisateur().getPoids() != null
-            ? activite.getUtilisateur().getPoids()
-            : 70.0;
+                ? activite.getUtilisateur().getPoids()
+                : 70.0;
         double dureeEnHeures = activite.getTemps() / 60.0;
-        return metValue * poidsUtilisateur * dureeEnHeures;
+
+        return Math.round(metValue * poidsUtilisateur * dureeEnHeures * 10.0) / 10.0;
     }
 
     private static double metPourTypeSport(TypeSport typeSport) {
         return switch (typeSport) {
-            // Sports d'endurance
             case COURSE, COURSE_A_PIED, MARATHON, TRAIL -> 10.0;
             case CYCLISME, VELO_ROUTE, VTT -> 8.0;
             case NATATION -> 7.0;
             case TRIATHLON, DUATHLON -> 9.0;
             case AVIRON, KAYAK, CANOE -> 7.0;
             case RANDONNEE, RAQUETTES -> 5.0;
-
-            // Sports collectifs
             case FOOTBALL, BASKETBALL, HANDBALL, RUGBY, HOCKEY_GLACE, HOCKEY_GAZON -> 8.0;
             case VOLLEYBALL, BASEBALL, CRICKET, WATERPOLO -> 6.0;
-
-            // Sports de raquette
             case TENNIS, SQUASH, BADMINTON -> 7.0;
             case PING_PONG, PADEL -> 5.0;
-
-            // Sports de combat
             case BOXE, MMA, MUAY_THAI, TAEKWONDO -> 10.0;
             case JUDO, KARATE, LUTTE, JUJITSU, AIKIDO, ESCRIME -> 7.0;
-
-            // Sports de montagne
             case ALPINISME, ESCALADE -> 8.0;
             case SKI_ALPIN, SNOWBOARD -> 6.0;
             case SKI_DE_FOND -> 9.0;
             case SURF, KITESURF, WINDSURF -> 6.0;
             case PLONGEE -> 5.0;
-
-            // Fitness / force
             case MUSCULATION, CROSSFIT, POWERLIFTING, HALTÉROPHILIE, CALISTHENICS -> 6.0;
             case YOGA, PILATES, STRETCHING -> 3.0;
-
-            // Glisse / vitesse
             case SKATEBOARD, ROLLER, BMX -> 5.0;
             case PATINAGE_ARTISTIQUE, PATINAGE_VITESSE -> 6.0;
-
-            // Équestres
             case EQUITATION, POLO -> 5.0;
-
-            // Aériens
             case PARACHUTISME, PARAPENTE, VOL_LIBRE -> 4.0;
-
-            // Autres
             case GOLF, BOWLING, TIRO_A_LARC, TIR, PÉTANQUE -> 3.0;
             case DANSE_SPORTIVE, ARTS_MARTIAUX -> 6.0;
-
             default -> 5.0;
         };
     }

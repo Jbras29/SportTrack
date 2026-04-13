@@ -15,6 +15,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 // On utilise @Controller au lieu de @RestController pour pouvoir renvoyer des pages HTML
 @Controller
@@ -73,11 +75,20 @@ public class EvenementController {
         boolean isParticipant = evenement.getParticipants().stream()
                 .anyMatch(p -> p.getId().equals(currentUser.getId()));
 
+        boolean afficherNomOrganisateur = utilisateurService.peutAfficherIdentiteVers(
+                evenement.getOrganisateur(), currentUser.getId());
+        Map<Long, Boolean> afficherNomParticipant = evenement.getParticipants().stream()
+                .collect(Collectors.toMap(
+                        Utilisateur::getId,
+                        p -> utilisateurService.peutAfficherIdentiteVers(p, currentUser.getId()),
+                        (a, b) -> a));
 
         model.addAttribute("evenement", evenement);
         model.addAttribute("isOrganisateur", isOrganisateur);
         model.addAttribute("isParticipant", isParticipant);
         model.addAttribute("currentUser", currentUser);
+        model.addAttribute("afficherNomOrganisateur", afficherNomOrganisateur);
+        model.addAttribute("afficherNomParticipant", afficherNomParticipant);
 
         return "evenement/detail";
     }

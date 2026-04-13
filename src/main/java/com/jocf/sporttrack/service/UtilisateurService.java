@@ -69,6 +69,7 @@ public class UtilisateurService implements UserDetailsService {
         utilisateur.setTaille(utilisateurDetails.getTaille());
         utilisateur.setObjectifsPersonnels(utilisateurDetails.getObjectifsPersonnels());
         utilisateur.setNiveauPratiqueSportive(utilisateurDetails.getNiveauPratiqueSportive());
+        utilisateur.setComptePrive(utilisateurDetails.isComptePrive());
 
         if (utilisateurDetails.getPhotoProfil() != null) {
             utilisateur.setPhotoProfil(utilisateurDetails.getPhotoProfil().isBlank()
@@ -239,6 +240,22 @@ public class UtilisateurService implements UserDetailsService {
         amis.sort(Comparator.comparing(Utilisateur::getPrenom, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
                 .thenComparing(Utilisateur::getNom, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
         return amis;
+    }
+
+    /**
+     * Indique si le visiteur peut voir le nom et l’identité complète du sujet (profil public, soi-même, ou ami si compte privé).
+     */
+    public boolean peutAfficherIdentiteVers(Utilisateur sujet, Long visiteurId) {
+        if (sujet == null || visiteurId == null) {
+            return false;
+        }
+        if (sujet.getId().equals(visiteurId)) {
+            return true;
+        }
+        if (!sujet.isComptePrive()) {
+            return true;
+        }
+        return utilisateurRepository.findAmiIdsByUtilisateurId(visiteurId).contains(sujet.getId());
     }
 
     //Supprimer un ami de la liste d'amis de l'utilisateur

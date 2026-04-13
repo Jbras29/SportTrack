@@ -90,6 +90,11 @@ public class Utilisateur {
     @Column(nullable = false)
     private TypeUtilisateur typeUtilisateur = TypeUtilisateur.UTILISATEUR;
 
+    /** Si vrai, le profil détaillé et le nom dans les listes ne sont visibles que des amis (et du compte lui-même). */
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean comptePrive = false;
+
     private String sexe;
     private Integer age;
     private Double poids;

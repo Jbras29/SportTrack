@@ -27,7 +27,6 @@
             <th:block th:each="activite : ${activitesFil}">
                 <article th:replace="~{fragments/feed-activite :: carteActivite(activite=${activite}, user=${user})}"></article>
             </th:block>
-
         </div>
 
         <div class="right-panel">
@@ -65,7 +64,7 @@
                         <div th:text="${defi.nom}">Nom du défi</div>
                         <div class="defi-meta"
                              th:if="${defi.dateDebut != null and defi.dateFin != null}"
-                             th:text="|${#dates.format(defi.dateDebut, 'dd/MM/yyyy')} — ${#dates.format(defi.dateFin, 'dd/MM/yyyy')}|">
+                             th:text="|${#temporals.format(defi.dateDebut, 'dd/MM/yyyy')} — ${#temporals.format(defi.dateFin, 'dd/MM/yyyy')}|">
                         </div>
                     </div>
                 </div>

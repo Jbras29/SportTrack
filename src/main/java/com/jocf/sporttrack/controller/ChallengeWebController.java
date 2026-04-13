@@ -10,6 +10,9 @@ import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -97,8 +100,19 @@ public String detailChallenge(@PathVariable Long id, Model model, HttpSession se
 
     Boolean reponseDuJour = challengeService.recupererReponseDuJour(id, sessionUser.id(), LocalDate.now());
 
+    List<LigneClassementChallenge> classement = challengeService.getClassement(id);
+    Map<Long, Boolean> afficherNomClassement = classement.stream()
+            .collect(Collectors.toMap(
+                    l -> l.getUtilisateur().getId(),
+                    l -> utilisateurService.peutAfficherIdentiteVers(l.getUtilisateur(), sessionUser.id()),
+                    (a, b) -> a));
+    boolean afficherNomOrganisateurChallenge = challenge.getOrganisateur() != null
+            && utilisateurService.peutAfficherIdentiteVers(challenge.getOrganisateur(), sessionUser.id());
+
     model.addAttribute("challenge", challenge);
-    model.addAttribute("classement", challengeService.getClassement(id));
+    model.addAttribute("classement", classement);
+    model.addAttribute("afficherNomClassement", afficherNomClassement);
+    model.addAttribute("afficherNomOrganisateurChallenge", afficherNomOrganisateurChallenge);
     model.addAttribute("estParticipant", estParticipant);
     model.addAttribute("sessionUser", sessionUser);
     model.addAttribute("reponseDuJour", reponseDuJour);
