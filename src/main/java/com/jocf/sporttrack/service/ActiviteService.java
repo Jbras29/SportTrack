@@ -169,62 +169,76 @@ public class ActiviteService {
     public Double calculerKilocalories(Long activiteId) {
         Activite activite = activiteRepository.findById(activiteId)
             .orElseThrow(() -> new IllegalArgumentException("Activite introuvable : " + activiteId));
-    
-            double metValue = switch (activite.getTypeSport()) {
-                // Sports d'endurance
-                case COURSE, COURSE_A_PIED, MARATHON, TRAIL -> 10.0;
-                case CYCLISME, VELO_ROUTE, VTT -> 8.0;
-                case NATATION -> 7.0;
-                case TRIATHLON, DUATHLON -> 9.0;
-                case AVIRON, KAYAK, CANOE -> 7.0;
-                case RANDONNEE, RAQUETTES -> 5.0;
-            
-                // Sports collectifs
-                case FOOTBALL, BASKETBALL, HANDBALL, RUGBY, HOCKEY_GLACE, HOCKEY_GAZON -> 8.0;
-                case VOLLEYBALL, BASEBALL, CRICKET, WATERPOLO -> 6.0;
-            
-                // Sports de raquette
-                case TENNIS, SQUASH, BADMINTON -> 7.0;
-                case PING_PONG, PADEL -> 5.0;
-            
-                // Sports de combat
-                case BOXE, MMA, MUAY_THAI, TAEKWONDO -> 10.0;
-                case JUDO, KARATE, LUTTE, JUJITSU, AIKIDO, ESCRIME -> 7.0;
-            
-                // Sports de montagne
-                case ALPINISME, ESCALADE -> 8.0;
-                case SKI_ALPIN, SNOWBOARD -> 6.0;
-                case SKI_DE_FOND -> 9.0;
-                case SURF, KITESURF, WINDSURF -> 6.0;
-                case PLONGEE -> 5.0;
-            
-                // Fitness / force
-                case MUSCULATION, CROSSFIT, POWERLIFTING, HALTÉROPHILIE, CALISTHENICS -> 6.0;
-                case YOGA, PILATES, STRETCHING -> 3.0;
-            
-                // Glisse / vitesse
-                case SKATEBOARD, ROLLER, BMX -> 5.0;
-                case PATINAGE_ARTISTIQUE, PATINAGE_VITESSE -> 6.0;
-            
-                // Équestres
-                case EQUITATION, POLO -> 5.0;
-            
-                // Aériens
-                case PARACHUTISME, PARAPENTE, VOL_LIBRE -> 4.0;
-            
-                // Autres
-                case GOLF, BOWLING, TIRO_A_LARC, TIR, PÉTANQUE -> 3.0;
-                case DANSE_SPORTIVE, ARTS_MARTIAUX -> 6.0;
-            
-                default -> 5.0;
-            };
-    
+        Double kcal = calculerKilocaloriesPourActivite(activite);
+        if (kcal == null) {
+            throw new IllegalArgumentException("Durée non renseignée pour le calcul des kilocalories");
+        }
+        return kcal;
+    }
+
+    /**
+     * Estimation MET × poids × durée (même formule que l’API). {@code null} si la durée n’est pas connue.
+     */
+    public Double calculerKilocaloriesPourActivite(Activite activite) {
+        if (activite.getTemps() == null) {
+            return null;
+        }
+        double metValue = metPourTypeSport(activite.getTypeSport());
         double poidsUtilisateur = activite.getUtilisateur().getPoids() != null
             ? activite.getUtilisateur().getPoids()
-            : 70.0; // poids par défaut si non renseigné
-    
+            : 70.0;
         double dureeEnHeures = activite.getTemps() / 60.0;
-    
         return metValue * poidsUtilisateur * dureeEnHeures;
+    }
+
+    private static double metPourTypeSport(TypeSport typeSport) {
+        return switch (typeSport) {
+            // Sports d'endurance
+            case COURSE, COURSE_A_PIED, MARATHON, TRAIL -> 10.0;
+            case CYCLISME, VELO_ROUTE, VTT -> 8.0;
+            case NATATION -> 7.0;
+            case TRIATHLON, DUATHLON -> 9.0;
+            case AVIRON, KAYAK, CANOE -> 7.0;
+            case RANDONNEE, RAQUETTES -> 5.0;
+
+            // Sports collectifs
+            case FOOTBALL, BASKETBALL, HANDBALL, RUGBY, HOCKEY_GLACE, HOCKEY_GAZON -> 8.0;
+            case VOLLEYBALL, BASEBALL, CRICKET, WATERPOLO -> 6.0;
+
+            // Sports de raquette
+            case TENNIS, SQUASH, BADMINTON -> 7.0;
+            case PING_PONG, PADEL -> 5.0;
+
+            // Sports de combat
+            case BOXE, MMA, MUAY_THAI, TAEKWONDO -> 10.0;
+            case JUDO, KARATE, LUTTE, JUJITSU, AIKIDO, ESCRIME -> 7.0;
+
+            // Sports de montagne
+            case ALPINISME, ESCALADE -> 8.0;
+            case SKI_ALPIN, SNOWBOARD -> 6.0;
+            case SKI_DE_FOND -> 9.0;
+            case SURF, KITESURF, WINDSURF -> 6.0;
+            case PLONGEE -> 5.0;
+
+            // Fitness / force
+            case MUSCULATION, CROSSFIT, POWERLIFTING, HALTÉROPHILIE, CALISTHENICS -> 6.0;
+            case YOGA, PILATES, STRETCHING -> 3.0;
+
+            // Glisse / vitesse
+            case SKATEBOARD, ROLLER, BMX -> 5.0;
+            case PATINAGE_ARTISTIQUE, PATINAGE_VITESSE -> 6.0;
+
+            // Équestres
+            case EQUITATION, POLO -> 5.0;
+
+            // Aériens
+            case PARACHUTISME, PARAPENTE, VOL_LIBRE -> 4.0;
+
+            // Autres
+            case GOLF, BOWLING, TIRO_A_LARC, TIR, PÉTANQUE -> 3.0;
+            case DANSE_SPORTIVE, ARTS_MARTIAUX -> 6.0;
+
+            default -> 5.0;
+        };
     }
 }
