@@ -165,7 +165,7 @@ class ActiviteServiceTest {
         when(activiteRepository.save(any(Activite.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Activite resultat = activiteService.creerActivite(
-                1L, "Course", TypeSport.COURSE, date, distanceKm, minutes, "Parc", 4);
+                1L, "Course", TypeSport.COURSE, date, distanceKm, minutes, "Parc", 4, null);
 
         assertEquals(xpAttendu, resultat.getXpGagne());
         verify(utilisateurService).crediterExperience(utilisateur, xpAttendu);
@@ -205,7 +205,7 @@ class ActiviteServiceTest {
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
                 () -> activiteService.creerActivite(
-                        1L, "Futur", TypeSport.COURSE, demain, 5.0, 30, "Lieu", 3));
+                        1L, "Futur", TypeSport.COURSE, demain, 5.0, 30, "Lieu", 3, null));
 
         assertEquals("La date de l'activité ne peut pas être dans le futur.", exception.getMessage());
         verify(utilisateurRepository, never()).findById(any());

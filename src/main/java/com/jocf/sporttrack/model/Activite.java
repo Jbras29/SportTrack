@@ -9,6 +9,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
@@ -60,6 +62,8 @@ public class Activite {
 
     private Integer evaluation;
 
+    
+    
     /** XP attribuée à l’enregistrement de cette activité (historique / affichage). */
     private Integer xpGagne;
 
@@ -162,5 +166,17 @@ public class Activite {
         }
         return counts;
     }
+
+    public static int getLimiteReactionsAffichees() {
+        return LIMITE_REACTIONS_AFFICHEES;
+    }
     
+    @ManyToMany
+    @JoinTable(
+        name = "activite_utilisateurs_invites",
+        joinColumns = @JoinColumn(name = "activite_id"),
+        inverseJoinColumns = @JoinColumn(name = "utilisateur_id")
+    )
+@Builder.Default
+private List<Utilisateur> invites = new ArrayList<>();
 }

@@ -6,10 +6,8 @@ import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.ActiviteService;
 import com.jocf.sporttrack.service.PrefSportiveService;
 import com.jocf.sporttrack.service.UtilisateurService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +16,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.security.core.Authentication;
-
 
 @Controller
 @RequestMapping("/activites")
@@ -72,16 +70,18 @@ public class ActiviteController {
 
     @GetMapping("/create")
     public String createActivite(Model model, Authentication authentication) {
-
         model.addAttribute("typesSportifs", TypeSport.values());
+
         if (authentication != null && authentication.isAuthenticated()) {
             Utilisateur user = utilisateurService.trouverParEmail(authentication.getName());
             model.addAttribute("user", user);
+            model.addAttribute("amis", user.getAmis() != null ? user.getAmis() : Collections.emptyList());
+        } else {
+            model.addAttribute("amis", Collections.emptyList());
         }
 
         return "activity/create";
     }
-    
 
     @PostMapping
     @Operation(summary = "Créer une nouvelle activité")
@@ -93,9 +93,20 @@ public class ActiviteController {
             @RequestParam(required = false) Double distance,
             @RequestParam(required = false) Integer temps,
             @RequestParam(required = false) String location,
-            @RequestParam(required = false) Integer evaluation) {
+            @RequestParam(required = false) Integer evaluation,
+            @RequestParam(required = false) List<Long> invitesIds) {
         try {
-            activiteService.creerActivite(utilisateurId, nom, typeSport, date, distance, temps, location, evaluation);
+            activiteService.creerActivite(
+                    utilisateurId,
+                    nom,
+                    typeSport,
+                    date,
+                    distance,
+                    temps,
+                    location,
+                    evaluation,
+                    invitesIds
+            );
             return "redirect:/profile";
         } catch (IllegalArgumentException e) {
             return "redirect:/activites/create?erreur=" + e.getMessage();
@@ -124,15 +135,14 @@ public class ActiviteController {
         }
     }
 
-
     @GetMapping("/{id}/kilocalories")
-@Operation(summary = "Calculer les kilocalories dépensées pour une activité")
-public ResponseEntity<Double> getKilocalories(@PathVariable Long id) {
-    try {
-        Double kcal = activiteService.calculerKilocalories(id);
-        return ResponseEntity.ok(kcal);
-    } catch (IllegalArgumentException e) {
-        return ResponseEntity.notFound().build();
+    @Operation(summary = "Calculer les kilocalories dépensées pour une activité")
+    public ResponseEntity<Double> getKilocalories(@PathVariable Long id) {
+        try {
+            Double kcal = activiteService.calculerKilocalories(id);
+            return ResponseEntity.ok(kcal);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
-}
 }
