@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class PhotoProfilStorageService {
 
-    private static final long TAILLE_MAX_OCTETS = 2 * 1024 * 1024;
+    private static final long TAILLE_MAX_OCTETS = 2L * 1024 * 1024;
 
     private final Path repertoireUpload;
 
