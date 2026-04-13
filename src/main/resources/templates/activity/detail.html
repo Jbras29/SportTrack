@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activité enregistrée | Sport Track</title>
+    <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        .detail-wrapper {
+            max-width: 640px;
+            margin: 2.5rem auto;
+            padding: 0 1rem;
+        }
+
+        .success-banner {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            border-radius: 14px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            box-shadow: 0 4px 20px rgba(16,185,129,0.25);
+            animation: slideDown 0.4s ease;
+        }
+        .success-banner svg { flex-shrink: 0; }
+
+        @keyframes slideDown {
+            from { transform: translateY(-12px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+
+        .detail-card {
+            background: var(--bg-card, #1e2433);
+            border-radius: 18px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            border: 1px solid var(--border, rgba(255,255,255,0.07));
+        }
+
+        .detail-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0 0 0.25rem;
+        }
+        .detail-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.6;
+            margin: 0 0 1.75rem;
+        }
+
+        .detail-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .dstat {
+            background: var(--bg-elevated, rgba(255,255,255,0.04));
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            border: 1px solid var(--border, rgba(255,255,255,0.07));
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .dstat:hover { transform: translateY(-2px); }
+        .dstat-icon { font-size: 1.6rem; margin-bottom: 0.4rem; }
+        .dstat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .dstat-label {
+            font-size: 0.72rem;
+            font-weight: 500;
+            opacity: 0.55;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.2rem;
+        }
+
+        .meteo-block {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: linear-gradient(135deg, rgba(99,179,237,0.12), rgba(66,153,225,0.06));
+            border: 1px solid rgba(99,179,237,0.2);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.75rem;
+        }
+        .meteo-icon { font-size: 2.5rem; }
+        .meteo-info h4 { margin: 0 0 0.2rem; font-size: 1rem; font-weight: 700; }
+        .meteo-info p  { margin: 0; font-size: 0.82rem; opacity: 0.65; }
+
+        .no-meteo {
+            background: rgba(255,255,255,0.03);
+            border: 1px dashed rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 0.9rem 1.25rem;
+            font-size: 0.85rem;
+            opacity: 0.55;
+            margin-bottom: 1.75rem;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .btn-primary-detail {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.7rem 1.4rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .btn-primary-detail:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-secondary-detail {
+            background: var(--bg-elevated, rgba(255,255,255,0.06));
+            color: inherit;
+            border: 1px solid var(--border, rgba(255,255,255,0.1));
+            border-radius: 10px;
+            padding: 0.7rem 1.4rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .btn-secondary-detail:hover { background: rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="app-shell">
+
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+
+    <div class="main-wrapper main-wrapper--centered">
+        <div class="detail-wrapper">
+
+            <!-- Bannière succès -->
+            <div class="success-banner">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Activité enregistrée avec succès !
+            </div>
+
+            <div class="detail-card">
+                <!-- Titre -->
+                <h1 class="detail-title" th:text="${activite.nom}">Nom de l'activité</h1>
+                <p class="detail-subtitle"
+                   th:text="${#strings.capitalizeWords(#strings.replace(activite.typeSport.name(),'_',' ').toLowerCase())}
+                              + ' • '
+                              + ${#temporals.format(activite.date, 'dd MMMM yyyy')}">
+                    Course • 13 avril 2026
+                </p>
+
+                <!-- Stats chiffrées -->
+                <div class="detail-stats">
+                    <div class="dstat" th:if="${activite.distance != null}">
+                        <div class="dstat-icon">📍</div>
+                        <div class="dstat-value" th:text="${#numbers.formatDecimal(activite.distance,1,1)} + ' km'">0 km</div>
+                        <div class="dstat-label">Distance</div>
+                    </div>
+
+                    <div class="dstat" th:if="${activite.temps != null}">
+                        <div class="dstat-icon">⏱️</div>
+                        <div class="dstat-value" th:text="|${activite.temps / 60}h ${activite.temps % 60}m|">0h 0m</div>
+                        <div class="dstat-label">Durée</div>
+                    </div>
+
+                    <div class="dstat" th:if="${activite.calories != null}">
+                        <div class="dstat-icon">🔥</div>
+                        <div class="dstat-value" th:text="${activite.calories} + ' kcal'">0 kcal</div>
+                        <div class="dstat-label">Calories brûlées</div>
+                    </div>
+
+                    <div class="dstat" th:if="${activite.xpGagne != null}">
+                        <div class="dstat-icon">⚡</div>
+                        <div class="dstat-value" th:text="'+ ' + ${activite.xpGagne} + ' XP'">+ 0 XP</div>
+                        <div class="dstat-label">XP gagnée</div>
+                    </div>
+
+                    <div class="dstat" th:if="${activite.evaluation != null and activite.evaluation > 0}">
+                        <div class="dstat-icon">⭐</div>
+                        <div class="dstat-value" th:text="${activite.evaluation} + ' / 5'">0 / 5</div>
+                        <div class="dstat-label">Évaluation</div>
+                    </div>
+                </div>
+
+                <!-- Bloc météo -->
+                <div class="meteo-block"
+                     th:if="${activite.meteoCondition != null}">
+                    <div class="meteo-icon"
+                         th:text="${activite.meteoCondition == 'Ensoleillé' ? '☀️' :
+                                    activite.meteoCondition == 'Nuageux' ? '☁️' :
+                                    activite.meteoCondition == 'Pluie' or activite.meteoCondition == 'Averses de pluie' or activite.meteoCondition == 'Bruine' ? '🌧️' :
+                                    activite.meteoCondition == 'Neige' or activite.meteoCondition == 'Averses de neige' ? '❄️' :
+                                    activite.meteoCondition == 'Orage' ? '⛈️' :
+                                    activite.meteoCondition == 'Brouillard' ? '🌫️' : '🌡️'}">☀️</div>
+                    <div class="meteo-info">
+                        <h4 th:text="'Météo le jour de la séance : ' + ${activite.meteoCondition}">Ensoleillé</h4>
+                        <p th:text="'Température moyenne : ' + ${activite.meteoTemperature} + '°C  •  Lieu : ' + ${activite.location}">
+                            Température : 18°C • Paris
+                        </p>
+                    </div>
+                </div>
+
+                <div class="no-meteo"
+                     th:if="${activite.meteoCondition == null}">
+                    🌍 Aucune donnée météo disponible
+                    <span th:if="${activite.location == null or activite.location.isBlank()}"> — renseignez un lieu lors de la prochaine activité.</span>
+                    <span th:if="${activite.location != null and !activite.location.isBlank()}"> — la ville « <strong th:text="${activite.location}"></strong> » n'a pas pu être géocodée.</span>
+                </div>
+
+                <!-- Actions -->
+                <div class="detail-actions">
+                    <a th:href="@{/activites/create}" class="btn-primary-detail">
+                        ➕ Nouvelle activité
+                    </a>
+                    <a th:href="@{/profile}" class="btn-secondary-detail">
+                        👤 Mon profil
+                    </a>
+                    <a th:href="@{/}" class="btn-secondary-detail">
+                        🏠 Accueil
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

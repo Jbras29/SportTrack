@@ -48,6 +48,7 @@ public class OpenMeteoService {
             JsonNode geoNode = objectMapper.readTree(geoResponseStr);
 
             if (!geoNode.has("results") || geoNode.get("results").size() == 0) {
+                System.err.println("OpenMeteoService : ville introuvable pour -> " + location);
                 return null;
             }
 
@@ -55,9 +56,19 @@ public class OpenMeteoService {
             double lat = resultNode.get("latitude").asDouble();
             double lon = resultNode.get("longitude").asDouble();
 
-            // 2. Weather
+            // 2. Weather — archive pour les dates passées, forecast pour aujourd'hui/futur
             String dateStr = date.toString();
-            String weatherUrl = UriComponentsBuilder.fromUriString("https://api.open-meteo.com/v1/forecast")
+            LocalDate today = LocalDate.now();
+            String baseUrl;
+            if (date.isBefore(today)) {
+                // API d'archive historique
+                baseUrl = "https://archive-api.open-meteo.com/v1/archive";
+            } else {
+                // API de prévision
+                baseUrl = "https://api.open-meteo.com/v1/forecast";
+            }
+
+            String weatherUrl = UriComponentsBuilder.fromUriString(baseUrl)
                     .queryParam("latitude", lat)
                     .queryParam("longitude", lon)
                     .queryParam("daily", "weathercode,temperature_2m_max,temperature_2m_min")
@@ -70,18 +81,24 @@ public class OpenMeteoService {
             JsonNode weatherNode = objectMapper.readTree(weatherResponseStr);
 
             if (!weatherNode.has("daily")) {
-                return null; // Could not fetch daily forecast
+                System.err.println("OpenMeteoService : pas de données 'daily' dans la réponse.");
+                return null;
             }
             JsonNode dailyNode = weatherNode.get("daily");
+
+            if (dailyNode.get("temperature_2m_max").size() == 0) {
+                System.err.println("OpenMeteoService : données météo vides pour la date " + dateStr);
+                return null;
+            }
 
             double tMax = dailyNode.get("temperature_2m_max").get(0).asDouble();
             double tMin = dailyNode.get("temperature_2m_min").get(0).asDouble();
             int weatherCode = dailyNode.get("weathercode").get(0).asInt();
 
             double avgTemp = (tMax + tMin) / 2.0;
-
             String condition = getWeatherConditionFromCode(weatherCode);
 
+            System.out.println("OpenMeteoService OK : " + location + " le " + dateStr + " → " + condition + " " + avgTemp + "°C");
             return new WeatherInfo(Math.round(avgTemp * 10.0) / 10.0, condition);
 
         } catch (Exception e) {

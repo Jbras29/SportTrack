@@ -7,6 +7,36 @@
     <th:block th:replace="~{fragments/theme-head :: themeHead}"></th:block>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        #meteo-preview-block {
+            display: none;
+            align-items: center;
+            gap: 0.9rem;
+            background: linear-gradient(135deg, rgba(99,179,237,0.10), rgba(66,153,225,0.05));
+            border: 1px solid rgba(99,179,237,0.18);
+            border-radius: 12px;
+            padding: 0.85rem 1.1rem;
+            margin-top: 0.6rem;
+            transition: all 0.35s ease;
+            animation: fadeInMeteo 0.3s ease;
+        }
+        #meteo-preview-block.visible { display: flex; }
+        @keyframes fadeInMeteo {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        #meteo-preview-icon { font-size: 2rem; line-height: 1; }
+        #meteo-preview-text strong { display: block; font-size: 0.92rem; font-weight: 700; }
+        #meteo-preview-text span   { font-size: 0.78rem; opacity: 0.6; }
+        #meteo-loading {
+            display: none;
+            font-size: 0.78rem;
+            opacity: 0.55;
+            margin-top: 0.4rem;
+            padding-left: 0.1rem;
+        }
+        #meteo-loading.visible { display: block; }
+    </style>
 </head>
 <body class="app-shell activity-create-page">
 
@@ -65,8 +95,18 @@
                     </div>
 
                     <div class="form-group full-width">
-                        <label for="location">Ville / Lieu</label>
-                        <input type="text" id="location" name="location" placeholder="Ex: Paris, Toulouse...">
+                        <label for="location">Ville / Lieu
+                            <span style="font-size:0.75rem;opacity:0.55;font-weight:500;"> — pour récupérer la météo</span>
+                        </label>
+                        <input type="text" id="location" name="location" placeholder="Ex: Paris, Toulouse..." autocomplete="off">
+                        <div id="meteo-loading">🔎 Recherche météo...</div>
+                        <div id="meteo-preview-block" role="status" aria-live="polite">
+                            <div id="meteo-preview-icon">🌡️</div>
+                            <div id="meteo-preview-text">
+                                <strong id="meteo-preview-condition">—</strong>
+                                <span id="meteo-preview-temp">—</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group full-width">

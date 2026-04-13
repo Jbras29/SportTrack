@@ -241,4 +241,42 @@ public class ActiviteService {
             default -> 5.0;
         };
     }
+
+    /**
+     * Recalcule et persiste les calories + météo pour toutes les activités qui
+     * n'ont pas encore ces informations (utile pour les données historiques).
+     * Retourne le nombre d'activités mises à jour.
+     */
+    public int recalculerMeteoEtCaloriesPourToutesLesActivites() {
+        List<Activite> toutes = activiteRepository.findAll();
+        int count = 0;
+        for (Activite activite : toutes) {
+            boolean modifie = false;
+
+            // Calories manquantes
+            if (activite.getCalories() == null && activite.getTemps() != null && activite.getTemps() > 0) {
+                activite.setCalories(calculerKcalPourActivite(activite));
+                modifie = true;
+            }
+
+            // Météo manquante et lieu disponible
+            if (activite.getMeteoCondition() == null
+                    && activite.getLocation() != null
+                    && !activite.getLocation().isBlank()) {
+                OpenMeteoService.WeatherInfo meteo =
+                        openMeteoService.getWeatherForLocationAndDate(activite.getLocation(), activite.getDate());
+                if (meteo != null) {
+                    activite.setMeteoTemperature(meteo.temperature);
+                    activite.setMeteoCondition(meteo.condition);
+                    modifie = true;
+                }
+            }
+
+            if (modifie) {
+                activiteRepository.save(activite);
+                count++;
+            }
+        }
+        return count;
+    }
 }

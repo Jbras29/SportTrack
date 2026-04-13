@@ -16,9 +16,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import com.jocf.sporttrack.service.OpenMeteoService;
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.security.core.Authentication;
 
@@ -36,6 +39,9 @@ public class ActiviteController {
     @Autowired
     private UtilisateurService utilisateurService;
 
+    @Autowired
+    private OpenMeteoService openMeteoService;
+
     @GetMapping
     @Operation(summary = "Récupérer toutes les activités")
     public ResponseEntity<List<Activite>> getAllActivites() {
@@ -44,11 +50,24 @@ public class ActiviteController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Récupérer une activité par ID")
+    @Operation(summary = "Récupérer une activité par ID (JSON)")
+    @ResponseBody
     public ResponseEntity<Activite> getActiviteById(@PathVariable Long id) {
         return activiteService.trouverParId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** Vue HTML de détail d'une activité avec météo + calories (redirigé après création) */
+    @GetMapping("/{id}/detail")
+    public String detailActivite(@PathVariable Long id, Model model, Authentication authentication) {
+        return activiteService.trouverParId(id).map(activite -> {
+            model.addAttribute("activite", activite);
+            if (authentication != null && authentication.isAuthenticated()) {
+                model.addAttribute("user", utilisateurService.trouverParEmail(authentication.getName()));
+            }
+            return "activity/detail";
+        }).orElse("redirect:/profile");
     }
 
     @GetMapping("/utilisateur/{utilisateurId}")
@@ -97,7 +116,7 @@ public class ActiviteController {
             @RequestParam(required = false) Integer evaluation,
             @RequestParam(required = false) List<Long> invitesIds) {
         try {
-            activiteService.creerActivite(
+            Activite created = activiteService.creerActivite(
                     utilisateurId,
                     nom,
                     typeSport,
@@ -108,7 +127,8 @@ public class ActiviteController {
                     evaluation,
                     invitesIds
             );
-            return "redirect:/profile";
+            // Redirige vers la page de confirmation qui affiche météo + calories
+            return "redirect:/activites/" + created.getId() + "/detail";
         } catch (IllegalArgumentException e) {
             return "redirect:/activites/create?erreur=" + e.getMessage();
         }
@@ -145,5 +165,31 @@ public class ActiviteController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping("/admin/recalculer-meteo-calories")
+    @Operation(summary = "Recalcule les calories et météo sur toutes les activités existantes (admin)")
+    public ResponseEntity<String> recalculerMeteoEtCalories() {
+        int nb = activiteService.recalculerMeteoEtCaloriesPourToutesLesActivites();
+        return ResponseEntity.ok("Mise à jour : " + nb + " activité(s) enrichie(s).");
+    }
+
+    /** Endpoint JSON appelé par le JS du formulaire pour prévisualiser la météo */
+    @GetMapping("/api/meteo-preview")
+    @ResponseBody
+    @Operation(summary = "Prévisualisation météo pour le formulaire (JSON)")
+    public ResponseEntity<Map<String, Object>> meteoPreview(
+            @RequestParam String location,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        OpenMeteoService.WeatherInfo info = openMeteoService.getWeatherForLocationAndDate(location, date);
+        Map<String, Object> result = new HashMap<>();
+        if (info != null) {
+            result.put("ok", true);
+            result.put("condition", info.condition);
+            result.put("temperature", info.temperature);
+        } else {
+            result.put("ok", false);
+        }
+        return ResponseEntity.ok(result);
     }
 }
