@@ -213,10 +213,16 @@ class ActiviteServiceTest {
 
     @Test
     void modifierActiviteMetAJourLesDetails() {
+        Utilisateur testUser = Utilisateur.builder()
+                .id(1L)
+                .poids(70.0)
+                .build();
+
         Activite existante = Activite.builder()
                 .id(1L)
                 .nom("Ancien Nom")
                 .typeSport(TypeSport.COURSE)
+                .utilisateur(testUser)
                 .build();
         Activite updates = Activite.builder()
                 .nom("Nouveau Nom")
