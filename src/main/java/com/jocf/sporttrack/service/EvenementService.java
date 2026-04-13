@@ -22,11 +22,13 @@ public class EvenementService {
 
     private final EvenementRepository evenementRepository;
     private final UtilisateurRepository utilisateurRepository;
+    private final AnnonceRepository annonceRepository;
 
     @Autowired
-    public EvenementService(EvenementRepository evenementRepository, UtilisateurRepository utilisateurRepository) {
+    public EvenementService(EvenementRepository evenementRepository, UtilisateurRepository utilisateurRepository, AnnonceRepository annonceRepository) {
         this.evenementRepository = evenementRepository;
         this.utilisateurRepository = utilisateurRepository;
+        this.annonceRepository = annonceRepository;
     }
 
     // Crée un nouvel événement et associe l'utilisateur comme organisateur
@@ -98,9 +100,8 @@ public class EvenementService {
     }
 
 
-    // ... autres injections (EvenementRepository, etc.)
-    @Autowired
-    private AnnonceRepository annonceRepository;
+
+
 
     // 1. Publier une annonce
     @Transactional
@@ -165,7 +166,7 @@ public class EvenementService {
         evenementRepository.save(evenement);
     }
 
-    /** 🚀 Supprimer un événement par son ID. */
+
     @Transactional
     public void supprimer(Long id) {
         // En JPA, la suppression simple suffit si les cascades sont bien configurées
