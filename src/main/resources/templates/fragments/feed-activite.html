@@ -23,6 +23,8 @@
                 <span th:text="${#temporals.format(activite.date, 'dd/MM/yyyy')}">01/01/2025</span>
                 <span th:if="${activite.location != null and !activite.location.isBlank()}"
                       th:text="| • ${activite.location}|"></span>
+                <span th:if="${activite.meteoCondition != null}"
+                      th:text="| • ${activite.meteoCondition} (${activite.meteoTemperature}°C)|"></span>
                 <span th:text="| • ${#strings.replace(activite.typeSport.name(), '_', ' ')}|"></span>
             </p>
         </div>
@@ -53,6 +55,14 @@
         <div class="stat-item" th:unless="${activite.distance != null and activite.distance > 0 and activite.temps != null and activite.temps > 0}">
             <div class="value">—</div>
             <div class="label">Allure</div>
+        </div>
+        <div class="stat-item" th:if="${activite.calories != null}">
+            <div class="value" th:text="${activite.calories}">0</div>
+            <div class="label">Kcal</div>
+        </div>
+        <div class="stat-item" th:unless="${activite.calories != null}">
+            <div class="value">—</div>
+            <div class="label">Kcal</div>
         </div>
     </div>
 

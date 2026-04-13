@@ -164,6 +164,8 @@
                                     <span th:text="${#temporals.format(activite.date, 'dd/MM/yyyy')}">01/01/2026</span>
                                     <span th:if="${activite.distance != null}"> • <span th:text="${#numbers.formatDecimal(activite.distance, 1, 1)} + ' km'">0 km</span></span>
                                     <span th:if="${activite.temps != null}"> • <span th:text="|${activite.temps / 60}h ${activite.temps % 60}m|">0h 0m</span></span>
+                                    <span th:if="${activite.calories != null}"> • <span th:text="${activite.calories} + ' kcal'"></span></span>
+                                    <span th:if="${activite.meteoCondition != null}"> • <span th:text="${activite.meteoCondition} + ' (' + ${activite.meteoTemperature} + '°C)'"></span></span>
                                 </div>
                             </div>
                         </div>

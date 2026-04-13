@@ -63,6 +63,12 @@ public class Activite {
     /** XP attribuée à l’enregistrement de cette activité (historique / affichage). */
     private Integer xpGagne;
 
+    private Double calories;
+
+    private Double meteoTemperature;
+
+    private String meteoCondition;
+
     @ManyToOne
     @JoinColumn(name = "utilisateur_id", nullable = false)
     private Utilisateur utilisateur;
