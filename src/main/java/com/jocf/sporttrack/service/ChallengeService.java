@@ -171,4 +171,11 @@ public void supprimerChallengeSiOrganisateur(Long challengeId, Long utilisateurI
     challengeSaisieQuotidienneRepository.deleteByChallenge(challenge);
     challengeRepository.delete(challenge);
 }
+
+
+
+    public List<Challenge> trouverChallengesTerminesLe(java.time.LocalDate date) {
+        java.sql.Date sqlDate = java.sql.Date.valueOf(date);
+        return challengeRepository.findByDateFin(sqlDate);
+    }
 }
