@@ -8,12 +8,17 @@ import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.ActiviteRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 @Service
 public class ActiviteService {
 
@@ -53,7 +58,7 @@ public class ActiviteService {
     }
 
     public List<Activite> recupererActivitesPourProfil(Utilisateur utilisateur) {
-        return activiteRepository.findByUtilisateurOrderByDateDesc(utilisateur);
+        return activiteRepository.findByUtilisateurOuInvitesOrderByDateDesc(utilisateur);
     }
 
     public List<Activite> recupererActivitesParTypeSport(TypeSport typeSport) {
@@ -81,6 +86,7 @@ public class ActiviteService {
         return activiteRepository.findByUtilisateurIdsWithUtilisateurOrderByDateDesc(ids);
     }
 
+    @Transactional
     public Activite creerActivite(CreerActiviteCommand cmd) {
         verifierDateActiviteNonFuture(cmd.date());
 
@@ -92,9 +98,7 @@ public class ActiviteService {
         double distanceKm = Utilisateur.distanceEnKmPourFormuleXp(distanceBrute);
         int xpGagne = Utilisateur.calculerXpGagnePourActivite(distanceKm, dureeMin);
 
-        List<Utilisateur> invites = cmd.invitesIds() != null
-                ? utilisateurRepository.findAllById(cmd.invitesIds())
-                : new ArrayList<>();
+        List<Utilisateur> invites = chargerInvites(cmd.invitesIds(), utilisateur.getId());
 
         Activite activite = Activite.builder()
                 .nom(cmd.nom())
@@ -120,10 +124,12 @@ public class ActiviteService {
 
         Activite sauvegardee = activiteRepository.save(activite);
         utilisateurService.crediterExperience(utilisateur, xpGagne);
+        crediterExperiencePourInvites(invites, utilisateur.getId(), xpGagne);
         activiteBadgeEvaluationService.evaluerEtAttribuerBadges(sauvegardee);
         return sauvegardee;
     }
 
+    @Transactional
     public Activite creerActivite(Long utilisateurId, String nom, TypeSport typeSport, LocalDate date) {
         verifierDateActiviteNonFuture(date);
 
@@ -146,13 +152,19 @@ public class ActiviteService {
         return sauvegardee;
     }
 
+    @Transactional
     public Activite modifierActivite(Long id, ModifierActiviteRequest req) {
-        Activite activite = activiteRepository.findById(id)
+        Activite activite = activiteRepository.findByIdAvecUtilisateurEtInvites(id)
                 .orElseThrow(() -> new IllegalArgumentException("Activite introuvable : " + id));
 
         if (req.date() != null) {
             verifierDateActiviteNonFuture(req.date());
         }
+
+        Set<Long> anciensInvitesIds = activite.getInvites().stream()
+                .filter(invite -> invite.getId() != null)
+                .map(Utilisateur::getId)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         activite.setNom(req.nom());
         activite.setTypeSport(req.typeSport());
@@ -161,7 +173,8 @@ public class ActiviteService {
         activite.setDate(req.date());
         activite.setLocation(req.location());
         activite.setEvaluation(req.evaluation());
-        activite.setInvites(new ArrayList<>(utilisateurRepository.findAllById(req.inviteIds())));
+        List<Utilisateur> nouveauxInvites = chargerInvites(req.inviteIds(), activite.getUtilisateur().getId());
+        activite.setInvites(nouveauxInvites);
 
         activite.setCalories(calculerKcalPourActivite(activite));
 
@@ -174,7 +187,14 @@ public class ActiviteService {
             }
         }
 
-        return activiteRepository.save(activite);
+        Activite sauvegardee = activiteRepository.save(activite);
+        crediterExperiencePourInvites(
+                nouveauxInvites.stream()
+                        .filter(invite -> invite.getId() != null && !anciensInvitesIds.contains(invite.getId()))
+                        .toList(),
+                activite.getUtilisateur().getId(),
+                sauvegardee.getXpGagne() != null ? sauvegardee.getXpGagne() : 0);
+        return sauvegardee;
     }
 
     public void supprimerActivite(Long id) {
@@ -277,5 +297,36 @@ public class ActiviteService {
             }
         }
         return count;
+    }
+
+    private List<Utilisateur> chargerInvites(List<Long> invitesIds, Long utilisateurPrincipalId) {
+        if (invitesIds == null || invitesIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Set<Long> idsUniques = invitesIds.stream()
+                .filter(id -> id != null && !id.equals(utilisateurPrincipalId))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (idsUniques.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return new ArrayList<>(utilisateurRepository.findAllById(idsUniques));
+    }
+
+    private void crediterExperiencePourInvites(List<Utilisateur> invites, Long auteurId, int montantXp) {
+        if (montantXp <= 0 || invites == null || invites.isEmpty()) {
+            return;
+        }
+
+        Set<Long> dejaCredites = new HashSet<>();
+        for (Utilisateur invite : invites) {
+            if (invite == null || invite.getId() == null || invite.getId().equals(auteurId)) {
+                continue;
+            }
+            if (dejaCredites.add(invite.getId())) {
+                utilisateurService.crediterExperience(invite, montantXp);
+            }
+        }
     }
 }

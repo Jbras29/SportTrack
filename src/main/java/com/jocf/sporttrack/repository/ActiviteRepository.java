@@ -35,8 +35,25 @@ public interface ActiviteRepository extends JpaRepository<Activite, Long> {
     @EntityGraph(attributePaths = {"utilisateur", "invites"})
     List<Activite> findByUtilisateurOrderByDateDesc(Utilisateur utilisateur);
 
+    @Query("""
+            SELECT DISTINCT a FROM Activite a
+            JOIN FETCH a.utilisateur u
+            LEFT JOIN FETCH a.invites
+            WHERE u = :utilisateur OR :utilisateur MEMBER OF a.invites
+            ORDER BY a.date DESC
+            """)
+    List<Activite> findByUtilisateurOuInvitesOrderByDateDesc(@Param("utilisateur") Utilisateur utilisateur);
+
     // Une activité par son id (déjà fourni par JpaRepository via findById)
     Optional<Activite> findById(Long id);
+
+    @Query("""
+            SELECT DISTINCT a FROM Activite a
+            LEFT JOIN FETCH a.utilisateur
+            LEFT JOIN FETCH a.invites
+            WHERE a.id = :id
+            """)
+    Optional<Activite> findByIdAvecUtilisateurEtInvites(@Param("id") Long id);
 
     // Dernière activité d'un utilisateur (par date décroissante)
     Optional<Activite> findTopByUtilisateurOrderByDateDesc(Utilisateur utilisateur);
