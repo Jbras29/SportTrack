@@ -1,13 +1,16 @@
 package com.jocf.sporttrack;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootTest
+import static org.assertj.core.api.Assertions.assertThat;
+
 class SporttrackApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void annotationsPrincipales_sontPresentes() {
+        assertThat(SporttrackApplication.class.isAnnotationPresent(SpringBootApplication.class)).isTrue();
+        assertThat(SporttrackApplication.class.isAnnotationPresent(EnableScheduling.class)).isTrue();
+    }
 }

@@ -92,6 +92,44 @@ class DtoCoverageTest {
     }
 
     @Nested
+    class ActiviteFiltreTest {
+
+        @Test
+        void accessors() {
+            Utilisateur utilisateur = Utilisateur.builder()
+                    .id(4L)
+                    .nom("Doe")
+                    .prenom("Jane")
+                    .email("jane@test.com")
+                    .motdepasse("x")
+                    .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
+                    .build();
+            LocalDate debut = LocalDate.of(2026, 1, 1);
+            LocalDate fin = LocalDate.of(2026, 1, 31);
+            ActiviteFiltre filtre = new ActiviteFiltre(
+                    utilisateur,
+                    TypeSport.COURSE,
+                    1.0,
+                    10.0,
+                    20,
+                    60,
+                    debut,
+                    fin,
+                    "Paris");
+
+            assertThat(filtre.utilisateur()).isSameAs(utilisateur);
+            assertThat(filtre.typeSport()).isEqualTo(TypeSport.COURSE);
+            assertThat(filtre.distanceMin()).isEqualTo(1.0);
+            assertThat(filtre.distanceMax()).isEqualTo(10.0);
+            assertThat(filtre.tempsMin()).isEqualTo(20);
+            assertThat(filtre.tempsMax()).isEqualTo(60);
+            assertThat(filtre.dateDebut()).isEqualTo(debut);
+            assertThat(filtre.dateFin()).isEqualTo(fin);
+            assertThat(filtre.location()).isEqualTo("Paris");
+        }
+    }
+
+    @Nested
     class CreerCompteRequestTest {
 
         @Test
@@ -114,6 +152,35 @@ class DtoCoverageTest {
             assertThat(req.getAge()).isEqualTo(30);
             assertThat(req.getPoids()).isEqualTo(70.5);
             assertThat(req.getTaille()).isEqualTo(1.75);
+        }
+    }
+
+    @Nested
+    class CreerActiviteCommandTest {
+
+        @Test
+        void accessors() {
+            LocalDate date = LocalDate.of(2026, 2, 10);
+            CreerActiviteCommand command = new CreerActiviteCommand(
+                    2L,
+                    "Footing",
+                    TypeSport.COURSE,
+                    date,
+                    12.5,
+                    55,
+                    "Paris",
+                    4,
+                    List.of(7L, 8L));
+
+            assertThat(command.utilisateurId()).isEqualTo(2L);
+            assertThat(command.nom()).isEqualTo("Footing");
+            assertThat(command.typeSport()).isEqualTo(TypeSport.COURSE);
+            assertThat(command.date()).isEqualTo(date);
+            assertThat(command.distance()).isEqualTo(12.5);
+            assertThat(command.temps()).isEqualTo(55);
+            assertThat(command.location()).isEqualTo("Paris");
+            assertThat(command.evaluation()).isEqualTo(4);
+            assertThat(command.invitesIds()).containsExactly(7L, 8L);
         }
     }
 
