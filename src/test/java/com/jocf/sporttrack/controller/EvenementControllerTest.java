@@ -799,5 +799,77 @@ class EvenementControllerTest {
                     .andExpect(status().isOk());
             verify(evenementService).supprimer(10L);
         }
+
+        /**
+         * Test pour couvrir la branche 'if (principal instanceof UserDetails)'
+         * dans la méthode privée verifierSiOrganisateur.
+         */
+        @Test
+        void verifierSiOrganisateur_Couverture_UserDetails() throws Exception {
+            // GIVEN
+            String email = "user@test.com";
+            /* On crée un vrai objet UserDetails */
+            UserDetails principal = org.springframework.security.core.userdetails.User
+                    .withUsername(email)
+                    .password("p")
+                    .authorities(new java.util.ArrayList<>())
+                    .build();
+
+            /* On l'injecte dans le contexte */
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
+
+            // IMPORTANT : Le service doit retourner un objet pour que la méthode continue
+            Utilisateur user = Utilisateur.builder().id(1L).email(email).build();
+            Evenement ev = Evenement.builder().id(10L).organisateur(user).build();
+
+            when(evenementService.trouverParId(10L)).thenReturn(ev);
+            when(utilisateurService.trouverParEmail(email)).thenReturn(user);
+
+            // WHEN : On appelle une méthode publique qui utilise le private verifierSiOrganisateur
+            Map<String, String> payload = new HashMap<>();
+            payload.put("message", "test");
+
+            mockMvc.perform(post("/api/evenements/10/annonces")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(payload)))
+                    .andExpect(status().isOk());
+
+            // THEN : La branche 'if (principal instanceof UserDetails)' est maintenant couverte
+            verify(utilisateurService).trouverParEmail(email);
+        }
+
+        /**
+         * Test pour couvrir la branche 'else { email = principal.toString() }'
+         * dans la méthode privée verifierSiOrganisateur.
+         */
+        @Test
+        void verifierSiOrganisateur_Couverture_StringPrincipal() throws Exception {
+            // GIVEN
+            String emailDirect = "simple-string@test.com";
+
+            /* CRUCIAL : On injecte directement une String comme principal, pas un objet UserDetails */
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(emailDirect, null, new java.util.ArrayList<>()));
+
+            // Le service doit retourner des objets valides
+            Utilisateur user = Utilisateur.builder().id(1L).email(emailDirect).build();
+            Evenement ev = Evenement.builder().id(10L).organisateur(user).build();
+
+            when(evenementService.trouverParId(10L)).thenReturn(ev);
+            when(utilisateurService.trouverParEmail(emailDirect)).thenReturn(user);
+
+            // WHEN
+            Map<String, String> payload = new HashMap<>();
+            payload.put("message", "test string");
+
+            mockMvc.perform(post("/api/evenements/10/annonces")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(payload)))
+                    .andExpect(status().isOk());
+
+            // THEN : La branche 'else' est maintenant couverte car principal.toString() a été exécuté
+            verify(utilisateurService).trouverParEmail(emailDirect);
+        }
     }
 }
