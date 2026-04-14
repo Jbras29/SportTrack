@@ -1,5 +1,6 @@
 package com.jocf.sporttrack.service;
 
+import com.jocf.sporttrack.dto.CreerActiviteCommand;
 import com.jocf.sporttrack.dto.ModifierActiviteRequest;
 import com.jocf.sporttrack.model.Activite;
 import com.jocf.sporttrack.model.TypeSport;
@@ -13,10 +14,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
 @Service
 public class ActiviteService {
+
+    private static final String MSG_UTILISATEUR_INTROUVABLE = "Utilisateur introuvable : ";
 
     private final ActiviteRepository activiteRepository;
     private final UtilisateurRepository utilisateurRepository;
@@ -47,7 +48,7 @@ public class ActiviteService {
 
     public List<Activite> recupererActivitesParUtilisateur(Long utilisateurId) {
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + utilisateurId));
         return activiteRepository.findByUtilisateur(utilisateur);
     }
 
@@ -64,7 +65,7 @@ public class ActiviteService {
         if (amis == null || amis.isEmpty()) {
             return Collections.emptyList();
         }
-        List<Long> ids = amis.stream().map(Utilisateur::getId).collect(Collectors.toList());
+        List<Long> ids = amis.stream().map(Utilisateur::getId).toList();
         return activiteRepository.findByUtilisateurIdsWithUtilisateurOrderByDateDesc(ids);
     }
 
@@ -80,31 +81,29 @@ public class ActiviteService {
         return activiteRepository.findByUtilisateurIdsWithUtilisateurOrderByDateDesc(ids);
     }
 
-    public Activite creerActivite(Long utilisateurId, String nom, TypeSport typeSport, LocalDate date,
-                                  Double distance, Integer temps, String location, Integer evaluation,
-                                  List<Long> invitesIds) {
-        verifierDateActiviteNonFuture(date);
+    public Activite creerActivite(CreerActiviteCommand cmd) {
+        verifierDateActiviteNonFuture(cmd.date());
 
-        Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+        Utilisateur utilisateur = utilisateurRepository.findById(cmd.utilisateurId())
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + cmd.utilisateurId()));
 
-        double distanceBrute = distance != null ? distance : 0.0;
-        int dureeMin = temps != null ? temps : 0;
+        double distanceBrute = cmd.distance() != null ? cmd.distance() : 0.0;
+        int dureeMin = cmd.temps() != null ? cmd.temps() : 0;
         double distanceKm = Utilisateur.distanceEnKmPourFormuleXp(distanceBrute);
         int xpGagne = Utilisateur.calculerXpGagnePourActivite(distanceKm, dureeMin);
 
-        List<Utilisateur> invites = invitesIds != null
-                ? utilisateurRepository.findAllById(invitesIds)
+        List<Utilisateur> invites = cmd.invitesIds() != null
+                ? utilisateurRepository.findAllById(cmd.invitesIds())
                 : new ArrayList<>();
 
         Activite activite = Activite.builder()
-                .nom(nom)
-                .typeSport(typeSport)
-                .date(date)
+                .nom(cmd.nom())
+                .typeSport(cmd.typeSport())
+                .date(cmd.date())
                 .distance(distanceBrute)
                 .temps(dureeMin)
-                .location(location != null ? location : "")
-                .evaluation(evaluation != null ? evaluation : 0)
+                .location(cmd.location() != null ? cmd.location() : "")
+                .evaluation(cmd.evaluation() != null ? cmd.evaluation() : 0)
                 .xpGagne(xpGagne)
                 .utilisateur(utilisateur)
                 .invites(invites)
@@ -115,8 +114,8 @@ public class ActiviteService {
         OpenMeteoService.WeatherInfo meteo =
                 openMeteoService.getWeatherForLocationAndDate(activite.getLocation(), activite.getDate());
         if (meteo != null) {
-            activite.setMeteoTemperature(meteo.temperature);
-            activite.setMeteoCondition(meteo.condition);
+            activite.setMeteoTemperature(meteo.temperature());
+            activite.setMeteoCondition(meteo.condition());
         }
 
         Activite sauvegardee = activiteRepository.save(activite);
@@ -129,7 +128,7 @@ public class ActiviteService {
         verifierDateActiviteNonFuture(date);
 
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + utilisateurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + utilisateurId));
 
         int xpGagne = Utilisateur.calculerXpGagnePourActivite(0.0, 0);
 
@@ -170,8 +169,8 @@ public class ActiviteService {
             OpenMeteoService.WeatherInfo meteo =
                     openMeteoService.getWeatherForLocationAndDate(activite.getLocation(), activite.getDate());
             if (meteo != null) {
-                activite.setMeteoTemperature(meteo.temperature);
-                activite.setMeteoCondition(meteo.condition);
+                activite.setMeteoTemperature(meteo.temperature());
+                activite.setMeteoCondition(meteo.condition());
             }
         }
 
@@ -230,13 +229,13 @@ public class ActiviteService {
             case SKI_DE_FOND -> 9.0;
             case SURF, KITESURF, WINDSURF -> 6.0;
             case PLONGEE -> 5.0;
-            case MUSCULATION, CROSSFIT, POWERLIFTING, HALTÉROPHILIE, CALISTHENICS -> 6.0;
+            case MUSCULATION, CROSSFIT, POWERLIFTING, HALTEROPHILIE, CALISTHENICS -> 6.0;
             case YOGA, PILATES, STRETCHING -> 3.0;
             case SKATEBOARD, ROLLER, BMX -> 5.0;
             case PATINAGE_ARTISTIQUE, PATINAGE_VITESSE -> 6.0;
             case EQUITATION, POLO -> 5.0;
             case PARACHUTISME, PARAPENTE, VOL_LIBRE -> 4.0;
-            case GOLF, BOWLING, TIRO_A_LARC, TIR, PÉTANQUE -> 3.0;
+            case GOLF, BOWLING, TIRO_A_LARC, TIR, PETANQUE -> 3.0;
             case DANSE_SPORTIVE, ARTS_MARTIAUX -> 6.0;
             default -> 5.0;
         };
@@ -266,8 +265,8 @@ public class ActiviteService {
                 OpenMeteoService.WeatherInfo meteo =
                         openMeteoService.getWeatherForLocationAndDate(activite.getLocation(), activite.getDate());
                 if (meteo != null) {
-                    activite.setMeteoTemperature(meteo.temperature);
-                    activite.setMeteoCondition(meteo.condition);
+                    activite.setMeteoTemperature(meteo.temperature());
+                    activite.setMeteoCondition(meteo.condition());
                     modifie = true;
                 }
             }

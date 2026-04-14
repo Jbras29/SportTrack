@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body>
+
+    <main>
+        <div th:each="act : ${activites}">
+            <div th:replace="~{fragments/feed-activite :: carteActivite(activite=${act}, user=${user})}"></div>
+        </div>
+    </main>
+
+    <script th:inline="javascript">
+        // On déclare la fonction sans "DOMContentLoaded" pour qu'elle soit disponible immédiatement
+        function supprimerActivite(element, id) {
+            if (!confirm("Voulez-vous vraiment supprimer cette activité ?")) {
+                return;
+            }
+    
+            console.log("Tentative de suppression pour l'ID : " + id);
+    
+            // Récupération des jetons CSRF
+            const token = document.querySelector('meta[name="_csrf"]')?.content;
+            const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+    
+            fetch('/activites/' + id, {
+                method: 'DELETE',
+                headers: {
+                    [header]: token,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // On remonte au parent 'article' pour supprimer toute la carte
+                    const postCard = document.getElementById('post-' + id);
+                    if (postCard) {
+                        postCard.style.opacity = '0';
+                        setTimeout(() => postCard.remove(), 300);
+                    } else {
+                        // Si l'ID post-ID n'existe pas, on recharge la page
+                        window.location.reload();
+                    }
+                } else {
+                    alert("Erreur serveur : " + response.status);
+                }
+            })
+            .catch(error => {
+                console.error("Erreur :", error);
+                alert("Erreur de connexion au serveur.");
+            });
+        }
+    </script>
+</body>
+</html>

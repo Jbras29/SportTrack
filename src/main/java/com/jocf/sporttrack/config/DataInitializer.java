@@ -4,11 +4,15 @@ import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.model.TypeUtilisateur;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 import com.jocf.sporttrack.service.UtilisateurService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
     private final UtilisateurRepository utilisateurRepository;
     private final UtilisateurService utilisateurService;
@@ -24,7 +28,7 @@ public class DataInitializer implements CommandLineRunner {
         String motDePasse = "12345678";
 
         if (utilisateurRepository.existsByEmail(emailAdmin)) {
-            System.out.println("ℹ️  Administrateur déjà existant - Pas de création");
+            log.info("Administrateur déjà existant — pas de création");
             return;
         }
 
@@ -40,10 +44,6 @@ public class DataInitializer implements CommandLineRunner {
 
         utilisateurService.creerUtilisateur(admin);
 
-        System.out.println("╔═══════════════════════════════════════════════════╗");
-        System.out.println("║  ✓ ADMINISTRATEUR PAR DÉFAUT CRÉÉ                 ║");
-        System.out.println("║  Email    : admin@dev.com                  ║");
-        System.out.println("║  Password : 12345678                              ║");
-        System.out.println("╚═══════════════════════════════════════════════════╝");
+        log.info("Administrateur par défaut créé — email: {}", emailAdmin);
     }
 }

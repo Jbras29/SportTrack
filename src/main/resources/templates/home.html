@@ -82,6 +82,36 @@
 
     <script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js" defer></script>
     <script th:src="@{/js/home-reactions-tooltip.js}" defer></script>
+    <script th:inline="javascript">
+        // On force la fonction dans l'objet window (global)
+        window.supprimerMaSuperActivite = function(id) {
+            console.log("Clic sur suppression détecté pour l'ID:", id);
+            
+            if (!confirm("Supprimer cette activité ?")) return;
+    
+            const token = document.querySelector('meta[name="_csrf"]')?.content;
+            const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+    
+            fetch(window.location.origin + '/activites/' + id, {
+                method: 'DELETE',
+                headers: {
+                    [header]: token,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    const card = document.getElementById('post-' + id);
+                    if (card) card.remove();
+                    else window.location.reload();
+                } else {
+                    alert("Erreur " + response.status);
+                }
+            })
+            .catch(err => console.error("Erreur Fetch:", err));
+        };
+    </script>
+    
     <script th:src="@{/js/home.js}" defer></script>
 </body>
 </html>

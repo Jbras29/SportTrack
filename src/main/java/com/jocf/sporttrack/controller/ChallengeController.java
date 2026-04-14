@@ -46,7 +46,7 @@ public class ChallengeController {
 
     @PostMapping
     @Operation(summary = "Créer un nouveau challenge")
-    public ResponseEntity<?> createChallenge(@RequestBody CreerChallengeRequest body, @RequestParam Long organisateurId) {
+    public ResponseEntity<Object> createChallenge(@RequestBody CreerChallengeRequest body, @RequestParam Long organisateurId) {
 
         Optional<Utilisateur> organisateurOpt = utilisateurService.trouverParId(organisateurId);
 

@@ -246,5 +246,41 @@
     <script th:src="@{/js/home-reactions-tooltip.js}" defer></script>
     <script th:src="@{/js/home.js}" defer></script>
     <script th:src="@{/js/profile/view.js}" defer></script>
+    <script th:inline="javascript">
+        // Définition globale pour être accessible par l'attribut onclick du bouton
+        window.supprimerMaSuperActivite = function(id) {
+            console.log("Tentative de suppression de l'activité ID:", id);
+            
+            if (!confirm("Voulez-vous vraiment supprimer cette activité ?")) return;
+    
+            const token = document.querySelector('meta[name="_csrf"]')?.content;
+            const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+    
+            fetch(window.location.origin + '/activites/' + id, {
+                method: 'DELETE',
+                headers: {
+                    [header]: token,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Supprime l'élément HTML correspondant
+                    const card = document.getElementById('post-' + id);
+                    if (card) {
+                        card.remove();
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    alert("Erreur lors de la suppression (Code: " + response.status + ")");
+                }
+            })
+            .catch(err => {
+                console.error("Erreur Fetch:", err);
+                alert("Une erreur réseau est survenue.");
+            });
+        };
+    </script>
 </body>
 </html>

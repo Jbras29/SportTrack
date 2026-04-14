@@ -7,7 +7,6 @@ import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.EvenementService;
 import com.jocf.sporttrack.service.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,7 +26,6 @@ public class EvenementController {
     private final EvenementService evenementService;
     private final UtilisateurService utilisateurService;
 
-    @Autowired
     public EvenementController(EvenementService evenementService, UtilisateurService utilisateurService) {
         this.evenementService = evenementService;
         this.utilisateurService = utilisateurService;
@@ -40,7 +38,7 @@ public class EvenementController {
     @GetMapping("/evenements")
     public String afficherPageEvenements(Model model) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
+        String email = emailDepuisPrincipal(principal);
         Utilisateur currentUser = utilisateurService.trouverParEmail(email);
         model.addAttribute("user", currentUser);
 
@@ -53,7 +51,7 @@ public class EvenementController {
     @GetMapping("/creer-evenement")
     public String afficherPageCreerEvenement(Model model) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
+        String email = emailDepuisPrincipal(principal);
         Utilisateur currentUser = utilisateurService.trouverParEmail(email);
 
         model.addAttribute("user", currentUser);
@@ -69,7 +67,7 @@ public class EvenementController {
         Evenement evenement = evenementService.trouverParId(id);
 
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
+        String email = emailDepuisPrincipal(principal);
         Utilisateur currentUser = utilisateurService.trouverParEmail(email);
 
         boolean isOrganisateur = evenement.getOrganisateur().getId().equals(currentUser.getId());
@@ -116,12 +114,7 @@ public class EvenementController {
     public ResponseEntity<Evenement> creerEvenement(@RequestBody CreerEvenementRequest body) {
         // 1. Récupérer l'email de l'utilisateur connecté via Spring Security
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email;
-        if (principal instanceof UserDetails) {
-            email = ((UserDetails) principal).getUsername();
-        } else {
-            email = principal.toString();
-        }
+        String email = emailDepuisPrincipal(principal);
 
         // 2. Trouver l'utilisateur dans la base de données
         Utilisateur organisateur = utilisateurService.trouverParEmail(email);
@@ -136,16 +129,10 @@ public class EvenementController {
     @ResponseBody
     @PostMapping("/api/evenements/{id}/rejoindre")
     @Operation(summary = "Rejoindre un événement existant")
-    public ResponseEntity<?> rejoindreEvenement(@PathVariable Long id) {
+    public ResponseEntity<Object> rejoindreEvenement(@PathVariable Long id) {
         try {
-            // Obtenir l'email de l'utilisateur connecté
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            String email;
-            if (principal instanceof UserDetails) {
-                email = ((UserDetails) principal).getUsername();
-            } else {
-                email = principal.toString();
-            }
+            String email = emailDepuisPrincipal(principal);
 
             // Trouver l'utilisateur et appeler le service
             Utilisateur utilisateurCourant = utilisateurService.trouverParEmail(email);
@@ -171,7 +158,7 @@ public class EvenementController {
     // Modifier les informations d'un événement
     @ResponseBody
     @PutMapping("/api/evenements/{id}")
-    public ResponseEntity<?> modifierEvenement(@PathVariable Long id, @RequestBody ModifierEvenementRequest nouveauxDetails) {
+    public ResponseEntity<Object> modifierEvenement(@PathVariable Long id, @RequestBody ModifierEvenementRequest nouveauxDetails) {
         // Sécurité : Vérifier si c'est bien l'organisateur qui demande la modif
         if (verifierSiOrganisateur(id)) {
             // On appelle le service pour mettre à jour
@@ -183,7 +170,7 @@ public class EvenementController {
     // Publier une annonce
     @ResponseBody
     @PostMapping("/api/evenements/{id}/annonces")
-    public ResponseEntity<?> creerAnnonce(@PathVariable Long id, @RequestBody java.util.Map<String, String> payload) {
+    public ResponseEntity<Object> creerAnnonce(@PathVariable Long id, @RequestBody java.util.Map<String, String> payload) {
         if (!verifierSiOrganisateur(id)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Non autorisé");
         }
@@ -196,7 +183,7 @@ public class EvenementController {
     // Endpoint pour supprimer une annonce
     @ResponseBody
     @DeleteMapping("/api/evenements/{id}/annonces/{annonceId}")
-    public ResponseEntity<?> supprimerAnnonce(@PathVariable Long id, @PathVariable Long annonceId) {
+    public ResponseEntity<Object> supprimerAnnonce(@PathVariable Long id, @PathVariable Long annonceId) {
         // Sécurité : Seul l'organisateur peut supprimer les annonces de son événement
         if (verifierSiOrganisateur(id)) {
             evenementService.supprimerAnnonce(annonceId);
@@ -209,7 +196,7 @@ public class EvenementController {
     // API pour retirer (kicker) un participant
     @ResponseBody
     @DeleteMapping("/api/evenements/{id}/participants/{userId}")
-    public ResponseEntity<?> kickParticipant(@PathVariable Long id, @PathVariable Long userId) {
+    public ResponseEntity<Object> kickParticipant(@PathVariable Long id, @PathVariable Long userId) {
         // Sécurité : Seul l'organisateur peut exclure quelqu'un
         if (verifierSiOrganisateur(id)) {
             evenementService.retirerParticipant(id, userId);
@@ -220,10 +207,10 @@ public class EvenementController {
 
     @ResponseBody
     @PostMapping("/api/evenements/{id}/quitter")
-    public ResponseEntity<?> quitter(@PathVariable Long id) {
+    public ResponseEntity<Object> quitter(@PathVariable Long id) {
 
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
+        String email = emailDepuisPrincipal(principal);
         Utilisateur currentUser = utilisateurService.trouverParEmail(email);
 
         evenementService.quitterEvenement(id, currentUser.getId());
@@ -232,13 +219,12 @@ public class EvenementController {
 
     @ResponseBody
     @DeleteMapping("/api/evenements/{id}")
-    public ResponseEntity<?> supprimerEvenement(@PathVariable Long id) {
+    public ResponseEntity<Object> supprimerEvenement(@PathVariable Long id) {
 
         Evenement evenement = evenementService.trouverParId(id);
 
-
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email = (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
+        String email = emailDepuisPrincipal(principal);
         Utilisateur currentUser = utilisateurService.trouverParEmail(email);
 
         if (!evenement.getOrganisateur().getId().equals(currentUser.getId())) {
@@ -255,22 +241,17 @@ public class EvenementController {
     // =======================================================
 
     private boolean verifierSiOrganisateur(Long evenementId) {
-        // 1. On récupère l'événement concerné
         Evenement evenement = evenementService.trouverParId(evenementId);
-
-        // 2. On récupère l'email de l'utilisateur actuellement connecté (Spring Security)
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email;
-        if (principal instanceof UserDetails) {
-            email = ((UserDetails) principal).getUsername();
-        } else {
-            email = principal.toString();
-        }
-
-        // 3. On récupère l'objet Utilisateur correspondant
+        String email = emailDepuisPrincipal(principal);
         Utilisateur currentUser = utilisateurService.trouverParEmail(email);
-
-        // 4. On compare les ID : si c'est le même, c'est bien l'organisateur !
         return evenement.getOrganisateur().getId().equals(currentUser.getId());
+    }
+
+    private static String emailDepuisPrincipal(Object principal) {
+        if (principal instanceof UserDetails ud) {
+            return ud.getUsername();
+        }
+        return principal.toString();
     }
 }

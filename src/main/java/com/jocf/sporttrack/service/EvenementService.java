@@ -8,9 +8,9 @@ import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.AnnonceRepository;
 import com.jocf.sporttrack.repository.EvenementRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,6 +20,7 @@ import java.util.Optional;
 @Service
 public class EvenementService {
 
+    private final EvenementService self;
     private final EvenementRepository evenementRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final AnnonceRepository annonceRepository;
@@ -35,7 +36,7 @@ public class EvenementService {
     @Transactional
     public Evenement creerEvenement(Long organisateurId, CreerEvenementRequest req) {
         Utilisateur organisateur = utilisateurRepository.findById(organisateurId)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé"));
 
         List<Utilisateur> participantsComplets = new ArrayList<>();
         for (CreerEvenementRequest.ParticipantIdRef p : req.participants()) {
@@ -63,7 +64,7 @@ public class EvenementService {
     // Récupère tous les événements organisés par un utilisateur spécifique
     public List<Evenement> obtenirEvenementsParOrganisateur(Long organisateurId) {
         Utilisateur organisateur = utilisateurRepository.findById(organisateurId)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé"));
 
         return evenementRepository.findByOrganisateur(organisateur);
     }
@@ -75,11 +76,11 @@ public class EvenementService {
     public Evenement rejoindreEvenement(Long evenementId, Utilisateur utilisateur) {
         // 1. Trouver l'événement par son ID
         Evenement evenement = evenementRepository.findById(evenementId)
-                .orElseThrow(() -> new RuntimeException("Événement introuvable"));
+                .orElseThrow(() -> new IllegalArgumentException("Événement introuvable"));
 
         // 2. Vérifier si l'utilisateur ne participe pas déjà
         if (evenement.getParticipants().contains(utilisateur)) {
-            throw new RuntimeException("Vous participez déjà à cet événement");
+            throw new IllegalArgumentException("Vous participez déjà à cet événement");
         }
 
         // 3. Ajouter l'utilisateur à la liste des participants
@@ -96,12 +97,8 @@ public class EvenementService {
 
     public Evenement trouverParId(Long id) {
         return evenementRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Événement introuvable avec l'ID : " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Événement introuvable avec l'ID : " + id));
     }
-
-
-
-
 
     // 1. Publier une annonce
     @Transactional
@@ -125,7 +122,7 @@ public class EvenementService {
         if (annonceRepository.existsById(annonceId)) {
             annonceRepository.deleteById(annonceId);
         } else {
-            throw new RuntimeException("Annonce introuvable");
+            throw new IllegalArgumentException("Annonce introuvable");
         }
     }
 
@@ -158,12 +155,7 @@ public class EvenementService {
     /** Supprimer l'utilisateur actuel de la liste des participants. */
     @Transactional
     public void quitterEvenement(Long evenementId, Long utilisateurId) {
-        Evenement evenement = trouverParId(evenementId);
-
-        // Retirer l'utilisateur de la liste
-        evenement.getParticipants().removeIf(p -> p.getId().equals(utilisateurId));
-
-        evenementRepository.save(evenement);
+        self.retirerParticipant(evenementId, utilisateurId);
     }
 
 

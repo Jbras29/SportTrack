@@ -38,7 +38,7 @@ public class Utilisateur {
      * Seuils cumulatifs d’XP pour les paliers d’expérience (niveaux 2 à 6).
      * L’indice 0 vaut toujours 0 ; l’indice {@code i} est le minimum d’XP pour être au moins au niveau {@code i + 1}.
      */
-    public static final int[] SEUILS_XP_NIVEAU_EXPERIENCE = {0, 100, 500, 1000, 3000, 5000};
+    protected static final int[] SEUILS_XP_NIVEAU_EXPERIENCE = {0, 100, 500, 1000, 3000, 5000};
 
     /**
      * Partie fixe : récompense toute séance enregistrée.
@@ -231,7 +231,7 @@ public class Utilisateur {
     /** HP affichable (0–100), avec valeur par défaut à 100 si non renseigné. */
     public int getHpNormalise() {
         int h = hp != null ? hp : 100;
-        return Math.max(0, Math.min(100, h));
+        return Math.clamp(h, 0, 100);
     }
 
     /**
