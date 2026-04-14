@@ -25,6 +25,23 @@
                       th:text="| • ${activite.location}|"></span>
                 <span th:text="| • ${#strings.replace(activite.typeSport.name(), '_', ' ')}|"></span>
             </p>
+            <div class="post-invites" th:if="${activite.invites != null and !#lists.isEmpty(activite.invites)}">
+                <span class="post-invites-label">Avec</span>
+                <span class="post-invites-list">
+                    <a th:each="invite : ${activite.invitesAffiches}"
+                       th:href="@{/profile/{id}(id=${invite.id})}"
+                       class="post-invite-link"
+                       th:attr="aria-label=|Profil de ${invite.prenom} ${invite.nom}|">
+                        <img th:src="${invite.cheminPhotoProfilAffichee()}"
+                             th:alt="${invite.prenom}"
+                             class="post-invite-avatar">
+                        <span class="post-invite-name" th:text="|${invite.prenom} ${invite.nom}|">Prénom Nom</span>
+                    </a>
+                    <span class="post-invites-more"
+                          th:if="${activite.invitesMasquesCount > 0}"
+                          th:text="|+${activite.invitesMasquesCount} autre${activite.invitesMasquesCount > 1 ? 's' : ''}|">+1 autre</span>
+                </span>
+            </div>
         </div>
 
         <div class="post-header-actions" th:if="${activite.utilisateur.id == user.id}">

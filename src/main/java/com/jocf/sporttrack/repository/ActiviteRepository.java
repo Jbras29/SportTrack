@@ -5,6 +5,7 @@ import com.jocf.sporttrack.model.Activite;
 import com.jocf.sporttrack.model.TypeSport;
 import com.jocf.sporttrack.model.Utilisateur;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -20,6 +21,7 @@ public interface ActiviteRepository extends JpaRepository<Activite, Long> {
     @Query("""
             SELECT DISTINCT a FROM Activite a
             JOIN FETCH a.utilisateur u
+            LEFT JOIN FETCH a.invites
             WHERE u.id IN :utilisateurIds
             ORDER BY a.date DESC
             """)
@@ -27,8 +29,10 @@ public interface ActiviteRepository extends JpaRepository<Activite, Long> {
             @Param("utilisateurIds") Collection<Long> utilisateurIds);
 
     // Toutes les activités d'un utilisateur
+    @EntityGraph(attributePaths = {"utilisateur", "invites"})
     List<Activite> findByUtilisateur(Utilisateur utilisateur);
 
+    @EntityGraph(attributePaths = {"utilisateur", "invites"})
     List<Activite> findByUtilisateurOrderByDateDesc(Utilisateur utilisateur);
 
     // Une activité par son id (déjà fourni par JpaRepository via findById)
@@ -81,6 +85,7 @@ public interface ActiviteRepository extends JpaRepository<Activite, Long> {
     @Query("SELECT COALESCE(SUM(a.temps), 0) FROM Activite a WHERE a.utilisateur = :utilisateur")
     Integer sumTempsMinutesByUtilisateur(@Param("utilisateur") Utilisateur utilisateur);
 
+    @EntityGraph(attributePaths = {"utilisateur", "invites"})
     List<Activite> findTop5ByUtilisateurOrderByDateDesc(Utilisateur utilisateur);
 
     // Filtrage avancé multi-critères via JPQL (critères groupés dans {@link ActiviteFiltre})
