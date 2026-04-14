@@ -143,6 +143,16 @@ class ActiviteControllerTest {
     }
 
     @Test
+    void locationSuggestions_retourneLesSuggestionsDuService() {
+        when(activiteService.recupererSuggestionsLocations("Pa", 8)).thenReturn(List.of("Paris", "Pau"));
+
+        var response = controller.locationSuggestions("Pa");
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).containsExactly("Paris", "Pau");
+    }
+
+    @Test
     void createActivite_vueAjouteTypesEtAmis() {
         Model model = new ExtendedModelMap();
         var auth = new UsernamePasswordAuthenticationToken(

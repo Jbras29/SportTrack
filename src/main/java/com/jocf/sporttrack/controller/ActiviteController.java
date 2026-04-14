@@ -103,6 +103,13 @@ public class ActiviteController {
         return "activity/create";
     }
 
+    @GetMapping("/api/locations")
+    @ResponseBody
+    @Operation(summary = "Suggestions de lieux pour l'autocomplétion (JSON)")
+    public ResponseEntity<List<String>> locationSuggestions(@RequestParam String query) {
+        return ResponseEntity.ok(activiteService.recupererSuggestionsLocations(query, 8));
+    }
+
     @PostMapping
     @Operation(summary = "Créer une nouvelle activité")
     public String createActiviteForm(

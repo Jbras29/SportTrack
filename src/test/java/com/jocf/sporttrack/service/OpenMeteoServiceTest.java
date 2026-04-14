@@ -35,6 +35,41 @@ class OpenMeteoServiceTest {
     }
 
     @Test
+    void suggestLocations_retourneLesVillesTrouvees() {
+        OpenMeteoService service = new OpenMeteoService();
+        RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(service, "restTemplate");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        server.expect(requestTo(containsString("geocoding-api.open-meteo.com")))
+                .andRespond(withSuccess("""
+                        {"results":[
+                          {"name":"Paris"},
+                          {"name":"Paray-Vieille-Poste"},
+                          {"name":"Pau"}
+                        ]}
+                        """, MediaType.APPLICATION_JSON));
+
+        assertThat(service.suggestLocations("Pa", 2)).containsExactly("Paris", "Paray-Vieille-Poste");
+        server.verify();
+    }
+
+    @Test
+    void locationExists_valideUniquementLesVillesExactes() {
+        OpenMeteoService service = new OpenMeteoService();
+        RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(service, "restTemplate");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        server.expect(requestTo(containsString("geocoding-api.open-meteo.com")))
+                .andRespond(withSuccess("""
+                        {"results":[
+                          {"name":"Paris"},
+                          {"name":"Paray-Vieille-Poste"}
+                        ]}
+                        """, MediaType.APPLICATION_JSON));
+
+        assertThat(service.locationExists("Paris")).isTrue();
+        server.verify();
+    }
+
+    @Test
     void getWeatherForLocationAndDate_retourneInfosQuandReponseValide() {
         OpenMeteoService service = new OpenMeteoService();
         RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(service, "restTemplate");

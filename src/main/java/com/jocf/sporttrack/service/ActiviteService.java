@@ -13,9 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.HashSet;
 import java.util.List;
-import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,6 +45,13 @@ public class ActiviteService {
 
     public List<Activite> recupererToutesLesActivites() {
         return activiteRepository.findAll();
+    }
+
+    public List<String> recupererSuggestionsLocations(String query, int limite) {
+        if (query == null || query.isBlank() || limite <= 0) {
+            return List.of();
+        }
+        return openMeteoService.suggestLocations(query.trim(), limite);
     }
 
     public Optional<Activite> trouverParId(Long id) {
@@ -89,6 +96,7 @@ public class ActiviteService {
     @Transactional
     public Activite creerActivite(CreerActiviteCommand cmd) {
         verifierDateActiviteNonFuture(cmd.date());
+        validerLocationSiPresente(cmd.location());
 
         Utilisateur utilisateur = utilisateurRepository.findById(cmd.utilisateurId())
                 .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + cmd.utilisateurId()));
@@ -160,6 +168,7 @@ public class ActiviteService {
         if (req.date() != null) {
             verifierDateActiviteNonFuture(req.date());
         }
+        validerLocationSiPresente(req.location());
 
         Set<Long> anciensInvitesIds = activite.getInvites().stream()
                 .filter(invite -> invite.getId() != null)
@@ -207,6 +216,16 @@ public class ActiviteService {
     private static void verifierDateActiviteNonFuture(LocalDate date) {
         if (date.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("La date de l'activité ne peut pas être dans le futur.");
+        }
+    }
+
+    private void validerLocationSiPresente(String location) {
+        if (location == null || location.isBlank()) {
+            return;
+        }
+
+        if (!openMeteoService.locationExists(location)) {
+            throw new IllegalArgumentException("Le lieu saisi est introuvable dans Open-Meteo.");
         }
     }
 

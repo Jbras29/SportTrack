@@ -9,6 +9,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 @Service
 public class OpenMeteoService {
@@ -23,6 +26,60 @@ public class OpenMeteoService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public record WeatherInfo(Double temperature, String condition) {}
+
+    public List<String> suggestLocations(String query, int limit) {
+        if (query == null || query.trim().isEmpty() || limit <= 0) {
+            return List.of();
+        }
+
+        try {
+            String geoUrl = UriComponentsBuilder.fromUriString("https://geocoding-api.open-meteo.com/v1/search")
+                    .queryParam("name", query.trim())
+                    .queryParam("count", Math.max(1, limit))
+                    .queryParam("language", "fr")
+                    .queryParam("format", "json")
+                    .toUriString();
+            String geoResponseStr = restTemplate.getForObject(geoUrl, String.class);
+            if (geoResponseStr == null || geoResponseStr.isBlank()) {
+                return List.of();
+            }
+
+            JsonNode geoNode = objectMapper.readTree(geoResponseStr);
+            if (!geoNode.has(JSON_RESULTS) || geoNode.get(JSON_RESULTS).isEmpty()) {
+                return List.of();
+            }
+
+            LinkedHashSet<String> suggestions = new LinkedHashSet<>();
+            for (JsonNode resultNode : geoNode.get(JSON_RESULTS)) {
+                JsonNode nameNode = resultNode.get("name");
+                if (nameNode == null) {
+                    continue;
+                }
+                String name = nameNode.asText().trim();
+                if (!name.isEmpty()) {
+                    suggestions.add(name);
+                }
+                if (suggestions.size() >= limit) {
+                    break;
+                }
+            }
+            return new ArrayList<>(suggestions);
+        } catch (Exception e) {
+            log.warn("Erreur OpenMeteoService (suggestions) : {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    public boolean locationExists(String location) {
+        if (location == null || location.trim().isEmpty()) {
+            return false;
+        }
+
+        String saisie = location.trim();
+        return suggestLocations(saisie, 20).stream()
+                .map(String::trim)
+                .anyMatch(suggestion -> suggestion.equalsIgnoreCase(saisie));
+    }
 
     public WeatherInfo getWeatherForLocationAndDate(String location, LocalDate date) {
         if (location == null || location.trim().isEmpty() || date == null) {

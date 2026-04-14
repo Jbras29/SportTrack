@@ -74,6 +74,27 @@ class ActiviteServiceTest {
     }
 
     @Test
+    void recupererSuggestionsLocations_delegueAOpenMeteo() {
+        when(openMeteoService.suggestLocations("Pa", 2)).thenReturn(List.of("Paris", "Pau"));
+
+        List<String> suggestions = service.recupererSuggestionsLocations(" Pa ", 2);
+
+        assertThat(suggestions).containsExactly("Paris", "Pau");
+        verify(openMeteoService).suggestLocations("Pa", 2);
+    }
+
+    @Test
+    void creerActivite_refuseUneLocationInexistante() {
+        CreerActiviteCommand command = new CreerActiviteCommand(
+                1L, "Run", TypeSport.COURSE, LocalDate.now(), 5000.0, 30, "PasDeVille", 4, List.of());
+        when(openMeteoService.locationExists("PasDeVille")).thenReturn(false);
+
+        assertThatThrownBy(() -> service.creerActivite(command))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("introuvable");
+    }
+
+    @Test
     void recupererActivitesParUtilisateur_lanceSiUtilisateurAbsent() {
         when(utilisateurRepository.findById(9L)).thenReturn(Optional.empty());
 
@@ -158,6 +179,7 @@ class ActiviteServiceTest {
                 .build();
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
         when(utilisateurRepository.findAllById(any())).thenReturn(List.of(invite));
+        when(openMeteoService.locationExists("Paris")).thenReturn(true);
         when(openMeteoService.getWeatherForLocationAndDate("Paris", command.date()))
                 .thenReturn(new OpenMeteoService.WeatherInfo(17.5, "Nuageux"));
         when(activiteRepository.save(any(Activite.class))).thenAnswer(invocation -> {
@@ -221,6 +243,7 @@ class ActiviteServiceTest {
                 .build();
         when(activiteRepository.findByIdAvecUtilisateurEtInvites(4L)).thenReturn(Optional.of(activite));
         when(utilisateurRepository.findAllById(any())).thenReturn(List.of(ami));
+        when(openMeteoService.locationExists("Lyon")).thenReturn(true);
         when(openMeteoService.getWeatherForLocationAndDate("Lyon", LocalDate.now()))
                 .thenReturn(new OpenMeteoService.WeatherInfo(20.0, "Ensoleillé"));
         when(activiteRepository.save(activite)).thenReturn(activite);

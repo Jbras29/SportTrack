@@ -41,15 +41,18 @@
 (function () {
     var locationInput  = document.getElementById("location");
     var dateInput      = document.getElementById("date");
+    var locationDatalist = document.getElementById("location-suggestions");
     var previewBlock   = document.getElementById("meteo-preview-block");
     var loadingEl      = document.getElementById("meteo-loading");
     var iconEl         = document.getElementById("meteo-preview-icon");
     var conditionEl    = document.getElementById("meteo-preview-condition");
     var tempEl         = document.getElementById("meteo-preview-temp");
 
-    if (!locationInput || !dateInput || !previewBlock) return;
+    if (!locationInput || !dateInput || !previewBlock || !locationDatalist) return;
 
     var debounceTimer = null;
+    var suggestionTimer = null;
+    var suggestionRequestId = 0;
 
     var ICONS = {
         "Ensoleillé":        "☀️",
@@ -66,6 +69,12 @@
     function hidePreview() {
         previewBlock.classList.remove("visible");
         loadingEl.classList.remove("visible");
+    }
+
+    function clearLocationSuggestions() {
+        while (locationDatalist.firstChild) {
+            locationDatalist.removeChild(locationDatalist.firstChild);
+        }
     }
 
     function showLoading() {
@@ -85,6 +94,42 @@
         }
     }
 
+    function renderLocationSuggestions(items) {
+        clearLocationSuggestions();
+        if (!items || !items.length) {
+            return;
+        }
+
+        items.forEach(function (item) {
+            var option = document.createElement("option");
+            option.value = item;
+            locationDatalist.appendChild(option);
+        });
+    }
+
+    function fetchLocationSuggestions() {
+        var query = locationInput.value.trim();
+        if (query.length < 2) {
+            clearLocationSuggestions();
+            return;
+        }
+
+        var currentRequestId = ++suggestionRequestId;
+        fetch("/activites/api/locations?query=" + encodeURIComponent(query))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (currentRequestId !== suggestionRequestId) {
+                    return;
+                }
+                renderLocationSuggestions(Array.isArray(data) ? data : []);
+            })
+            .catch(function () {
+                if (currentRequestId === suggestionRequestId) {
+                    clearLocationSuggestions();
+                }
+            });
+    }
+
     function fetchMeteo() {
         var loc  = locationInput.value.trim();
         var date = dateInput.value;
@@ -102,8 +147,16 @@
         debounceTimer = setTimeout(fetchMeteo, 700); // attend 700 ms après la frappe
     }
 
-    locationInput.addEventListener("input",  scheduleMeteo);
+    function scheduleSuggestions() {
+        clearTimeout(suggestionTimer);
+        suggestionTimer = setTimeout(fetchLocationSuggestions, 200);
+    }
+
+    locationInput.addEventListener("input", function () {
+        scheduleMeteo();
+        scheduleSuggestions();
+    });
     locationInput.addEventListener("change", scheduleMeteo);
+    locationInput.addEventListener("change", scheduleSuggestions);
     dateInput.addEventListener("change", scheduleMeteo);
 })();
-
