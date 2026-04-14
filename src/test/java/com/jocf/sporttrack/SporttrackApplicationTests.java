@@ -13,4 +13,9 @@ class SporttrackApplicationTests {
         assertThat(SporttrackApplication.class.isAnnotationPresent(SpringBootApplication.class)).isTrue();
         assertThat(SporttrackApplication.class.isAnnotationPresent(EnableScheduling.class)).isTrue();
     }
+
+    @Test
+    void methodeMain_estExposee() throws NoSuchMethodException {
+        assertThat(SporttrackApplication.class.getDeclaredMethod("main", String[].class)).isNotNull();
+    }
 }
