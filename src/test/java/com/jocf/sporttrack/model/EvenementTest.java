@@ -1,24 +1,10 @@
 package com.jocf.sporttrack.model;
 
-import com.jocf.sporttrack.dto.CreerEvenementRequest;
-import com.jocf.sporttrack.repository.AnnonceRepository;
-import com.jocf.sporttrack.repository.EvenementRepository;
-import com.jocf.sporttrack.repository.UtilisateurRepository;
-import com.jocf.sporttrack.service.EvenementService;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -8,7 +8,6 @@ import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.AnnonceRepository;
 import com.jocf.sporttrack.repository.EvenementRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
-import com.jocf.sporttrack.service.EvenementService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
