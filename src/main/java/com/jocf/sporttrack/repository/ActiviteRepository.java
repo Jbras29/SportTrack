@@ -1,5 +1,6 @@
 package com.jocf.sporttrack.repository;
 
+import com.jocf.sporttrack.dto.ActiviteFiltre;
 import com.jocf.sporttrack.model.Activite;
 import com.jocf.sporttrack.model.TypeSport;
 import com.jocf.sporttrack.model.Utilisateur;
@@ -82,29 +83,19 @@ public interface ActiviteRepository extends JpaRepository<Activite, Long> {
 
     List<Activite> findTop5ByUtilisateurOrderByDateDesc(Utilisateur utilisateur);
 
-    // Filtrage avancé multi-critères via JPQL
+    // Filtrage avancé multi-critères via JPQL (critères groupés dans {@link ActiviteFiltre})
     @Query("""
             SELECT a FROM Activite a
-            WHERE (:utilisateur IS NULL OR a.utilisateur = :utilisateur)
-              AND (:typeSport   IS NULL OR a.typeSport = :typeSport)
-              AND (:distanceMin IS NULL OR a.distance >= :distanceMin)
-              AND (:distanceMax IS NULL OR a.distance <= :distanceMax)
-              AND (:tempsMin    IS NULL OR a.temps >= :tempsMin)
-              AND (:tempsMax    IS NULL OR a.temps <= :tempsMax)
-              AND (:dateDebut   IS NULL OR a.date >= :dateDebut)
-              AND (:dateFin     IS NULL OR a.date <= :dateFin)
-              AND (:location    IS NULL OR LOWER(a.location) LIKE LOWER(CONCAT('%', :location, '%')))
+            WHERE (:#{#f.utilisateur} IS NULL OR a.utilisateur = :#{#f.utilisateur})
+              AND (:#{#f.typeSport} IS NULL OR a.typeSport = :#{#f.typeSport})
+              AND (:#{#f.distanceMin} IS NULL OR a.distance >= :#{#f.distanceMin})
+              AND (:#{#f.distanceMax} IS NULL OR a.distance <= :#{#f.distanceMax})
+              AND (:#{#f.tempsMin} IS NULL OR a.temps >= :#{#f.tempsMin})
+              AND (:#{#f.tempsMax} IS NULL OR a.temps <= :#{#f.tempsMax})
+              AND (:#{#f.dateDebut} IS NULL OR a.date >= :#{#f.dateDebut})
+              AND (:#{#f.dateFin} IS NULL OR a.date <= :#{#f.dateFin})
+              AND (:#{#f.location} IS NULL OR LOWER(a.location) LIKE LOWER(CONCAT('%', :#{#f.location}, '%')))
             ORDER BY a.date DESC
             """)
-    List<Activite> filtrer(
-            @Param("utilisateur") Utilisateur utilisateur,
-            @Param("typeSport")   TypeSport typeSport,
-            @Param("distanceMin") Double distanceMin,
-            @Param("distanceMax") Double distanceMax,
-            @Param("tempsMin")    Integer tempsMin,
-            @Param("tempsMax")    Integer tempsMax,
-            @Param("dateDebut")   LocalDate dateDebut,
-            @Param("dateFin")     LocalDate dateFin,
-            @Param("location")    String location
-    );
+    List<Activite> filtrer(@Param("f") ActiviteFiltre f);
 }

@@ -65,7 +65,7 @@ public enum TypeSport {
     MUSCULATION,
     CROSSFIT,
     POWERLIFTING,
-    HALTÉROPHILIE,
+    HALTEROPHILIE,
     CALISTHENICS,
     YOGA,
     PILATES,
@@ -92,7 +92,7 @@ public enum TypeSport {
     BOWLING,
     TIRO_A_LARC,
     TIR,
-    PÉTANQUE,
+    PETANQUE,
     DANSE_SPORTIVE,
     ARTS_MARTIAUX,
     AUTRE

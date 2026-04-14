@@ -125,6 +125,38 @@
             </div>
         </div>
 
+        <!-- NOUVEAU : Gestion des Activités -->
+        <div class="admin-section">
+            <h2>Gestion des Activités</h2>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Auteur</th>
+                            <th>Activité</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="a : ${toutesActivites}">
+                            <td th:text="${a.id}"></td>
+                            <td th:text="|${a.utilisateur.prenom} ${a.utilisateur.nom}|"></td>
+                            <td th:text="${a.nom}"></td>
+                            <td th:text="${#temporals.format(a.dateActivite, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td>
+                                <button class="btn-action btn-danger" th:attr="onclick=|supprimerActivite(${a.id})|">Supprimer</button>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(toutesActivites)}">
+                            <td colspan="5">Aucune activité trouvée.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="admin-section">
             <h2>Gestion des Commentaires</h2>
             <div class="table-responsive">
@@ -179,6 +211,23 @@
                 const res = await fetch(`/utilisateurs/${id}`, { method: 'DELETE' });
                 if (res.ok || res.status === 204) {
                     alert('Utilisateur supprimé.');
+                    location.reload();
+                } else {
+                    alert('Erreur lors de la suppression.');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Erreur: ' + e.message);
+            }
+        }
+
+        // NOUVEAU
+        async function supprimerActivite(id) {
+            if (!confirm('Voulez-vous vraiment supprimer cette activité ?')) return;
+            try {
+                const res = await fetch(`/api/activites/${id}`, { method: 'DELETE' });
+                if (res.ok || res.status === 204) {
+                    alert('Activité supprimée.');
                     location.reload();
                 } else {
                     alert('Erreur lors de la suppression.');

@@ -24,16 +24,6 @@ public class SessionAuthenticationSuccessHandler extends SimpleUrlAuthentication
         setAlwaysUseDefaultTargetUrl(true);
     }
 
-    // @Override
-    // public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-    //         Authentication authentication) throws IOException, ServletException {
-    //     Utilisateur u = utilisateurService.trouverParEmail(authentication.getName());
-    //     var session = request.getSession();
-    //     session.setAttribute(SessionKeys.UTILISATEUR_ID, u.getId());
-    //     session.setAttribute(SessionKeys.UTILISATEUR, SessionUtilisateur.from(u));
-    //     super.onAuthenticationSuccess(request, response, authentication);
-    // }
-
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {

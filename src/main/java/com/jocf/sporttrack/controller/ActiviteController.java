@@ -1,15 +1,14 @@
 package com.jocf.sporttrack.controller;
 
+import com.jocf.sporttrack.dto.CreerActiviteCommand;
 import com.jocf.sporttrack.dto.ModifierActiviteRequest;
 import com.jocf.sporttrack.model.Activite;
 import com.jocf.sporttrack.model.TypeSport;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.ActiviteService;
-import com.jocf.sporttrack.service.PrefSportiveService;
 import com.jocf.sporttrack.service.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -30,17 +29,18 @@ import org.springframework.security.core.Authentication;
 @Tag(name = "Activités", description = "Gestion des activités sportives")
 public class ActiviteController {
 
-    @Autowired
-    private ActiviteService activiteService;
+    private final ActiviteService activiteService;
+    private final UtilisateurService utilisateurService;
+    private final OpenMeteoService openMeteoService;
 
-    @Autowired
-    private PrefSportiveService prefSportiveService;
-
-    @Autowired
-    private UtilisateurService utilisateurService;
-
-    @Autowired
-    private OpenMeteoService openMeteoService;
+    public ActiviteController(
+            ActiviteService activiteService,
+            UtilisateurService utilisateurService,
+            OpenMeteoService openMeteoService) {
+        this.activiteService = activiteService;
+        this.utilisateurService = utilisateurService;
+        this.openMeteoService = openMeteoService;
+    }
 
     @GetMapping
     @Operation(summary = "Récupérer toutes les activités")
@@ -117,16 +117,16 @@ public class ActiviteController {
             @RequestParam(required = false) List<Long> invitesIds) {
         try {
             Activite created = activiteService.creerActivite(
-                    utilisateurId,
-                    nom,
-                    typeSport,
-                    date,
-                    distance,
-                    temps,
-                    location,
-                    evaluation,
-                    invitesIds
-            );
+                    new CreerActiviteCommand(
+                            utilisateurId,
+                            nom,
+                            typeSport,
+                            date,
+                            distance,
+                            temps,
+                            location,
+                            evaluation,
+                            invitesIds));
             // Redirige vers la page de confirmation qui affiche météo + calories
             return "redirect:/activites/" + created.getId() + "/detail";
         } catch (IllegalArgumentException e) {
@@ -185,8 +185,8 @@ public class ActiviteController {
         Map<String, Object> result = new HashMap<>();
         if (info != null) {
             result.put("ok", true);
-            result.put("condition", info.condition);
-            result.put("temperature", info.temperature);
+            result.put("condition", info.condition());
+            result.put("temperature", info.temperature());
         } else {
             result.put("ok", false);
         }

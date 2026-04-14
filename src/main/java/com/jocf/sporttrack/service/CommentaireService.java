@@ -16,6 +16,9 @@ import java.util.Optional;
 @Service
 public class CommentaireService {
 
+    private static final String MSG_ACTIVITE_INTROUVABLE = "Activite introuvable : ";
+    private static final String MSG_AUTEUR_INTROUVABLE = "Auteur introuvable : ";
+
     private static final int MESSAGE_MAX_LENGTH = 1000;
     private static final int EMOJI_MAX_LENGTH = 32;
 
@@ -41,22 +44,22 @@ public class CommentaireService {
 
     public List<Commentaire> recupererCommentairesParActivite(Long activiteId) {
         Activite activite = activiteRepository.findById(activiteId)
-                .orElseThrow(() -> new IllegalArgumentException("Activite introuvable : " + activiteId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_ACTIVITE_INTROUVABLE + activiteId));
         return commentaireRepository.findByActiviteOrderByDateCreationDesc(activite);
     }
 
     public List<Commentaire> recupererCommentairesParAuteur(Long auteurId) {
         Utilisateur auteur = utilisateurRepository.findById(auteurId)
-                .orElseThrow(() -> new IllegalArgumentException("Auteur introuvable : " + auteurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_AUTEUR_INTROUVABLE + auteurId));
         return commentaireRepository.findByAuteur(auteur);
     }
 
     public Commentaire creerCommentaire(Long auteurId, Long activiteId, TypeCommentaire type, String message) {
         Utilisateur auteur = utilisateurRepository.findById(auteurId)
-                .orElseThrow(() -> new IllegalArgumentException("Auteur introuvable : " + auteurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_AUTEUR_INTROUVABLE + auteurId));
 
         Activite activite = activiteRepository.findById(activiteId)
-                .orElseThrow(() -> new IllegalArgumentException("Activite introuvable : " + activiteId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_ACTIVITE_INTROUVABLE + activiteId));
 
         Commentaire commentaire = Commentaire.builder()
                 .type(type)
@@ -89,9 +92,9 @@ public class CommentaireService {
      */
     public ReactionAjoutResultat ajouterReactionEmoji(Long auteurId, Long activiteId, String emoji) {
         Utilisateur auteur = utilisateurRepository.findById(auteurId)
-                .orElseThrow(() -> new IllegalArgumentException("Auteur introuvable : " + auteurId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_AUTEUR_INTROUVABLE + auteurId));
         Activite activite = activiteRepository.findById(activiteId)
-                .orElseThrow(() -> new IllegalArgumentException("Activite introuvable : " + activiteId));
+                .orElseThrow(() -> new IllegalArgumentException(MSG_ACTIVITE_INTROUVABLE + activiteId));
 
         String e = emoji != null ? emoji.trim() : "";
         if (e.isEmpty()) {
