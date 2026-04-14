@@ -24,8 +24,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ChallengeServiceTest {
@@ -77,7 +79,7 @@ class ChallengeServiceTest {
     @Test
     void creerChallenge_valideDatesEtSauvegarde() {
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
-        when(challengeRepository.save(org.mockito.ArgumentMatchers.any(Challenge.class)))
+        when(challengeRepository.save(any(Challenge.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         Challenge saved = service.creerChallenge(
@@ -88,6 +90,58 @@ class ChallengeServiceTest {
         assertThatThrownBy(() -> service.creerChallenge(
                 new CreerChallengeRequest("Bad", LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 1)), 1L))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+
+    @Test
+    void creerChallenge_DateFinNull_Couverture() {
+        // GIVEN
+        /* On crée une requête sans date de fin */
+        CreerChallengeRequest req = new CreerChallengeRequest("Titre",  LocalDate.parse("2026-01-01"), null);
+
+        // On utilise l'utilisateur de ton setUp
+        /* Simulation du repository qui retourne l'utilisateur préparé dans le setUp */
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+        when(challengeRepository.save(any(Challenge.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        // WHEN
+        Challenge result = service.creerChallenge(req, 1L);
+
+        // THEN
+        /* La date de fin doit être nulle */
+        assertNull(result.getDateFin());
+    }
+
+
+    @Test
+    void creerChallenge_DateFinInvalide_LanceException() {
+        // GIVEN
+        /* Date de fin (2025) avant la date de début (2026) */
+        CreerChallengeRequest req = new CreerChallengeRequest("Titre",  LocalDate.parse("2026-01-01"), LocalDate.parse("2025-12-31"));
+
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+
+        // WHEN & THEN
+        /* Vérifier que l'exception est bien déclenchée avec le bon message */
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.creerChallenge(req, 1L));
+
+        assertEquals("La date de fin doit être après la date de début.", ex.getMessage());
+    }
+
+    @Test
+    void creerChallenge_DateFinValide_Couverture() {
+
+        CreerChallengeRequest req = new CreerChallengeRequest("Titre",  LocalDate.parse("2026-01-01"), LocalDate.parse("2026-02-01"));
+
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+        when(challengeRepository.save(any(Challenge.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        // WHEN
+        Challenge result = service.creerChallenge(req, 1L);
+
+        assertNotNull(result.getDateFin());
+        assertTrue(result.getDateFin().after(result.getDateDebut()));
     }
 
     @Test
@@ -101,6 +155,54 @@ class ChallengeServiceTest {
 
         assertThat(updated.getNom()).isEqualTo("Nouveau");
         verify(challengeRepository).deleteById(2L);
+    }
+
+    @Test
+    void modifierChallenge_AvecDates_Couverture() {
+        // GIVEN
+        /* On prépare une requête avec des dates non nulles */
+        ModifierChallengeRequest req = new ModifierChallengeRequest(
+                "Nouveau Nom",
+                java.time.LocalDate.parse("2026-05-01"), // dateDebut != null
+                java.time.LocalDate.parse("2026-06-01") // dateFin != null
+
+        );
+
+        /* On utilise le challenge initialisé dans le setUp */
+        when(challengeRepository.findById(2L)).thenReturn(Optional.of(challenge));
+        when(challengeRepository.save(any(Challenge.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        // WHEN
+        Challenge result = service.modifierChallenge(2L, req);
+
+        assertEquals("Nouveau Nom", result.getNom());
+        assertEquals(java.sql.Date.valueOf("2026-05-01"), result.getDateDebut());
+        assertEquals(java.sql.Date.valueOf("2026-06-01"), result.getDateFin());
+    }
+
+    @Test
+    void modifierChallenge_SansDates_Couverture() {
+        // GIVEN
+        /* On ne change que le nom, les dates sont nulles dans le DTO */
+        ModifierChallengeRequest req = new ModifierChallengeRequest(
+                "Nom Modifié",
+                null, // dateDebut == null
+                null// dateFin == null
+        );
+
+        /* Sauvegarder les dates originales du setUp pour comparer */
+        java.sql.Date dateDebutOriginale = challenge.getDateDebut();
+        java.sql.Date dateFinOriginale = challenge.getDateFin();
+
+        when(challengeRepository.findById(2L)).thenReturn(Optional.of(challenge));
+        when(challengeRepository.save(any(Challenge.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        // WHEN
+        Challenge result = service.modifierChallenge(2L, req);
+
+        assertEquals("Nom Modifié", result.getNom());
+        assertEquals(dateDebutOriginale, result.getDateDebut());
+        assertEquals(dateFinOriginale, result.getDateFin());
     }
 
     @Test
@@ -151,7 +253,7 @@ class ChallengeServiceTest {
         service.enregistrerSaisieQuotidienne(2L, 1L, LocalDate.now(), false);
 
         verify(challengeSaisieQuotidienneRepository, org.mockito.Mockito.times(2))
-                .save(org.mockito.ArgumentMatchers.any(ChallengeSaisieQuotidienne.class));
+                .save(any(ChallengeSaisieQuotidienne.class));
     }
 
     @Test
@@ -164,5 +266,149 @@ class ChallengeServiceTest {
         verify(challengeSaisieQuotidienneRepository).deleteByChallenge(challenge);
         verify(challengeRepository).delete(challenge);
         assertThat(service.trouverChallengesTerminesLe(LocalDate.of(2026, 4, 1))).containsExactly(challenge);
+    }
+
+    @Test
+    void supprimerChallenge_Echec_SiInexistant() {
+        // GIVEN
+        Long idInexistant = 999L;
+        /* Simuler que le challenge n'est pas présent dans la base de données */
+        when(challengeRepository.existsById(idInexistant)).thenReturn(false);
+
+                assertThrows(IllegalArgumentException.class,
+                () -> service.supprimerChallenge(idInexistant));
+
+        /* Vérifier que la suppression n'est jamais tentée si l'ID est invalide */
+        verify(challengeRepository, never()).deleteById(anyLong());
+    }
+
+    /**
+     * Cas 2 : Le challenge existe (Suppression réussie).
+     */
+    @Test
+    void supprimerChallenge_Succes() {
+
+        when(challengeRepository.existsById(2L)).thenReturn(true);
+
+        service.supprimerChallenge(2L);
+
+        verify(challengeRepository).deleteById(2L);
+    }
+
+    @Test
+    void rejoindreChallenge_Echec_ChallengeTermine() {
+        // GIVEN
+        /* On modifie la date de fin pour qu'elle soit dans le passé */
+        challenge.setDateFin(java.sql.Date.valueOf(java.time.LocalDate.now().minusDays(1)));
+
+        when(challengeRepository.findById(2L)).thenReturn(Optional.of(challenge));
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+
+        // WHEN & THEN
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.rejoindreChallenge(2L, 1L));
+
+        assertEquals("Ce challenge est terminé.", ex.getMessage());
+    }
+
+    @Test
+    void rejoindreChallenge_Echec_DejaParticipant() {
+        // GIVEN
+        /* Le challenge du setUp contient déjà l'utilisateur ID 1L */
+        challenge.setDateFin(java.sql.Date.valueOf(java.time.LocalDate.now().plusDays(5)));
+
+        when(challengeRepository.findById(2L)).thenReturn(Optional.of(challenge));
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+
+        // WHEN & THEN
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.rejoindreChallenge(2L, 1L));
+
+        assertEquals("Vous participez déjà à ce challenge.", ex.getMessage());
+    }
+
+    @Test
+    void rejoindreChallenge_Succes() {
+        Challenge challengeVide = Challenge.builder()
+                .id(2L)
+                .dateFin(java.sql.Date.valueOf(java.time.LocalDate.now().plusDays(10)))
+                .participants(new java.util.HashSet<>()) // Liste vide
+                .build();
+
+        when(challengeRepository.findById(2L)).thenReturn(Optional.of(challengeVide));
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+        when(challengeRepository.save(any(Challenge.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        // WHEN
+        service.rejoindreChallenge(2L, 1L);
+
+        verify(challengeRepository).save(any(Challenge.class));
+    }
+
+    @Test
+    void rejoindreChallenge_DateFinNull_Couverture() {
+        Challenge challengeSansFin = Challenge.builder()
+                .id(2L)
+                .dateFin(null) // Condition A : dateFin != null sera FALSE
+                .participants(new java.util.HashSet<>()) // Liste vide pour passer le 2ème IF
+                .build();
+
+        when(challengeRepository.findById(2L)).thenReturn(Optional.of(challengeSansFin));
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+        when(challengeRepository.save(any(Challenge.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        service.rejoindreChallenge(2L, 1L);
+
+        verify(challengeRepository).save(any(Challenge.class));
+    }
+
+    @Test
+    void supprimerChallengeSiOrganisateur_Echec_OrganisateurNull() {
+        // GIVEN
+        Long challengeId = 2L;
+        Long userId = 1L;
+
+        /* On crée un challenge qui n'a pas d'organisateur (cas rare mais possible en BDD) */
+        Challenge challengeSansOrg = Challenge.builder().id(challengeId).organisateur(null).build();
+
+        when(challengeRepository.findById(challengeId)).thenReturn(Optional.of(challengeSansOrg));
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.supprimerChallengeSiOrganisateur(challengeId, userId));
+
+        assertEquals("Seul l'organisateur peut supprimer ce challenge.", ex.getMessage());
+    }
+
+    @Test
+    void supprimerChallengeSiOrganisateur_Echec_NonOrganisateur() {
+        // GIVEN
+        Long challengeId = 2L;
+        Long pirateId = 1L; // Moi
+        Long vraiOrgId = 99L; // Le vrai chef
+
+        Utilisateur vraiChef = Utilisateur.builder().id(vraiOrgId).build();
+        Challenge challengeAutre = Challenge.builder().id(challengeId).organisateur(vraiChef).build();
+
+        when(challengeRepository.findById(challengeId)).thenReturn(Optional.of(challengeAutre));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.supprimerChallengeSiOrganisateur(challengeId, pirateId));
+    }
+
+    @Test
+    void supprimerChallengeSiOrganisateur_Succes() {
+        // GIVEN
+        Long challengeId = 2L;
+        Long orgId = 1L;
+
+        Utilisateur organisateur = Utilisateur.builder().id(orgId).build();
+        Challenge monChallenge = Challenge.builder().id(challengeId).organisateur(organisateur).build();
+
+        when(challengeRepository.findById(challengeId)).thenReturn(Optional.of(monChallenge));
+
+        service.supprimerChallengeSiOrganisateur(challengeId, orgId);
+
+        verify(challengeSaisieQuotidienneRepository).deleteByChallenge(monChallenge);
+        verify(challengeRepository).delete(monChallenge);
     }
 }

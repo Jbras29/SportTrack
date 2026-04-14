@@ -102,6 +102,25 @@ class ChallengeControllerTest {
     }
 
     @Test
+    void createChallenge_retourne400QuandIllegalArgument() {
+        Utilisateur user = Utilisateur.builder()
+                .id(1L)
+                .hp(50) // HP > 0 pour passer le premier IF
+                .build();
+
+        CreerChallengeRequest body = new CreerChallengeRequest("C", LocalDate.now(), null);
+
+        when(utilisateurService.trouverParId(1L)).thenReturn(Optional.of(user));
+
+        when(challengeService.creerChallenge(any(CreerChallengeRequest.class), org.mockito.ArgumentMatchers.eq(1L)))
+                .thenThrow(new IllegalArgumentException("Date invalide"));
+
+        var response = controller.createChallenge(body, 1L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+
+    @Test
     void updateChallenge_retourne404QuandErreur() {
         when(challengeService.modifierChallenge(org.mockito.ArgumentMatchers.eq(3L), any(ModifierChallengeRequest.class)))
                 .thenThrow(new IllegalArgumentException("introuvable"));
@@ -112,9 +131,36 @@ class ChallengeControllerTest {
     }
 
     @Test
+    void updateChallenge_retourneChallengeQuandSucces() {
+        Long challengeId = 1L;
+        ModifierChallengeRequest req = new ModifierChallengeRequest("Challenge Modifié", java.time.LocalDate.now(), null);
+        Challenge challengeMisAJour = Challenge.builder().id(challengeId).nom("Challenge Modifié").build();
+
+        when(challengeService.modifierChallenge(org.mockito.ArgumentMatchers.eq(challengeId), any(ModifierChallengeRequest.class)))
+                .thenReturn(challengeMisAJour);
+
+        var response = controller.updateChallenge(challengeId, req);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isEqualTo(challengeMisAJour);
+    }
+
+    @Test
     void deleteChallenge_retourne204QuandSucces() {
         var response = controller.deleteChallenge(4L);
 
         assertThat(response.getStatusCode().value()).isEqualTo(204);
+    }
+
+    @Test
+    void deleteChallenge_retourne404QuandIllegalArgument() {
+        Long challengeId = 99L;
+
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("Challenge non trouvé"))
+                .when(challengeService).supprimerChallenge(challengeId);
+
+        var response = controller.deleteChallenge(challengeId);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
     }
 }
