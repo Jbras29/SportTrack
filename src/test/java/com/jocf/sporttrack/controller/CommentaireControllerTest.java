@@ -50,12 +50,32 @@ class CommentaireControllerTest {
     }
 
     @Test
+    void getCommentaireById_retourneLeCommentaireQuandIlExiste() {
+        when(commentaireService.trouverParId(5L)).thenReturn(Optional.of(commentaire));
+
+        var response = controller.getCommentaireById(5L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isEqualTo(commentaire);
+    }
+
+    @Test
     void getCommentaireById_retourne404SiAbsent() {
         when(commentaireService.trouverParId(5L)).thenReturn(Optional.empty());
 
         var response = controller.getCommentaireById(5L);
 
         assertThat(response.getStatusCode().value()).isEqualTo(404);
+    }
+
+    @Test
+    void getCommentairesByActivite_retourneListeQuandDisponible() {
+        when(commentaireService.recupererCommentairesParActivite(3L)).thenReturn(List.of(commentaire));
+
+        var response = controller.getCommentairesByActivite(3L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).containsExactly(commentaire);
     }
 
     @Test
@@ -79,11 +99,33 @@ class CommentaireControllerTest {
     }
 
     @Test
+    void createCommentaire_retourneLeCommentaireCree() {
+        when(commentaireService.creerCommentaire(1L, 2L, TypeCommentaire.MESSAGE, "x"))
+                .thenReturn(commentaire);
+
+        var response = controller.createCommentaire(1L, 2L, TypeCommentaire.MESSAGE, "x");
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isEqualTo(commentaire);
+    }
+
+    @Test
     void posterCommentaireTexte_retourne400SiBodySansAuteur() {
         var response = controller.posterCommentaireTexte(2L, new CreerCommentaireTexteRequest(null, "x"));
 
         assertThat(response.getStatusCode().value()).isEqualTo(400);
         assertThat(response.getBody()).isEqualTo(CommentaireFeedbackResponse.erreur("Le corps doit contenir auteurId."));
+    }
+
+    @Test
+    void posterCommentaireTexte_retourne404QuandActiviteIntrouvable() {
+        when(commentaireService.ajouterCommentaireTexte(1L, 2L, "hello"))
+                .thenThrow(new IllegalArgumentException("Activite introuvable : 2"));
+
+        var response = controller.posterCommentaireTexte(2L, new CreerCommentaireTexteRequest(1L, "hello"));
+
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
+        assertThat(response.getBody().message()).isEqualTo("Activite introuvable : 2");
     }
 
     @Test
@@ -98,6 +140,17 @@ class CommentaireControllerTest {
     }
 
     @Test
+    void posterReaction_retourne201QuandNouvelleReaction() {
+        when(commentaireService.ajouterReactionEmoji(1L, 2L, "👍"))
+                .thenReturn(new ReactionAjoutResultat(commentaire, true));
+
+        var response = controller.posterReaction(2L, new CreerReactionRequest(1L, "👍"));
+
+        assertThat(response.getStatusCode().value()).isEqualTo(201);
+        assertThat(response.getBody()).isEqualTo(CommentaireFeedbackResponse.ok("Réaction enregistrée.", commentaire));
+    }
+
+    @Test
     void posterReaction_retourne200QuandDejaPresente() {
         when(commentaireService.ajouterReactionEmoji(1L, 2L, "👍"))
                 .thenReturn(new ReactionAjoutResultat(commentaire, false));
@@ -106,6 +159,17 @@ class CommentaireControllerTest {
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody().message()).isEqualTo("Réaction déjà présente.");
+    }
+
+    @Test
+    void posterReaction_retourne400QuandLaReactionEstInvalide() {
+        when(commentaireService.ajouterReactionEmoji(1L, 2L, "👍"))
+                .thenThrow(new IllegalArgumentException("emoji invalide"));
+
+        var response = controller.posterReaction(2L, new CreerReactionRequest(1L, "👍"));
+
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getBody().message()).isEqualTo("emoji invalide");
     }
 
     @Test
@@ -123,6 +187,24 @@ class CommentaireControllerTest {
         var response = controller.deleteCommentaire(3L);
 
         assertThat(response.getStatusCode().value()).isEqualTo(204);
+    }
+
+    @Test
+    void supprimerCommentaireTexte_retourne200QuandSucces() {
+        var response = controller.supprimerCommentaireTexte(1L, 2L, 3L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isEqualTo(CommentaireFeedbackResponse.okSansCommentaire("Commentaire supprimé.", 2L));
+    }
+
+    @Test
+    void supprimerCommentaireTexte_retourne404QuandLeCommentaireNappartientPasALActivite() {
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("Commentaire 2 n'appartient pas à cette activité"))
+                .when(commentaireService).supprimerCommentaireTexte(1L, 2L, 3L);
+
+        var response = controller.supprimerCommentaireTexte(1L, 2L, 3L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
     }
 
     @Test
@@ -144,5 +226,13 @@ class CommentaireControllerTest {
         var response = controller.supprimerReaction(1L, 2L, 3L);
 
         assertThat(response.getStatusCode().value()).isEqualTo(404);
+    }
+
+    @Test
+    void supprimerReaction_retourne200QuandSucces() {
+        var response = controller.supprimerReaction(1L, 2L, 3L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isEqualTo(CommentaireFeedbackResponse.okSansCommentaire("Réaction supprimée.", 2L));
     }
 }

@@ -131,6 +131,13 @@ class ActiviteServiceTest {
     }
 
     @Test
+    void recupererActivitesDesAmis_retourneVideQuandAucunAmiNestPresent() {
+        utilisateur.setAmis(List.of());
+
+        assertThat(service.recupererActivitesDesAmis(utilisateur)).isEmpty();
+    }
+
+    @Test
     void creerActivite_enregistreEtEnrichitActivite() {
         CreerActiviteCommand command = new CreerActiviteCommand(
                 1L, "Run", TypeSport.COURSE, LocalDate.now(), 5000.0, 30, "Paris", 4, List.of());
@@ -151,6 +158,16 @@ class ActiviteServiceTest {
         assertThat(saved.getMeteoCondition()).isEqualTo("Nuageux");
         verify(utilisateurService).crediterExperience(utilisateur, saved.getXpGagne());
         verify(activiteBadgeEvaluationService).evaluerEtAttribuerBadges(saved);
+    }
+
+    @Test
+    void creerActivite_refuseUneDateDansLeFutur() {
+        CreerActiviteCommand command = new CreerActiviteCommand(
+                1L, "Run", TypeSport.COURSE, LocalDate.now().plusDays(1), 5000.0, 30, "Paris", 4, List.of());
+
+        assertThatThrownBy(() -> service.creerActivite(command))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("futur");
     }
 
     @Test
@@ -200,6 +217,16 @@ class ActiviteServiceTest {
     }
 
     @Test
+    void modifierActivite_lanceUneErreurQuandLActiviteNExistePas() {
+        when(activiteRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.modifierActivite(99L, new ModifierActiviteRequest(
+                "New", TypeSport.CYCLISME, 10000.0, 60, LocalDate.now(), "Lyon", 5, List.of())))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Activite introuvable");
+    }
+
+    @Test
     void supprimerEtCalculsFonctionnent() {
         Activite activite = Activite.builder()
                 .id(4L)
@@ -220,6 +247,15 @@ class ActiviteServiceTest {
     }
 
     @Test
+    void supprimerActivite_lanceUneErreurQuandLActiviteNexistePas() {
+        when(activiteRepository.existsById(4L)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.supprimerActivite(4L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Activite introuvable");
+    }
+
+    @Test
     void recalculerMeteoEtCaloriesPourToutesLesActivites_metAJourSeulementLesManquantes() {
         Activite a = Activite.builder()
                 .id(1L)
@@ -237,5 +273,25 @@ class ActiviteServiceTest {
 
         assertThat(count).isEqualTo(1);
         verify(activiteRepository).save(a);
+    }
+
+    @Test
+    void recalculerMeteoEtCaloriesPourToutesLesActivites_neSauvegardeRienQuandToutEstDejaPresent() {
+        Activite a = Activite.builder()
+                .id(1L)
+                .typeSport(TypeSport.COURSE)
+                .temps(40)
+                .utilisateur(utilisateur)
+                .date(LocalDate.now())
+                .location("Paris")
+                .calories(123.0)
+                .meteoCondition("Nuageux")
+                .build();
+        when(activiteRepository.findAll()).thenReturn(List.of(a));
+
+        int count = service.recalculerMeteoEtCaloriesPourToutesLesActivites();
+
+        assertThat(count).isEqualTo(0);
+        org.mockito.Mockito.verify(activiteRepository, org.mockito.Mockito.never()).save(any(Activite.class));
     }
 }

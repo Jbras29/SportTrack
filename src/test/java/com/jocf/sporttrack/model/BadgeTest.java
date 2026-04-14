@@ -19,11 +19,32 @@ class BadgeTest {
     }
 
     @Test
+    void constructeurSansIdEtSetters_fonctionnent() {
+        Badge badge = new Badge("CINQ_K_STARTER", "5K Starter", "/5k.png");
+        badge.setId(7L);
+        badge.setDescription("Premier parcours de 5 km.");
+
+        assertThat(badge.getId()).isEqualTo(7L);
+        assertThat(badge.getCode()).isEqualTo("CINQ_K_STARTER");
+        assertThat(badge.getNom()).isEqualTo("5K Starter");
+        assertThat(badge.getPhoto()).isEqualTo("/5k.png");
+        assertThat(badge.getDescription()).isEqualTo("Premier parcours de 5 km.");
+    }
+
+    @Test
     void equalsEtHashCode_dependantDesChamps() {
         Badge a = new Badge("PREMIER_PAS", "Premier pas", "/img.png", "Desc");
         Badge b = new Badge("PREMIER_PAS", "Premier pas", "/img.png", "Desc");
 
         assertThat(a).isEqualTo(b);
         assertThat(a.hashCode()).isEqualTo(b.hashCode());
+    }
+
+    @Test
+    void equalsRetourneFalsePourUnBadgeDifferent() {
+        Badge a = new Badge("PREMIER_PAS", "Premier pas", "/img.png", "Desc");
+        Badge b = new Badge("CINQ_K_STARTER", "5K Starter", "/5k.png", "Autre desc");
+
+        assertThat(a).isNotEqualTo(b);
     }
 }

@@ -79,6 +79,13 @@ class ProfileControllerTest {
     }
 
     @Test
+    void editProfileForm_redirigeQuandLIdentifiantDemandeNeCorrespondPasALaSession() {
+        String view = controller.editProfileForm(2L, session, new ExtendedModelMap());
+
+        assertThat(view).isEqualTo("redirect:/profile/edit");
+    }
+
+    @Test
     void editProfileForm_chargeLeProfil() {
         when(utilisateurService.trouverParId(1L)).thenReturn(Optional.of(utilisateur));
         Model model = new ExtendedModelMap();
@@ -103,6 +110,16 @@ class ProfileControllerTest {
     }
 
     @Test
+    void editProfileSubmit_redirigeLoginQuandLaSessionEtLeFormulaireNeCorrespondentPas() {
+        ModifierUtilisateurRequest form = ModifierUtilisateurRequest.fromUtilisateur(utilisateur);
+        form.setId(2L);
+
+        String view = controller.editProfileSubmit(form, session);
+
+        assertThat(view).isEqualTo("redirect:/login");
+    }
+
+    @Test
     void ajouterPreferenceSportive_stockeFlashSucces() {
         RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
 
@@ -111,6 +128,13 @@ class ProfileControllerTest {
         assertThat(view).isEqualTo("redirect:/profile/edit");
         assertThat(redirectAttributes.getFlashAttributes().get("preferenceMessage"))
                 .isEqualTo("Preference sportive ajoutee.");
+    }
+
+    @Test
+    void ajouterPreferenceSportive_redirigeLoginSansSession() {
+        String view = controller.ajouterPreferenceSportive(null, "Course", new MockHttpSession(), new RedirectAttributesModelMap());
+
+        assertThat(view).isEqualTo("redirect:/login");
     }
 
     @Test
@@ -123,6 +147,13 @@ class ProfileControllerTest {
 
         assertThat(view).isEqualTo("redirect:/profile/edit");
         assertThat(redirectAttributes.getFlashAttributes().get("preferenceErreur")).isEqualTo("introuvable");
+    }
+
+    @Test
+    void supprimerPreferenceSportive_redirigeLoginSansSession() {
+        String view = controller.supprimerPreferenceSportive(2L, null, new MockHttpSession(), new RedirectAttributesModelMap());
+
+        assertThat(view).isEqualTo("redirect:/login");
     }
 
     @Test
@@ -153,6 +184,15 @@ class ProfileControllerTest {
     }
 
     @Test
+    void televerserPhotoProfil_redirigeLoginSansSession() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "photo.png", "image/png", new byte[] {1});
+
+        String view = controller.televerserPhotoProfil(file, new MockHttpSession(), new RedirectAttributesModelMap());
+
+        assertThat(view).isEqualTo("redirect:/login");
+    }
+
+    @Test
     void viewProfile_chargeLeProfilCourant() {
         when(utilisateurService.trouverParId(1L)).thenReturn(Optional.of(utilisateur));
         when(activiteService.recupererActivitesPourProfil(utilisateur)).thenReturn(List.of());
@@ -162,6 +202,13 @@ class ProfileControllerTest {
 
         assertThat(view).isEqualTo("profile/view");
         assertThat(model.getAttribute("profilCompletVisible")).isEqualTo(true);
+    }
+
+    @Test
+    void viewProfile_redirigeLoginSansSession() {
+        String view = controller.viewProfile(new MockHttpSession(), new ExtendedModelMap());
+
+        assertThat(view).isEqualTo("redirect:/login");
     }
 
     @Test
@@ -189,5 +236,31 @@ class ProfileControllerTest {
         assertThat(view).isEqualTo("profile/view");
         assertThat(model.getAttribute("profilCompletVisible")).isEqualTo(false);
         assertThat(model.getAttribute("peutEnvoyerDemandeAmiProfil")).isEqualTo(true);
+    }
+
+    @Test
+    void viewProfileAutre_rendLeProfilVisibleQuandIlEstPublic() {
+        Utilisateur publicProfile = Utilisateur.builder()
+                .id(2L)
+                .nom("Smith")
+                .prenom("Bob")
+                .email("bob@test.com")
+                .motdepasse("x")
+                .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
+                .comptePrive(false)
+                .amis(new ArrayList<>())
+                .evenementsOrganises(new ArrayList<>())
+                .evenementsParticipes(new ArrayList<>())
+                .build();
+        when(utilisateurService.trouverParId(2L)).thenReturn(Optional.of(publicProfile));
+        when(utilisateurService.findByIdWithAmis(1L)).thenReturn(utilisateur);
+        when(activiteService.recupererActivitesPourProfil(publicProfile)).thenReturn(List.of());
+
+        Model model = new ExtendedModelMap();
+        String view = controller.viewProfile(2L, session, model);
+
+        assertThat(view).isEqualTo("profile/view");
+        assertThat(model.getAttribute("profilCompletVisible")).isEqualTo(true);
+        assertThat(model.getAttribute("estAmi")).isEqualTo(false);
     }
 }
