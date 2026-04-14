@@ -8,6 +8,7 @@ import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.AnnonceRepository;
 import com.jocf.sporttrack.repository.EvenementRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class EvenementService {
@@ -23,6 +23,11 @@ public class EvenementService {
     private final EvenementRepository evenementRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final AnnonceRepository annonceRepository;
+
+
+    @Autowired
+    @Lazy
+    private EvenementService self;
 
     public EvenementService(EvenementRepository evenementRepository, UtilisateurRepository utilisateurRepository, AnnonceRepository annonceRepository) {
         this.evenementRepository = evenementRepository;
@@ -139,21 +144,19 @@ public class EvenementService {
     /** Retirer un participant de la liste des participants d'un événement. */
     @Transactional
     public void retirerParticipant(Long evenementId, Long utilisateurId) {
-        // 1. Trouver l'événement
+
         Evenement evenement = trouverParId(evenementId);
 
-        // 2. Retirer l'utilisateur de la liste par son ID
-        // removeIf est très efficace ici
         evenement.getParticipants().removeIf(p -> p.getId().equals(utilisateurId));
 
-        // 3. Sauvegarder les modifications
         evenementRepository.save(evenement);
     }
 
     /** Supprimer l'utilisateur actuel de la liste des participants. */
     @Transactional
     public void quitterEvenement(Long evenementId, Long utilisateurId) {
-        this.retirerParticipant(evenementId, utilisateurId);
+        /* On utilise 'self' au lieu de 'this' pour passer par le proxy Spring */
+        self.retirerParticipant(evenementId, utilisateurId);
     }
 
 

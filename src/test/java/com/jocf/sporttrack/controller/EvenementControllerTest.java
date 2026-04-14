@@ -490,12 +490,11 @@ class EvenementControllerTest {
                     .andExpect(status().isOk());
 
             // Vérifier que le service a été appelé avec le bon ID utilisateur
-            verify(evenementService).quitterEvenement(eq(10L), eq(1L));
+            verify(evenementService).quitterEvenement(10L, 1L);
         }
 
         /**
          * Test pour quitter un événement - Cas 1 : Principal est UserDetails (Branche IF)
-         * 测试：用户退出活动 - 场景1：Principal 是 UserDetails 类型（覆盖三元运算符前半部分）
          */
         @Test
         void quitter_CouvertureUserDetails() throws Exception {
@@ -524,7 +523,6 @@ class EvenementControllerTest {
 
         /**
          * Test pour quitter un événement - Cas 2 : Principal est String (Branche ELSE)
-
          */
         @Test
         void quitter_CouverturePrincipalString() throws Exception {
@@ -835,7 +833,6 @@ class EvenementControllerTest {
                             .content(objectMapper.writeValueAsString(payload)))
                     .andExpect(status().isOk());
 
-            // THEN : La branche 'if (principal instanceof UserDetails)' est maintenant couverte
             verify(utilisateurService).trouverParEmail(email);
         }
 
