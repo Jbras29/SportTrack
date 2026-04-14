@@ -20,12 +20,10 @@ import java.util.Optional;
 @Service
 public class EvenementService {
 
-    private final EvenementService self;
     private final EvenementRepository evenementRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final AnnonceRepository annonceRepository;
 
-    @Autowired
     public EvenementService(EvenementRepository evenementRepository, UtilisateurRepository utilisateurRepository, AnnonceRepository annonceRepository) {
         this.evenementRepository = evenementRepository;
         this.utilisateurRepository = utilisateurRepository;
