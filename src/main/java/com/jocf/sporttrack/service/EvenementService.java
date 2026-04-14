@@ -153,7 +153,7 @@ public class EvenementService {
     /** Supprimer l'utilisateur actuel de la liste des participants. */
     @Transactional
     public void quitterEvenement(Long evenementId, Long utilisateurId) {
-        self.retirerParticipant(evenementId, utilisateurId);
+        this.retirerParticipant(evenementId, utilisateurId);
     }
 
 
