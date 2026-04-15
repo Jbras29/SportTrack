@@ -43,6 +43,9 @@ public class Activite {
     /** Nombre maximal de types de réaction (emojis distincts) affichés dans le fil d’actualité. */
     private static final int LIMITE_REACTIONS_AFFICHEES = 5;
 
+    /** Nombre maximal d'invités affichés directement dans le fil d’actualité. */
+    private static final int LIMITE_INVITES_AFFICHEES = 3;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -173,6 +176,30 @@ public class Activite {
     public static int getLimiteReactionsAffichees() {
         return LIMITE_REACTIONS_AFFICHEES;
     }
+
+    /**
+     * Sous-ensemble des invités pour l'affichage dans les cartes du fil.
+     * On limite le nombre d'avatars visibles pour garder une carte compacte.
+     */
+    public List<Utilisateur> getInvitesAffiches() {
+        if (invites == null || invites.isEmpty()) {
+            return List.of();
+        }
+        if (invites.size() <= LIMITE_INVITES_AFFICHEES) {
+            return invites;
+        }
+        return new ArrayList<>(invites.subList(0, LIMITE_INVITES_AFFICHEES));
+    }
+
+    /**
+     * Nombre d'invités masqués au-delà de la limite d'affichage.
+     */
+    public int getInvitesMasquesCount() {
+        if (invites == null) {
+            return 0;
+        }
+        return Math.max(0, invites.size() - LIMITE_INVITES_AFFICHEES);
+    }
     
     @ManyToMany
     @JoinTable(
@@ -180,6 +207,8 @@ public class Activite {
         joinColumns = @JoinColumn(name = "activite_id"),
         inverseJoinColumns = @JoinColumn(name = "utilisateur_id")
     )
-@Builder.Default
-private List<Utilisateur> invites = new ArrayList<>();
+    @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Utilisateur> invites = new ArrayList<>();
 }

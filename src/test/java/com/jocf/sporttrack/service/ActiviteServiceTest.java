@@ -74,6 +74,27 @@ class ActiviteServiceTest {
     }
 
     @Test
+    void recupererSuggestionsLocations_delegueAOpenMeteo() {
+        when(openMeteoService.suggestLocations("Pa", 2)).thenReturn(List.of("Paris", "Pau"));
+
+        List<String> suggestions = service.recupererSuggestionsLocations(" Pa ", 2);
+
+        assertThat(suggestions).containsExactly("Paris", "Pau");
+        verify(openMeteoService).suggestLocations("Pa", 2);
+    }
+
+    @Test
+    void creerActivite_refuseUneLocationInexistante() {
+        CreerActiviteCommand command = new CreerActiviteCommand(
+                1L, "Run", TypeSport.COURSE, LocalDate.now(), 5000.0, 30, "PasDeVille", 4, List.of());
+        when(openMeteoService.locationExists("PasDeVille")).thenReturn(false);
+
+        assertThatThrownBy(() -> service.creerActivite(command))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("introuvable");
+    }
+
+    @Test
     void recupererActivitesParUtilisateur_lanceSiUtilisateurAbsent() {
         when(utilisateurRepository.findById(9L)).thenReturn(Optional.empty());
 
@@ -91,6 +112,13 @@ class ActiviteServiceTest {
                 .date(LocalDate.now())
                 .utilisateur(utilisateur)
                 .build();
+        Activite activiteInvitee = Activite.builder()
+                .id(4L)
+                .nom("Ride")
+                .typeSport(TypeSport.CYCLISME)
+                .date(LocalDate.now().minusDays(1))
+                .utilisateur(Utilisateur.builder().id(2L).prenom("Joe").nom("Friend").email("joe@test.com").motdepasse("x").build())
+                .build();
         Utilisateur ami = Utilisateur.builder()
                 .id(2L)
                 .nom("Friend")
@@ -100,11 +128,11 @@ class ActiviteServiceTest {
                 .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
                 .build();
         utilisateur.setAmis(List.of(ami));
-        when(activiteRepository.findByUtilisateurOrderByDateDesc(utilisateur)).thenReturn(List.of(activite));
+        when(activiteRepository.findByUtilisateurOuInvitesOrderByDateDesc(utilisateur)).thenReturn(List.of(activite, activiteInvitee));
         when(activiteRepository.findByTypeSport(TypeSport.COURSE)).thenReturn(List.of(activite));
         when(activiteRepository.findByUtilisateurIdsWithUtilisateurOrderByDateDesc(List.of(2L))).thenReturn(List.of(activite));
 
-        assertThat(service.recupererActivitesPourProfil(utilisateur)).containsExactly(activite);
+        assertThat(service.recupererActivitesPourProfil(utilisateur)).containsExactly(activite, activiteInvitee);
         assertThat(service.recupererActivitesParTypeSport(TypeSport.COURSE)).containsExactly(activite);
         assertThat(service.recupererActivitesDesAmis(utilisateur)).containsExactly(activite);
     }
@@ -140,9 +168,18 @@ class ActiviteServiceTest {
     @Test
     void creerActivite_enregistreEtEnrichitActivite() {
         CreerActiviteCommand command = new CreerActiviteCommand(
-                1L, "Run", TypeSport.COURSE, LocalDate.now(), 5000.0, 30, "Paris", 4, List.of());
+                1L, "Run", TypeSport.COURSE, LocalDate.now(), 5000.0, 30, "Paris", 4, List.of(2L));
+        Utilisateur invite = Utilisateur.builder()
+                .id(2L)
+                .nom("Friend")
+                .prenom("Joe")
+                .email("joe@test.com")
+                .motdepasse("x")
+                .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
+                .build();
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
-        when(utilisateurRepository.findAllById(List.of())).thenReturn(List.of());
+        when(utilisateurRepository.findAllById(any())).thenReturn(List.of(invite));
+        when(openMeteoService.locationExists("Paris")).thenReturn(true);
         when(openMeteoService.getWeatherForLocationAndDate("Paris", command.date()))
                 .thenReturn(new OpenMeteoService.WeatherInfo(17.5, "Nuageux"));
         when(activiteRepository.save(any(Activite.class))).thenAnswer(invocation -> {
@@ -157,6 +194,7 @@ class ActiviteServiceTest {
         assertThat(saved.getCalories()).isGreaterThan(0.0);
         assertThat(saved.getMeteoCondition()).isEqualTo("Nuageux");
         verify(utilisateurService).crediterExperience(utilisateur, saved.getXpGagne());
+        verify(utilisateurService).crediterExperience(invite, saved.getXpGagne());
         verify(activiteBadgeEvaluationService).evaluerEtAttribuerBadges(saved);
     }
 
@@ -191,7 +229,9 @@ class ActiviteServiceTest {
                 .date(LocalDate.now().minusDays(1))
                 .temps(20)
                 .distance(3000.0)
+                .xpGagne(42)
                 .utilisateur(utilisateur)
+                .invites(new ArrayList<>())
                 .build();
         Utilisateur ami = Utilisateur.builder()
                 .id(2L)
@@ -201,8 +241,9 @@ class ActiviteServiceTest {
                 .motdepasse("x")
                 .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
                 .build();
-        when(activiteRepository.findById(4L)).thenReturn(Optional.of(activite));
-        when(utilisateurRepository.findAllById(List.of(2L))).thenReturn(List.of(ami));
+        when(activiteRepository.findByIdAvecUtilisateurEtInvites(4L)).thenReturn(Optional.of(activite));
+        when(utilisateurRepository.findAllById(any())).thenReturn(List.of(ami));
+        when(openMeteoService.locationExists("Lyon")).thenReturn(true);
         when(openMeteoService.getWeatherForLocationAndDate("Lyon", LocalDate.now()))
                 .thenReturn(new OpenMeteoService.WeatherInfo(20.0, "Ensoleillé"));
         when(activiteRepository.save(activite)).thenReturn(activite);
@@ -214,11 +255,12 @@ class ActiviteServiceTest {
         assertThat(updated.getNom()).isEqualTo("New");
         assertThat(updated.getInvites()).containsExactly(ami);
         assertThat(updated.getMeteoCondition()).isEqualTo("Ensoleillé");
+        verify(utilisateurService).crediterExperience(ami, 42);
     }
 
     @Test
     void modifierActivite_lanceUneErreurQuandLActiviteNExistePas() {
-        when(activiteRepository.findById(99L)).thenReturn(Optional.empty());
+        when(activiteRepository.findByIdAvecUtilisateurEtInvites(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.modifierActivite(99L, new ModifierActiviteRequest(
                 "New", TypeSport.CYCLISME, 10000.0, 60, LocalDate.now(), "Lyon", 5, List.of())))

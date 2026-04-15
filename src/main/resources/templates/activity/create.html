@@ -49,6 +49,8 @@
                 <p>Enregistrez vos performances, suivez votre progression et invitez des amis à participer à l'activité.</p>
             </div>
 
+            <div th:if="${param.erreur}" class="flash-banner err" th:text="${param.erreur}"></div>
+
             <form th:action="@{/activites}" method="POST">
                 <input type="hidden" name="utilisateurId" th:value="${session.utilisateurId}">
 
@@ -98,7 +100,8 @@
                         <label for="location">Ville / Lieu
                             <span style="font-size:0.75rem;opacity:0.55;font-weight:500;"> — pour récupérer la météo</span>
                         </label>
-                        <input type="text" id="location" name="location" placeholder="Ex: Paris, Toulouse..." autocomplete="off">
+                        <input type="text" id="location" name="location" placeholder="Ex: Paris, Toulouse..." autocomplete="off" list="location-suggestions">
+                        <datalist id="location-suggestions"></datalist>
                         <div id="meteo-loading">🔎 Recherche météo...</div>
                         <div id="meteo-preview-block" role="status" aria-live="polite">
                             <div id="meteo-preview-icon">🌡️</div>
