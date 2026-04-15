@@ -1,14 +1,12 @@
 package com.jocf.sporttrack.controller;
 
-import com.jocf.sporttrack.model.Activite;
-import com.jocf.sporttrack.model.Challenge;
 import com.jocf.sporttrack.enumeration.TypeSport;
 import com.jocf.sporttrack.enumeration.TypeUtilisateur;
+import com.jocf.sporttrack.model.Activite;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.ActiviteRepository;
 import com.jocf.sporttrack.repository.ChallengeRepository;
 import com.jocf.sporttrack.service.UtilisateurService;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -78,30 +76,22 @@ class DashboardControllerTest {
         Activite activite = Activite.builder()
                 .date(LocalDate.now())
                 .temps(30)
+                .distance(42.0)
                 .typeSport(TypeSport.COURSE)
                 .utilisateur(utilisateur)
                 .build();
-        Challenge challenge = Challenge.builder()
-                .dateFin(Date.valueOf(LocalDate.now().plusDays(1)))
-                .build();
         when(utilisateurService.trouverParEmail("jane@test.com")).thenReturn(utilisateur);
-        when(activiteRepository.sumDistanceByUtilisateur(utilisateur)).thenReturn(42.0);
-        when(activiteRepository.sumTempsMinutesByUtilisateur(utilisateur)).thenReturn(120);
-        when(activiteRepository.countByUtilisateur(utilisateur)).thenReturn(3L);
-        when(challengeRepository.findByParticipants_IdOrderByDateFinAsc(1L)).thenReturn(List.of(challenge));
-        when(activiteRepository.findTop5ByUtilisateurOrderByDateDesc(utilisateur)).thenReturn(List.of(activite));
-        when(activiteRepository.findByUtilisateurAndDateBetween(
-                org.mockito.ArgumentMatchers.eq(utilisateur),
-                org.mockito.ArgumentMatchers.any(LocalDate.class),
-                org.mockito.ArgumentMatchers.any(LocalDate.class)))
+        when(activiteRepository.findByUtilisateurOrderByDateDesc(utilisateur))
                 .thenReturn(List.of(activite));
+        when(challengeRepository.findByParticipants_IdOrderByDateFinAsc(1L))
+                .thenReturn(List.of());
         Model model = new ExtendedModelMap();
 
         String view = controller.dashboard(model);
 
         assertThat(view).isEqualTo("dashboard");
         assertThat(model.getAttribute("totalDistanceKm")).isEqualTo(42.0);
-        assertThat(model.getAttribute("nombreActivites")).isEqualTo(3L);
+        assertThat(model.getAttribute("nombreActivites")).isEqualTo(1L);
         assertThat((List<?>) model.getAttribute("semaineActivite")).hasSize(7);
     }
 }
