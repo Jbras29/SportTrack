@@ -3,10 +3,6 @@ package com.jocf.sporttrack.controller;
 import com.jocf.sporttrack.dto.CreerChallengeRequest;
 import com.jocf.sporttrack.dto.LigneClassementChallenge;
 import com.jocf.sporttrack.model.Challenge;
-<<<<<<< HEAD
-import com.jocf.sporttrack.enumeration.TypeUtilisateur;
-=======
->>>>>>> 908e62cdb8e9d70fe221673d8ecdc15719325f94
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.ChallengeService;
 import com.jocf.sporttrack.service.UtilisateurService;
