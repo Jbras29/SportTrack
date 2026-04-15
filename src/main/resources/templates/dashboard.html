@@ -13,7 +13,7 @@
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
 
     <div class="main-wrapper main-wrapper--stack">
-        
+
         <div class="profile-header">
             <img th:src="${user.cheminPhotoProfilAffichee()}" alt="Photo de profil" class="profile-avatar" width="80" height="80">
             <div class="profile-info">
@@ -32,98 +32,187 @@
             </a>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon orange">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19c2.5 0 4.5-2 4.5-4.5a4.5 4.5 0 0 0-4.5-4.5c-1.5 0-2.5.5-3.5 1.5-1-1-2-1.5-3.5-1.5a4.5 4.5 0 0 0-4.5 4.5C6 17 8 19 10.5 19h7z"></path></svg>
+        <div class="dash-card">
+            <h2 class="card-title">État de l'athlète</h2>
+
+            <div class="status-row">
+                <div class="status-header">
+                    <span>Points de Vie (HP)</span>
+                    <span class="status-value--hp" th:text="|${user.hpNormalise} / 100|">100 / 100</span>
                 </div>
-                <div>
-                    <p class="stat-value" th:text="${kcalEstime}">0</p>
-                    <p class="stat-label">Kcal estimées (durée)</p>
-                </div>
+                <div class="status-bar-bg"><div class="status-bar-fill fill-hp" th:style="|width: ${hpBarPercent}%|"></div></div>
+                <p class="status-help">Ne ratez pas vos objectifs pour garder vos HP !</p>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon blue">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+
+            <div class="status-row">
+                <div class="status-header">
+                    <span>Expérience (XP)</span>
+                    <span class="status-value--xp">
+                        <span th:if="${level &lt; 6}" th:text="|${xpDansNiveau} / ${xpMaxNiveau} XP|">0 / 100 XP</span>
+                        <span th:if="${level >= 6}" th:text="|${user.xpEffectif} XP (max)|">5000 XP</span>
+                    </span>
                 </div>
-                <div>
-                    <p class="stat-value" th:text="${#numbers.formatDecimal(totalDistanceKm, 1, 1)} + ' km'">0 km</p>
-                    <p class="stat-label">Distance totale</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon green">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                </div>
-                <div>
-                    <p class="stat-value" th:text="|${totalTempsMinutes / 60}h ${totalTempsMinutes % 60}m|">0h 0m</p>
-                    <p class="stat-label">Temps d'activité</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon orange">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                </div>
-                <div>
-                    <p class="stat-value" th:text="${nombreActivites}">0</p>
-                    <p class="stat-label">Activités</p>
+                <div class="status-bar-bg"><div class="status-bar-fill fill-xp" th:style="|width: ${xpBarPercent}%|"></div></div>
+                <div class="xp-level-rail">
+                    <span class="xp-level-label" th:text="|Niveau ${level}|">Niveau 1</span>
+                    <span th:if="${level &lt; 6}" class="xp-level-label xp-level-label--next" th:text="|Niveau ${level + 1}|">Niveau 2</span>
+                    <span th:if="${level >= 6}" class="xp-level-label xp-level-label--max">Palier max</span>
                 </div>
             </div>
         </div>
 
-        <div class="dashboard-grid">
-            
-            <div class="dashboard-column">
-                
-                <div class="dash-card">
-                    <h2 class="card-title">État de l'athlète</h2>
-                    
-                    <div class="status-row">
-                        <div class="status-header">
-                            <span>Points de Vie (HP)</span>
-                            <span class="status-value--hp" th:text="|${user.hpNormalise} / 100|">100 / 100</span>
-                        </div>
-                        <div class="status-bar-bg"><div class="status-bar-fill fill-hp" th:style="|width: ${hpBarPercent}%|"></div></div>
-                        <p class="status-help">Ne ratez pas vos objectifs pour garder vos HP !</p>
-                    </div>
+        <div class="dashboard-summary-grid">
+            <article class="summary-card">
+                <div class="stat-icon blue">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+                <div>
+                    <p class="stat-value" th:text="${nombreActivites}">12</p>
+                    <p class="stat-label">Activités enregistrées</p>
+                    <p class="summary-note" th:text="|${activitesSemaineCount} cette semaine|">2 cette semaine</p>
+                </div>
+            </article>
 
-                    <div class="status-row">
-                        <div class="status-header">
-                            <span>Expérience (XP)</span>
-                            <span class="status-value--xp">
-                                <span th:if="${level &lt; 6}" th:text="|${xpDansNiveau} / ${xpMaxNiveau} XP|">0 / 100 XP</span>
-                                <span th:if="${level >= 6}" th:text="|${user.xpEffectif} XP (max)|">5000 XP</span>
-                            </span>
-                        </div>
-                        <div class="status-bar-bg"><div class="status-bar-fill fill-xp" th:style="|width: ${xpBarPercent}%|"></div></div>
-                        <div class="xp-level-rail">
-                            <span class="xp-level-label" th:text="|Niveau ${level}|">Niveau 1</span>
-                            <span th:if="${level &lt; 6}" class="xp-level-label xp-level-label--next" th:text="|Niveau ${level + 1}|">Niveau 2</span>
-                            <span th:if="${level >= 6}" class="xp-level-label xp-level-label--max">Palier max</span>
-                        </div>
+            <article class="summary-card">
+                <div class="stat-icon blue">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                </div>
+                <div>
+                    <p class="stat-value" th:text="${totalDistanceTexte}">37510,0 km</p>
+                    <p class="stat-label">Distance totale</p>
+                    <p class="summary-note" th:text="|${distanceSemaineTexte} sur les 7 derniers jours|">7000,0 km sur les 7 derniers jours</p>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="stat-icon green">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+                <div>
+                    <p class="stat-value" th:text="${totalTempsTexte}">21h 30 min</p>
+                    <p class="stat-label">Temps cumulé</p>
+                    <p class="summary-note" th:text="|Allure moyenne ${allureMoyenne}|">Allure moyenne 0'02"/km</p>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="stat-icon orange">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19c2.5 0 4.5-2 4.5-4.5a4.5 4.5 0 0 0-4.5-4.5c-1.5 0-2.5.5-3.5 1.5-1-1-2-1.5-3.5-1.5a4.5 4.5 0 0 0-4.5 4.5C6 17 8 19 10.5 19h7z"></path></svg>
+                </div>
+                <div>
+                    <p class="stat-value" th:text="${kcalEstimeTexte}">2260 kcal</p>
+                    <p class="stat-label">Calories estimées</p>
+                    <p class="summary-note" th:text="|${moisActivites} séances sur le mois|">11 séances sur le mois</p>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="stat-icon green">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5h16"></path><path d="M6 19.5V9l6-4 6 4v10.5"></path></svg>
+                </div>
+                <div>
+                    <p class="stat-value" th:text="${moyenneDistanceTexte}">3125,8 km</p>
+                    <p class="stat-label">Distance moyenne</p>
+                    <p class="summary-note">Sur l'ensemble de vos séances</p>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="stat-icon orange">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6l4 2"></path><circle cx="12" cy="12" r="9"></circle></svg>
+                </div>
+                <div>
+                    <p class="stat-value" th:text="${derniereSeanceTexte}">14 avr. 2026</p>
+                    <p class="stat-label">Dernière séance</p>
+                    <p class="summary-note" th:if="${derniereSeanceRelativeTexte != null}" th:text="${derniereSeanceRelativeTexte}">1 jour</p>
+                    <p class="summary-note" th:unless="${derniereSeanceRelativeTexte != null}">Aucune séance pour le moment</p>
+                </div>
+            </article>
+        </div>
+
+        <div class="dashboard-surface">
+            <section class="dashboard-panel dashboard-panel--feature">
+                <div class="panel-head">
+                    <div>
+                        <p class="section-kicker">Objectifs &amp; repères</p>
+                        <h2 class="panel-title">Vos performances clés</h2>
+                        <p class="panel-subtitle">
+                            Un condensé de vos repères du moment, avec le mois en cours, vos séances moyennes et le sport que vous pratiquez le plus.
+                        </p>
                     </div>
+                    <span class="panel-chip" th:text="|Niveau ${level}|">Niveau 5</span>
                 </div>
 
-                <div class="dash-card">
-                    <h2 class="card-title">Mes Défis Actifs</h2>
-                    <div class="challenge-list">
-                        <p th:if="${#lists.isEmpty(defisEnCours)}" class="empty-copy">Aucun défi actif pour le moment.</p>
-                        <div th:each="defi : ${defisEnCours}" class="challenge-item">
-                            <div class="challenge-title" th:text="${defi.nom}">Nom du défi</div>
-                            <div class="defi-meta"
-                                 th:if="${defi.dateDebut != null and defi.dateFin != null}"
-                                 th:text="|${#dates.format(defi.dateDebut, 'dd/MM/yyyy')} — ${#dates.format(defi.dateFin, 'dd/MM/yyyy')}|">
+                <div class="feature-grid">
+                    <article class="feature-block">
+                        <p class="feature-label">Moyenne par séance</p>
+                        <div class="feature-value" th:text="${moyenneDistanceTexte}">3125,8 km</div>
+                        <p class="feature-meta">
+                            <span th:text="|Durée moyenne ${moyenneTempsTexte}|">Durée moyenne 1h 48 min</span>
+                        </p>
+                    </article>
+
+                    <article class="feature-block">
+                        <p class="feature-label">Mois en cours</p>
+                        <div class="feature-value" th:text="${moisDistanceTexte}">33510,0 km</div>
+                        <p class="feature-meta" th:text="|${moisTempsTexte} / ${moisActivites} séances|">20h 50 min / 11 séances</p>
+                    </article>
+
+                    <article class="feature-block">
+                        <p class="feature-label">Sport favori</p>
+                        <div class="feature-value" th:text="${sportFavori}">PARACHUTISME</div>
+                        <p class="feature-meta" th:text="|${sportFavoriSeances} séances|">7 séances</p>
+                    </article>
+                </div>
+
+                <div class="feature-objective">
+                    <span>Objectif personnel</span>
+                    <p th:text="${user.objectifsPersonnels != null ? user.objectifsPersonnels : 'Ajoutez un objectif personnel pour le voir apparaître ici.'}">
+                        Courir le marathon de Paris
+                    </p>
+                </div>
+            </section>
+
+            <section class="dashboard-panel dashboard-panel--challenge">
+                <div class="panel-head">
+                    <div>
+                        <p class="section-kicker">Défis en cours</p>
+                        <h2 class="panel-title">Suivi des challenges actifs</h2>
+                    </div>
+                    <span class="panel-chip panel-chip--soft" th:text="|${defisEnCoursAffichage.size()} actifs|">3 actifs</span>
+                </div>
+
+                <div th:if="${#lists.isEmpty(defisEnCoursAffichage)}" class="empty-copy">
+                    Aucun challenge actif pour le moment.
+                </div>
+
+                <div th:unless="${#lists.isEmpty(defisEnCoursAffichage)}" class="challenge-list challenge-list--rich">
+                    <article th:each="defi : ${defisEnCoursAffichage}" class="challenge-item challenge-item--rich">
+                        <div class="challenge-row">
+                            <div>
+                                <div class="challenge-title" th:text="${defi.nom}">Trail de mai</div>
+                                <div class="challenge-dates" th:text="${defi.dates}">10/04/2026 - 17/04/2026</div>
                             </div>
-                            <div th:if="${defi.dateDebut != null and defi.dateFin == null}"
-                                 class="defi-meta"
-                                 th:text="|Début : ${#dates.format(defi.dateDebut, 'dd/MM/yyyy')}|"></div>
+                            <div class="challenge-status-badges">
+                                <span class="challenge-badge" th:text="${defi.statutTemps}">2 jours restants</span>
+                                <span class="challenge-badge" th:text="|${defi.participants} participant(s)|">4 participants</span>
+                            </div>
                         </div>
-                    </div>
+                        <div class="challenge-progress">
+                            <div class="challenge-progress__fill" th:style="|width: ${defi.progression}%|"></div>
+                        </div>
+                        <div class="challenge-footer">
+                            <span th:text="${defi.progressionTexte}">75% accompli</span>
+                            <span th:if="${defi.objectifJour != null and !#strings.isEmpty(defi.objectifJour)}" th:text="${defi.objectifJour}"></span>
+                        </div>
+                    </article>
                 </div>
-            </div>
+            </section>
+        </div>
 
+        <div class="dashboard-grid">
             <div class="dashboard-column">
-                
+
                 <div class="dash-card">
                     <h2 class="card-title">
                         Activité de la semaine
@@ -138,7 +227,9 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
+            <div class="dashboard-column">
                 <div class="dash-card">
                     <h2 class="card-title">Mes derniers entraînements</h2>
                     <div class="challenge-list">
@@ -171,7 +262,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
 

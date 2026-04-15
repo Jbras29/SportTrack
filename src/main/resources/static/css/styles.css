@@ -785,6 +785,235 @@ body.dashboard-page .btn-edit:hover {
     background-color: var(--border-light);
 }
 
+body.dashboard-page .section-kicker {
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--brand-orange);
+}
+
+body.dashboard-page .dashboard-surface {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.95fr);
+    gap: 20px;
+}
+
+body.dashboard-page .dashboard-panel {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 24px;
+    box-shadow: var(--shadow-card);
+    padding: 24px;
+}
+
+body.dashboard-page .panel-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+body.dashboard-page .panel-title {
+    margin: 0;
+    font-size: 22px;
+    line-height: 1.15;
+    color: var(--heading-accent);
+}
+
+body.dashboard-page .panel-subtitle {
+    margin: 10px 0 0 0;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 58ch;
+}
+
+body.dashboard-page .panel-chip {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(33, 162, 215, 0.1);
+    color: var(--brand-light-blue);
+    border: 1px solid rgba(33, 162, 215, 0.18);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+body.dashboard-page .panel-chip--soft {
+    background: rgba(243, 148, 52, 0.1);
+    color: var(--brand-orange);
+    border-color: rgba(243, 148, 52, 0.18);
+}
+
+body.dashboard-page .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+body.dashboard-page .feature-block {
+    border-radius: 18px;
+    padding: 18px;
+    min-height: 156px;
+    background: linear-gradient(180deg, rgba(33, 162, 215, 0.05) 0%, rgba(243, 148, 52, 0.03) 100%);
+    border: 1px solid rgba(33, 162, 215, 0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+body.dashboard-page .feature-label {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+body.dashboard-page .feature-value {
+    font-size: 28px;
+    line-height: 1.1;
+    font-weight: 900;
+    color: var(--text-main);
+    word-break: break-word;
+}
+
+body.dashboard-page .feature-meta {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+body.dashboard-page .feature-objective {
+    margin-top: 16px;
+    padding: 16px 18px;
+    border-radius: 16px;
+    background: var(--hover-bg);
+    border: 1px solid var(--border-light);
+}
+
+body.dashboard-page .feature-objective span {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+body.dashboard-page .feature-objective p {
+    margin: 0;
+    color: var(--text-main);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+body.dashboard-page .dashboard-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+body.dashboard-page .summary-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    box-shadow: var(--shadow-card);
+    padding: 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+body.dashboard-page .summary-card .stat-value {
+    font-size: 22px;
+    line-height: 1.1;
+}
+
+body.dashboard-page .summary-note {
+    margin: 8px 0 0 0;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+
+body.dashboard-page .challenge-list--rich {
+    gap: 12px;
+}
+
+body.dashboard-page .challenge-item--rich {
+    padding: 16px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(33, 162, 215, 0.05) 0%, rgba(15, 23, 42, 0.01) 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+body.dashboard-page .challenge-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+body.dashboard-page .challenge-dates {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+body.dashboard-page .challenge-status-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+body.dashboard-page .challenge-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(33, 162, 215, 0.09);
+    border: 1px solid rgba(33, 162, 215, 0.12);
+    color: var(--brand-light-blue);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+body.dashboard-page .challenge-progress {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(33, 162, 215, 0.12);
+    overflow: hidden;
+}
+
+body.dashboard-page .challenge-progress__fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--brand-blue), var(--brand-light-blue));
+}
+
+body.dashboard-page .challenge-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
 body.dashboard-page .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -4347,8 +4576,13 @@ body.event-create-page .invite-option:hover {
 }
 
 @media (max-width: 1024px) {
-    body.dashboard-page .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+    body.dashboard-page .dashboard-surface {
+        grid-template-columns: 1fr;
+    }
+
+    body.dashboard-page .feature-grid,
+    body.dashboard-page .dashboard-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     body.dashboard-page .dashboard-grid {
@@ -4377,6 +4611,38 @@ body.event-create-page .invite-option:hover {
     body.friend-index-page .search-input-wrapper {
         width: 100%;
         flex: 1;
+    }
+}
+
+@media (max-width: 760px) {
+    body.dashboard-page .profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    body.dashboard-page .btn-edit {
+        width: 100%;
+        justify-content: center;
+    }
+
+    body.dashboard-page .panel-head,
+    body.dashboard-page .challenge-row,
+    body.dashboard-page .challenge-footer {
+        flex-direction: column;
+    }
+
+    body.dashboard-page .panel-chip,
+    body.dashboard-page .challenge-status-badges {
+        align-self: flex-start;
+    }
+
+    body.dashboard-page .feature-grid,
+    body.dashboard-page .dashboard-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body.dashboard-page .summary-card {
+        align-items: center;
     }
 }
 
