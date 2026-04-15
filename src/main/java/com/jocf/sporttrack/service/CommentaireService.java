@@ -1,8 +1,8 @@
 package com.jocf.sporttrack.service;
 
+import com.jocf.sporttrack.enumeration.TypeCommentaire;
 import com.jocf.sporttrack.model.Activite;
 import com.jocf.sporttrack.model.Commentaire;
-import com.jocf.sporttrack.model.TypeCommentaire;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.ActiviteRepository;
 import com.jocf.sporttrack.repository.CommentaireRepository;

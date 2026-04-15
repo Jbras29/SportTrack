@@ -1,6 +1,6 @@
 package com.jocf.sporttrack.dto;
 
-import com.jocf.sporttrack.model.TypeSport;
+import com.jocf.sporttrack.enumeration.TypeSport;
 import com.jocf.sporttrack.model.Utilisateur;
 
 import java.time.LocalDate;

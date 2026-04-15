@@ -1,6 +1,6 @@
 package com.jocf.sporttrack.controller;
 
-import com.jocf.sporttrack.model.TypeUtilisateur;
+import com.jocf.sporttrack.enumeration.TypeUtilisateur;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.MessageService;
 import com.jocf.sporttrack.service.UtilisateurService;

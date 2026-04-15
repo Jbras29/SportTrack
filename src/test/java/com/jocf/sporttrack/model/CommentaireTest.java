@@ -2,6 +2,9 @@ package com.jocf.sporttrack.model;
 
 import org.junit.jupiter.api.Test;
 
+import com.jocf.sporttrack.enumeration.TypeCommentaire;
+import com.jocf.sporttrack.enumeration.TypeUtilisateur;
+
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;

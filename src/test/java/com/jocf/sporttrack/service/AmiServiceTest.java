@@ -1,6 +1,6 @@
 package com.jocf.sporttrack.service;
 
-import com.jocf.sporttrack.model.TypeUtilisateur;
+import com.jocf.sporttrack.enumeration.TypeUtilisateur;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 import java.util.ArrayList;

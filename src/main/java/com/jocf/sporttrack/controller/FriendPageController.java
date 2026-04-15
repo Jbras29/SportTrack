@@ -1,7 +1,7 @@
 package com.jocf.sporttrack.controller;
 
 import com.jocf.sporttrack.model.Activite;
-import com.jocf.sporttrack.model.TypeSport;
+import com.jocf.sporttrack.enumeration.TypeSport;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 import com.jocf.sporttrack.service.ActiviteService;

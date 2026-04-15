@@ -2,6 +2,8 @@ package com.jocf.sporttrack.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.jocf.sporttrack.enumeration.TypeUtilisateur;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Column;

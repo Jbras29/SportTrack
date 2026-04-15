@@ -2,7 +2,7 @@ package com.jocf.sporttrack.repository;
 
 import com.jocf.sporttrack.dto.ActiviteFiltre;
 import com.jocf.sporttrack.model.Activite;
-import com.jocf.sporttrack.model.TypeSport;
+import com.jocf.sporttrack.enumeration.TypeSport;
 import com.jocf.sporttrack.model.Utilisateur;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

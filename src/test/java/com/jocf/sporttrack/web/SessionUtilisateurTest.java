@@ -1,6 +1,6 @@
 package com.jocf.sporttrack.web;
 
-import com.jocf.sporttrack.model.TypeUtilisateur;
+import com.jocf.sporttrack.enumeration.TypeUtilisateur;
 import com.jocf.sporttrack.model.Utilisateur;
 import org.junit.jupiter.api.Test;
 

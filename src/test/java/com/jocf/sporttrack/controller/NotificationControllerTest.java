@@ -2,7 +2,7 @@ package com.jocf.sporttrack.controller;
 
 import com.jocf.sporttrack.dto.NotificationItem;
 import com.jocf.sporttrack.model.NotificationType;
-import com.jocf.sporttrack.model.TypeUtilisateur;
+import com.jocf.sporttrack.enumeration.TypeUtilisateur;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.NotificationService;
 import com.jocf.sporttrack.service.UtilisateurService;

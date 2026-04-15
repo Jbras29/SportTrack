@@ -3,7 +3,7 @@ package com.jocf.sporttrack.service;
 import com.jocf.sporttrack.dto.CreerActiviteCommand;
 import com.jocf.sporttrack.dto.ModifierActiviteRequest;
 import com.jocf.sporttrack.model.Activite;
-import com.jocf.sporttrack.model.TypeSport;
+import com.jocf.sporttrack.enumeration.TypeSport;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.ActiviteRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;

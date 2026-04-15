@@ -1,7 +1,8 @@
 package com.jocf.sporttrack.service;
 
+import com.jocf.sporttrack.enumeration.TypeCommentaire;
 import com.jocf.sporttrack.model.Commentaire;
-import com.jocf.sporttrack.model.TypeCommentaire;
+
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

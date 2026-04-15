@@ -2,8 +2,8 @@ package com.jocf.sporttrack.dto;
 
 import com.jocf.sporttrack.model.Commentaire;
 import com.jocf.sporttrack.model.NotificationType;
-import com.jocf.sporttrack.model.TypeSport;
-import com.jocf.sporttrack.model.TypeUtilisateur;
+import com.jocf.sporttrack.enumeration.TypeSport;
+import com.jocf.sporttrack.enumeration.TypeUtilisateur;
 import com.jocf.sporttrack.model.Utilisateur;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

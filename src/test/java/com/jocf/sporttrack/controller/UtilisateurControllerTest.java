@@ -2,7 +2,7 @@ package com.jocf.sporttrack.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jocf.sporttrack.dto.ModifierUtilisateurRequest;
-import com.jocf.sporttrack.model.TypeUtilisateur;
+import com.jocf.sporttrack.enumeration.TypeUtilisateur;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.UtilisateurService;
 import org.junit.jupiter.api.AfterEach;

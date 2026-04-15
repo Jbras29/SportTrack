@@ -3,7 +3,7 @@ package com.jocf.sporttrack.controller;
 import com.jocf.sporttrack.dto.CreerChallengeRequest;
 import com.jocf.sporttrack.dto.LigneClassementChallenge;
 import com.jocf.sporttrack.model.Challenge;
-import com.jocf.sporttrack.model.TypeUtilisateur;
+import com.jocf.sporttrack.enumeration.TypeUtilisateur;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.ChallengeService;
 import com.jocf.sporttrack.service.UtilisateurService;

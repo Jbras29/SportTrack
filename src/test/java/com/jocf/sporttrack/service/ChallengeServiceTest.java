@@ -5,7 +5,7 @@ import com.jocf.sporttrack.dto.LigneClassementChallenge;
 import com.jocf.sporttrack.dto.ModifierChallengeRequest;
 import com.jocf.sporttrack.model.Challenge;
 import com.jocf.sporttrack.model.ChallengeSaisieQuotidienne;
-import com.jocf.sporttrack.model.TypeUtilisateur;
+import com.jocf.sporttrack.enumeration.TypeUtilisateur;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.ChallengeRepository;
 import com.jocf.sporttrack.repository.ChallengeSaisieQuotidienneRepository;

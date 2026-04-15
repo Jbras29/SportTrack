@@ -1,6 +1,8 @@
 package com.jocf.sporttrack.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.jocf.sporttrack.enumeration.TypeCommentaire;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

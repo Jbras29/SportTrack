@@ -1,8 +1,8 @@
 package com.jocf.sporttrack.repository;
 
 import com.jocf.sporttrack.model.Commentaire;
+import com.jocf.sporttrack.enumeration.TypeCommentaire;
 import com.jocf.sporttrack.model.Activite;
-import com.jocf.sporttrack.model.TypeCommentaire;
 import com.jocf.sporttrack.model.Utilisateur;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

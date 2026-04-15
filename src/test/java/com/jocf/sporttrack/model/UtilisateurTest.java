@@ -1,6 +1,7 @@
 package com.jocf.sporttrack.model;
 
 import com.jocf.sporttrack.dto.ModifierUtilisateurRequest;
+import com.jocf.sporttrack.enumeration.TypeUtilisateur;
 import com.jocf.sporttrack.repository.PrefSportiveRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
 import com.jocf.sporttrack.service.UtilisateurService;

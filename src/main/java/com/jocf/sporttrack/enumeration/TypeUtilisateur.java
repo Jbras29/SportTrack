@@ -1,4 +1,5 @@
-package com.jocf.sporttrack.model;
+package com.jocf.sporttrack.enumeration;
+
 
 public enum TypeUtilisateur {
     ADMIN,

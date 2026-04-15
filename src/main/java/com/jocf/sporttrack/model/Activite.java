@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.jocf.sporttrack.enumeration.TypeCommentaire;
+import com.jocf.sporttrack.enumeration.TypeSport;
+
 @Entity
 @Table(name = "activites")
 @Data
