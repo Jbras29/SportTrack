@@ -164,7 +164,10 @@
                                         </div>
                                         <div class="event-info">
                                             <h4 th:text="${event.nom}">Nom de l'événement</h4>
-                                            <p th:text="${event.date} + ' • ' + event.lieu">Détails</p>
+                                            <p th:text="|📅 ${#temporals.format(event.date, 'dd MMM yyyy HH:mm')}|">Date</p>
+                                            <p th:text="${event.description != null and !#strings.isEmpty(event.description) ? event.description : 'Aucune description'}">
+                                                Description
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -181,7 +184,10 @@
                                         </div>
                                         <div class="event-info">
                                             <h4 th:text="${event.nom}">Nom de l'événement</h4>
-                                            <p th:text="${event.date} + ' • ' + event.lieu">Détails</p>
+                                            <p th:text="|📅 ${#temporals.format(event.date, 'dd MMM yyyy HH:mm')}|">Date</p>
+                                            <p th:text="${event.description != null and !#strings.isEmpty(event.description) ? event.description : 'Aucune description'}">
+                                                Description
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
