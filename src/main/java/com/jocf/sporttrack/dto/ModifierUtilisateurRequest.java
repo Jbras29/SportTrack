@@ -1,6 +1,6 @@
 package com.jocf.sporttrack.dto;
 
-import com.jocf.sporttrack.model.NiveauPratiqueSportive;
+import com.jocf.sporttrack.enumeration.NiveauPratiqueSportive;
 import com.jocf.sporttrack.model.Utilisateur;
 
 import java.util.List;

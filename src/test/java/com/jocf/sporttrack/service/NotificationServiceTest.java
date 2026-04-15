@@ -1,13 +1,13 @@
 package com.jocf.sporttrack.service;
 
 import com.jocf.sporttrack.dto.NotificationItem;
+import com.jocf.sporttrack.enumeration.NotificationType;
 import com.jocf.sporttrack.enumeration.TypeCommentaire;
 import com.jocf.sporttrack.model.Activite;
 import com.jocf.sporttrack.model.Annonce;
 import com.jocf.sporttrack.model.Challenge;
 import com.jocf.sporttrack.model.Commentaire;
 import com.jocf.sporttrack.model.Evenement;
-import com.jocf.sporttrack.model.NotificationType;
 import com.jocf.sporttrack.enumeration.TypeUtilisateur;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.ActiviteRepository;

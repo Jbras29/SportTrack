@@ -1,4 +1,4 @@
-package com.jocf.sporttrack.model;
+package com.jocf.sporttrack.enumeration;
 
 /**
  * Catégories d’éléments affichés dans le centre de notifications (agrégation en mémoire).

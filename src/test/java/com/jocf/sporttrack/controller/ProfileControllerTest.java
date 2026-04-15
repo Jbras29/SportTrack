@@ -1,8 +1,8 @@
 package com.jocf.sporttrack.controller;
 
 import com.jocf.sporttrack.dto.ModifierUtilisateurRequest;
-import com.jocf.sporttrack.model.NiveauPratiqueSportive;
 import com.jocf.sporttrack.model.PrefSportive;
+import com.jocf.sporttrack.enumeration.NiveauPratiqueSportive;
 import com.jocf.sporttrack.enumeration.TypeUtilisateur;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.UtilisateurRepository;

@@ -1,8 +1,8 @@
 package com.jocf.sporttrack.dto;
 
-import com.jocf.sporttrack.model.NotificationType;
-
 import java.time.LocalDateTime;
+
+import com.jocf.sporttrack.enumeration.NotificationType;
 
 /**
  * Une entrée du fil de notifications, triée par {@link #dateTri} (plus récent en premier).
