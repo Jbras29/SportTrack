@@ -41,6 +41,9 @@ class ChallengeServiceTest {
     @Mock
     private ChallengeSaisieQuotidienneRepository challengeSaisieQuotidienneRepository;
 
+    @Mock
+    private UtilisateurService utilisateurService;
+
     @InjectMocks
     private ChallengeService service;
 
@@ -57,6 +60,14 @@ class ChallengeServiceTest {
                 .motdepasse("x")
                 .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
                 .build();
+        lenient().doAnswer(invocation -> {
+            Long userId = invocation.getArgument(0);
+            Integer points = invocation.getArgument(1);
+            if (utilisateur.getId() != null && utilisateur.getId().equals(userId)) {
+                utilisateur.soustraireHp(points);
+            }
+            return null;
+        }).when(utilisateurService).appliquerPunitionChallenge(anyLong(), anyInt());
         challenge = Challenge.builder()
                 .id(2L)
                 .nom("Défi")
@@ -241,19 +252,34 @@ class ChallengeServiceTest {
     }
 
     @Test
-    void enregistrerSaisieQuotidienne_creePuisMetAJour() {
+    void enregistrerSaisieQuotidienne_sanctionneUnNonManuelUneSeuleFois() {
         when(challengeRepository.findById(2L)).thenReturn(Optional.of(challenge));
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
-        when(challengeSaisieQuotidienneRepository.findByChallengeAndUtilisateurAndJour(challenge, utilisateur, LocalDate.now()))
-                .thenReturn(Optional.empty())
-                .thenReturn(Optional.of(ChallengeSaisieQuotidienne.builder()
-                        .challenge(challenge).utilisateur(utilisateur).jour(LocalDate.now()).realise(false).build()));
+        when(challengeSaisieQuotidienneRepository.existsByChallenge_IdAndUtilisateur_IdAndJour(2L, 1L, LocalDate.now()))
+                .thenReturn(false)
+                .thenReturn(true);
 
-        service.enregistrerSaisieQuotidienne(2L, 1L, LocalDate.now(), true);
         service.enregistrerSaisieQuotidienne(2L, 1L, LocalDate.now(), false);
 
-        verify(challengeSaisieQuotidienneRepository, org.mockito.Mockito.times(2))
-                .save(any(ChallengeSaisieQuotidienne.class));
+        assertThat(utilisateur.getHpNormalise()).isEqualTo(99);
+        verify(challengeSaisieQuotidienneRepository).save(any(ChallengeSaisieQuotidienne.class));
+
+        assertThatThrownBy(() -> service.enregistrerSaisieQuotidienne(2L, 1L, LocalDate.now(), false))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Vous avez déjà répondu pour ce jour.");
+    }
+
+    @Test
+    void enregistrerAbsenceQuotidienne_sanctionneDeuxPointsDeVie() {
+        when(challengeRepository.findById(2L)).thenReturn(Optional.of(challenge));
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+        when(challengeSaisieQuotidienneRepository.existsByChallenge_IdAndUtilisateur_IdAndJour(2L, 1L, LocalDate.now()))
+                .thenReturn(false);
+
+        service.enregistrerAbsenceQuotidienne(2L, 1L, LocalDate.now());
+
+        assertThat(utilisateur.getHpNormalise()).isEqualTo(98);
+        verify(challengeSaisieQuotidienneRepository).save(any(ChallengeSaisieQuotidienne.class));
     }
 
     @Test
@@ -360,6 +386,34 @@ class ChallengeServiceTest {
         service.rejoindreChallenge(2L, 1L);
 
         verify(challengeRepository).save(any(Challenge.class));
+    }
+
+    @Test
+    void rejoindreChallenge_Echec_HpNul() {
+        Utilisateur utilisateurMort = Utilisateur.builder()
+                .id(1L)
+                .nom("Doe")
+                .prenom("Jane")
+                .email("jane@test.com")
+                .motdepasse("x")
+                .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
+                .hp(0)
+                .build();
+
+        Challenge challengeVide = Challenge.builder()
+                .id(2L)
+                .dateFin(java.sql.Date.valueOf(java.time.LocalDate.now().plusDays(10)))
+                .participants(new java.util.HashSet<>())
+                .build();
+
+        when(challengeRepository.findById(2L)).thenReturn(Optional.of(challengeVide));
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateurMort));
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.rejoindreChallenge(2L, 1L));
+
+        assertEquals("Action impossible : votre barre de vie est à 0.", ex.getMessage());
+        verify(challengeRepository, never()).save(any());
     }
 
     @Test

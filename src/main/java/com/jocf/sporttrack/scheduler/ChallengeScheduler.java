@@ -49,4 +49,14 @@ public class ChallengeScheduler {
             }
         }
     }
+
+    /**
+     * 🔔 Chaque nuit, on sanctionne les participants qui n'ont rien indiqué la veille.
+     * Le traitement est idempotent : une absence déjà enregistrée n'est pas rejouée.
+     */
+    @Scheduled(cron = "0 5 0 * * *")
+    public void sanctionnerLesAbsencesQuotidiennes() {
+        LocalDate hier = LocalDate.now().minusDays(1);
+        challengeService.sanctionnerAbsencesQuotidiennes(hier);
+    }
 }

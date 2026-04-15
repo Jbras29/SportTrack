@@ -47,4 +47,11 @@ class ChallengeSchedulerTest {
 
         verify(utilisateurService).appliquerPunitionChallenge(1L, 20);
     }
+
+    @Test
+    void sanctionnerLesAbsencesQuotidiennes_delegueAuService() {
+        scheduler.sanctionnerLesAbsencesQuotidiennes();
+
+        verify(challengeService).sanctionnerAbsencesQuotidiennes(LocalDate.now().minusDays(1));
+    }
 }

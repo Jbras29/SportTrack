@@ -25,18 +25,22 @@ public class ChallengeService {
 
     private static final String MSG_CHALLENGE_INTROUVABLE = "Challenge introuvable : ";
     private static final String MSG_UTILISATEUR_INTROUVABLE = "Utilisateur introuvable : ";
+    private static final String MSG_JA_DEJA_REPONDU = "Vous avez déjà répondu pour ce jour.";
 
     private final ChallengeRepository challengeRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final ChallengeSaisieQuotidienneRepository challengeSaisieQuotidienneRepository;
+    private final UtilisateurService utilisateurService;
 
     public ChallengeService(
             ChallengeRepository challengeRepository,
             UtilisateurRepository utilisateurRepository,
-            ChallengeSaisieQuotidienneRepository challengeSaisieQuotidienneRepository) {
+            ChallengeSaisieQuotidienneRepository challengeSaisieQuotidienneRepository,
+            UtilisateurService utilisateurService) {
         this.challengeRepository = challengeRepository;
         this.utilisateurRepository = utilisateurRepository;
         this.challengeSaisieQuotidienneRepository = challengeSaisieQuotidienneRepository;
+        this.utilisateurService = utilisateurService;
     }
 
     public List<Challenge> recupererTousLesChallenges() {
@@ -118,6 +122,10 @@ public class ChallengeService {
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
                 .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + utilisateurId));
 
+        if (utilisateur.getHpNormalise() <= 0) {
+            throw new IllegalArgumentException("Action impossible : votre barre de vie est à 0.");
+        }
+
         if (challenge.getDateFin() != null
                 && challenge.getDateFin().before(new java.sql.Date(System.currentTimeMillis()))) {
             throw new IllegalArgumentException("Ce challenge est terminé.");
@@ -133,6 +141,40 @@ public class ChallengeService {
 
     @Transactional
     public void enregistrerSaisieQuotidienne(Long challengeId, Long utilisateurId, LocalDate jour, boolean realise) {
+        enregistrerSaisieQuotidienne(challengeId, utilisateurId, jour, realise, false);
+    }
+
+    @Transactional
+    public void enregistrerAbsenceQuotidienne(Long challengeId, Long utilisateurId, LocalDate jour) {
+        enregistrerSaisieQuotidienne(challengeId, utilisateurId, jour, false, true);
+    }
+
+    public boolean aDejaReponduLeJour(Long challengeId, Long utilisateurId, LocalDate jour) {
+        return challengeSaisieQuotidienneRepository.existsByChallenge_IdAndUtilisateur_IdAndJour(
+                challengeId, utilisateurId, jour);
+    }
+
+    @Transactional
+    public void sanctionnerAbsencesQuotidiennes(LocalDate jour) {
+        for (Challenge challenge : challengeRepository.findAll()) {
+            if (!challengeActifPourDate(challenge, jour)) {
+                continue;
+            }
+
+            for (Utilisateur participant : challenge.getParticipants()) {
+                if (!aDejaReponduLeJour(challenge.getId(), participant.getId(), jour)) {
+                    enregistrerAbsenceQuotidienne(challenge.getId(), participant.getId(), jour);
+                }
+            }
+        }
+    }
+
+    private void enregistrerSaisieQuotidienne(
+            Long challengeId,
+            Long utilisateurId,
+            LocalDate jour,
+            boolean realise,
+            boolean saisieAutomatique) {
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new IllegalArgumentException(MSG_CHALLENGE_INTROUVABLE + challengeId));
 
@@ -143,32 +185,40 @@ public class ChallengeService {
             throw new IllegalArgumentException("Vous ne participez pas à ce challenge.");
         }
 
-        Optional<ChallengeSaisieQuotidienne> existant =
-                challengeSaisieQuotidienneRepository.findByChallengeAndUtilisateurAndJour(challenge, utilisateur, jour);
-
-        if (existant.isPresent()) {
-            ChallengeSaisieQuotidienne saisie = existant.get();
-            saisie.setRealise(realise);
-            challengeSaisieQuotidienneRepository.save(saisie);
-        } else {
-            challengeSaisieQuotidienneRepository.save(
-                    ChallengeSaisieQuotidienne.builder()
-                            .challenge(challenge)
-                            .utilisateur(utilisateur)
-                            .jour(jour)
-                            .realise(realise)
-                            .build()
-            );
+        if (challengeSaisieQuotidienneRepository.existsByChallenge_IdAndUtilisateur_IdAndJour(
+                challengeId, utilisateurId, jour)) {
+            throw new IllegalArgumentException(MSG_JA_DEJA_REPONDU);
         }
+
+        challengeSaisieQuotidienneRepository.save(
+                ChallengeSaisieQuotidienne.builder()
+                        .challenge(challenge)
+                        .utilisateur(utilisateur)
+                        .jour(jour)
+                        .realise(realise)
+                        .saisieAutomatique(saisieAutomatique)
+                        .build()
+        );
+
+        if (!realise) {
+            utilisateurService.appliquerPunitionChallenge(utilisateurId, saisieAutomatique ? 2 : 1);
+        }
+    }
+
+    private static boolean challengeActifPourDate(Challenge challenge, LocalDate jour) {
+        if (challenge.getDateDebut() != null && jour.isBefore(challenge.getDateDebut().toLocalDate())) {
+            return false;
+        }
+        return challenge.getDateFin() == null || !jour.isAfter(challenge.getDateFin().toLocalDate());
     }
 
     public Boolean recupererReponseDuJour(Long challengeId, Long utilisateurId, LocalDate jour) {
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new IllegalArgumentException(MSG_CHALLENGE_INTROUVABLE + challengeId));
-    
+
         Utilisateur utilisateur = utilisateurRepository.findById(utilisateurId)
                 .orElseThrow(() -> new IllegalArgumentException(MSG_UTILISATEUR_INTROUVABLE + utilisateurId));
-    
+
         return challengeSaisieQuotidienneRepository
                 .findByChallengeAndUtilisateurAndJour(challenge, utilisateur, jour)
                 .map(ChallengeSaisieQuotidienne::isRealise)
@@ -176,19 +226,17 @@ public class ChallengeService {
     }
 
     @Transactional
-public void supprimerChallengeSiOrganisateur(Long challengeId, Long utilisateurId) {
-    Challenge challenge = challengeRepository.findById(challengeId)
-            .orElseThrow(() -> new IllegalArgumentException(MSG_CHALLENGE_INTROUVABLE + challengeId));
+    public void supprimerChallengeSiOrganisateur(Long challengeId, Long utilisateurId) {
+        Challenge challenge = challengeRepository.findById(challengeId)
+                .orElseThrow(() -> new IllegalArgumentException(MSG_CHALLENGE_INTROUVABLE + challengeId));
 
-    if (challenge.getOrganisateur() == null || !challenge.getOrganisateur().getId().equals(utilisateurId)) {
-        throw new IllegalArgumentException("Seul l'organisateur peut supprimer ce challenge.");
+        if (challenge.getOrganisateur() == null || !challenge.getOrganisateur().getId().equals(utilisateurId)) {
+            throw new IllegalArgumentException("Seul l'organisateur peut supprimer ce challenge.");
+        }
+
+        challengeSaisieQuotidienneRepository.deleteByChallenge(challenge);
+        challengeRepository.delete(challenge);
     }
-
-    challengeSaisieQuotidienneRepository.deleteByChallenge(challenge);
-    challengeRepository.delete(challenge);
-}
-
-
 
     public List<Challenge> trouverChallengesTerminesLe(java.time.LocalDate date) {
         java.sql.Date sqlDate = java.sql.Date.valueOf(date);

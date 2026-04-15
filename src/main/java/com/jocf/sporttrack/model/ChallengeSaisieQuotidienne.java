@@ -52,4 +52,12 @@ public class ChallengeSaisieQuotidienne {
     /** {@code true} = objectif atteint, {@code false} = déclaré comme non fait. */
     @Column(nullable = false)
     private boolean realise;
+
+    /**
+     * {@code true} si la ligne a été créée automatiquement par le traitement quotidien des absences.
+     * Cela permet de distinguer un "non" manuel d'un oubli pur et simple.
+     */
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean saisieAutomatique = false;
 }
