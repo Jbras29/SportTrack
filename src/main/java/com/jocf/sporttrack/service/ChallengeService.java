@@ -9,6 +9,8 @@ import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.ChallengeRepository;
 import com.jocf.sporttrack.repository.ChallengeSaisieQuotidienneRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +33,13 @@ public class ChallengeService {
     private final UtilisateurRepository utilisateurRepository;
     private final ChallengeSaisieQuotidienneRepository challengeSaisieQuotidienneRepository;
     private final UtilisateurService utilisateurService;
+
+    private ChallengeService self;
+
+    @Autowired
+    public void setSelf(@Lazy ChallengeService self) {
+        this.self = self;
+    }
 
     public ChallengeService(
             ChallengeRepository challengeRepository,
@@ -163,7 +172,7 @@ public class ChallengeService {
 
             for (Utilisateur participant : challenge.getParticipants()) {
                 if (!aDejaReponduLeJour(challenge.getId(), participant.getId(), jour)) {
-                    enregistrerAbsenceQuotidienne(challenge.getId(), participant.getId(), jour);
+                    self.enregistrerAbsenceQuotidienne(challenge.getId(), participant.getId(), jour);
                 }
             }
         }
