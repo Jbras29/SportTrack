@@ -7,6 +7,7 @@ import com.jocf.sporttrack.repository.UtilisateurRepository;
 import com.jocf.sporttrack.service.UtilisateurService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,8 +87,8 @@ class FriendSearchControllerTest {
         String view = controller.envoyerDemandeAmi(1L, null, null, auth, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/friend/search");
-        assertThat(redirectAttributes.getFlashAttributes().get("errorMessage"))
-                .isEqualTo("Vous ne pouvez pas vous ajouter vous-meme.");
+        assertThat(flashAttributes(redirectAttributes))
+                .containsEntry("errorMessage", "Vous ne pouvez pas vous ajouter vous-meme.");
     }
 
     @Test
@@ -100,8 +101,8 @@ class FriendSearchControllerTest {
         assertThat(view).isEqualTo("redirect:/profile/2");
         assertThat(courant.getDemandesAmisEnvoyees()).containsExactly(autre);
         verify(utilisateurRepository).save(courant);
-        assertThat(redirectAttributes.getFlashAttributes().get("successMessage"))
-                .isEqualTo("Demande d'ami envoyee.");
+        assertThat(flashAttributes(redirectAttributes))
+                .containsEntry("successMessage", "Demande d'ami envoyee.");
     }
 
     @Test
@@ -125,8 +126,8 @@ class FriendSearchControllerTest {
         String view = controller.refuserDemandeAmi(2L, null, null, auth, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/friend/search");
-        assertThat(redirectAttributes.getFlashAttributes().get("errorMessage"))
-                .isEqualTo("Cette demande d'ami est introuvable.");
+        assertThat(flashAttributes(redirectAttributes))
+                .containsEntry("errorMessage", "Cette demande d'ami est introuvable.");
     }
 
     @Test
@@ -150,5 +151,10 @@ class FriendSearchControllerTest {
                 .demandesAmisEnvoyees(new ArrayList<>())
                 .prefSportives(new ArrayList<>())
                 .build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> flashAttributes(RedirectAttributesModelMap redirectAttributes) {
+        return new java.util.HashMap<>((Map<String, Object>) (Map<?, ?>) redirectAttributes.getFlashAttributes());
     }
 }

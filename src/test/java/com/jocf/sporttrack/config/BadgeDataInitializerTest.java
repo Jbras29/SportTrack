@@ -60,11 +60,11 @@ class BadgeDataInitializerTest {
         List<Badge> sauvegardes = captor.getAllValues();
         assertThat(sauvegardes).noneMatch(badge -> "PREMIER_PAS".equals(badge.getCode()));
         assertThat(sauvegardes).anySatisfy(badge -> {
-            assertThat(badge.getCode()).isEqualTo("CINQ_K_STARTER");
-            assertThat(badge.getNom()).isEqualTo("5K Starter");
-            assertThat(badge.getPhoto())
-                    .isEqualTo("https://placehold.co/120x120/2563eb/ffffff/png?text=5K");
-            assertThat(badge.getDescription()).isEqualTo("Premier parcours de 5 km.");
+            assertThat(badge)
+                    .hasFieldOrPropertyWithValue("code", "CINQ_K_STARTER")
+                    .hasFieldOrPropertyWithValue("nom", "5K Starter")
+                    .hasFieldOrPropertyWithValue("photo", "https://placehold.co/120x120/2563eb/ffffff/png?text=5K")
+                    .hasFieldOrPropertyWithValue("description", "Premier parcours de 5 km.");
         });
         assertThat(store).hasSize(20);
         assertThat(store.get("CINQ_K_STARTER").getNom()).isEqualTo("5K Starter");

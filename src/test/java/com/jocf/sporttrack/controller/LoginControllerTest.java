@@ -3,6 +3,7 @@ package com.jocf.sporttrack.controller;
 import com.jocf.sporttrack.dto.CreerCompteRequest;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.service.UtilisateurService;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -64,6 +65,11 @@ class LoginControllerTest {
         String view = controller.creerCompte(form, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/register");
-        assertThat(redirectAttributes.getFlashAttributes().get("error")).isEqualTo("Erreur : boom");
+        assertThat(flashAttributes(redirectAttributes)).containsEntry("error", "Erreur : boom");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> flashAttributes(RedirectAttributesModelMap redirectAttributes) {
+        return new java.util.HashMap<>((Map<String, Object>) (Map<?, ?>) redirectAttributes.getFlashAttributes());
     }
 }

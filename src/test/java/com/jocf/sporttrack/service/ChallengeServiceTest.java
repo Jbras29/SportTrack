@@ -93,13 +93,12 @@ class ChallengeServiceTest {
         when(challengeRepository.save(any(Challenge.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Challenge saved = service.creerChallenge(
-                new CreerChallengeRequest("Défi", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 3)),
-                1L);
+        CreerChallengeRequest request = new CreerChallengeRequest("Défi", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 3));
+        Challenge saved = service.creerChallenge(request, 1L);
 
         assertThat(saved.getOrganisateur()).isSameAs(utilisateur);
-        assertThatThrownBy(() -> service.creerChallenge(
-                new CreerChallengeRequest("Bad", LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 1)), 1L))
+        CreerChallengeRequest invalidRequest = new CreerChallengeRequest("Bad", LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 1));
+        assertThatThrownBy(() -> service.creerChallenge(invalidRequest, 1L))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -264,7 +263,8 @@ class ChallengeServiceTest {
         assertThat(utilisateur.getHpNormalise()).isEqualTo(99);
         verify(challengeSaisieQuotidienneRepository).save(any(ChallengeSaisieQuotidienne.class));
 
-        assertThatThrownBy(() -> service.enregistrerSaisieQuotidienne(2L, 1L, LocalDate.now(), false))
+        Runnable duplicateSubmission = () -> service.enregistrerSaisieQuotidienne(2L, 1L, LocalDate.now(), false);
+        assertThatThrownBy(duplicateSubmission::run)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Vous avez déjà répondu pour ce jour.");
     }

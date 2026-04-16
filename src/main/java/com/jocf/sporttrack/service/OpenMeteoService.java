@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 @Service
 public class OpenMeteoService {
@@ -50,19 +51,15 @@ public class OpenMeteoService {
             }
 
             LinkedHashSet<String> suggestions = new LinkedHashSet<>();
-            for (JsonNode resultNode : geoNode.get(JSON_RESULTS)) {
-                JsonNode nameNode = resultNode.get("name");
-                if (nameNode == null) {
-                    continue;
-                }
-                String name = nameNode.asText().trim();
-                if (!name.isEmpty()) {
-                    suggestions.add(name);
-                }
-                if (suggestions.size() >= limit) {
-                    break;
-                }
-            }
+            StreamSupport.stream(geoNode.get(JSON_RESULTS).spliterator(), false)
+                    .map(resultNode -> {
+                        JsonNode nameNode = resultNode.get("name");
+                        return nameNode != null ? nameNode.asText().trim() : "";
+                    })
+                    .filter(name -> !name.isEmpty())
+                    .distinct()
+                    .limit(limit)
+                    .forEach(suggestions::add);
             return new ArrayList<>(suggestions);
         } catch (Exception e) {
             log.warn("Erreur OpenMeteoService (suggestions) : {}", e.getMessage());
@@ -95,7 +92,7 @@ public class OpenMeteoService {
                 log.warn("OpenMeteoService : pas de données '{}' dans la réponse.", JSON_DAILY);
                 return null;
             }
-            return buildWeatherInfo(location, date, weatherNode.get(JSON_DAILY));
+            return buildWeatherInfo(date, weatherNode.get(JSON_DAILY));
         } catch (Exception e) {
             log.warn("Erreur OpenMeteoService : {}", e.getMessage());
             return null;
@@ -137,7 +134,7 @@ public class OpenMeteoService {
         return objectMapper.readTree(weatherResponseStr);
     }
 
-    private WeatherInfo buildWeatherInfo(String location, LocalDate date, JsonNode dailyNode) {
+    private WeatherInfo buildWeatherInfo(LocalDate date, JsonNode dailyNode) {
         String dateStr = date.toString();
         if (dailyNode.get("temperature_2m_max").size() == 0) {
             log.warn("OpenMeteoService : données météo vides pour la date {}", dateStr);

@@ -262,8 +262,10 @@ class ActiviteServiceTest {
     void modifierActivite_lanceUneErreurQuandLActiviteNExistePas() {
         when(activiteRepository.findByIdAvecUtilisateurEtInvites(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.modifierActivite(99L, new ModifierActiviteRequest(
-                "New", TypeSport.CYCLISME, 10000.0, 60, LocalDate.now(), "Lyon", 5, List.of())))
+        ModifierActiviteRequest request = new ModifierActiviteRequest(
+                "New", TypeSport.CYCLISME, 10000.0, 60, LocalDate.now(), "Lyon", 5, List.of());
+
+        assertThatThrownBy(() -> service.modifierActivite(99L, request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Activite introuvable");
     }
@@ -333,7 +335,7 @@ class ActiviteServiceTest {
 
         int count = service.recalculerMeteoEtCaloriesPourToutesLesActivites();
 
-        assertThat(count).isEqualTo(0);
+        assertThat(count).isZero();
         org.mockito.Mockito.verify(activiteRepository, org.mockito.Mockito.never()).save(any(Activite.class));
     }
 }

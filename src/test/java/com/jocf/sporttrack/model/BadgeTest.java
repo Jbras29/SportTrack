@@ -2,6 +2,7 @@ package com.jocf.sporttrack.model;
 
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BadgeTest {
@@ -90,8 +91,8 @@ class BadgeTest {
         badge2.setPhoto("https://example.com/badge.png");
         badge2.setDescription("Description");
 
-        assertEquals(badge1, badge2);
-        assertEquals(badge1.hashCode(), badge2.hashCode());
+        assertThat(badge1).isEqualTo(badge2);
+        assertThat(badge1.hashCode()).isEqualTo(badge2.hashCode());
     }
 
     @Test
@@ -119,8 +120,8 @@ class BadgeTest {
         badge.setId(1L);
         badge.setCode("PREMIER_PAS");
 
-        assertNotEquals(badge, null);
-        assertNotEquals(badge, "badge");
+        assertNotEquals(null, badge);
+        assertNotEquals("badge", badge);
     }
 
     @Test
@@ -137,7 +138,7 @@ class BadgeTest {
         Badge badge1 = new Badge();
         Badge badge2 = new Badge();
 
-        assertEquals(badge1, badge2);
-        assertEquals(badge1.hashCode(), badge2.hashCode());
+        assertThat(badge1).isEqualTo(badge2);
+        assertThat(badge1.hashCode()).isEqualTo(badge2.hashCode());
     }
 }

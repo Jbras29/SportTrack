@@ -12,6 +12,7 @@ import com.jocf.sporttrack.service.UtilisateurService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -126,8 +126,8 @@ class ProfileControllerTest {
         String view = controller.ajouterPreferenceSportive(1L, "Course", session, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/profile/edit");
-        assertThat(redirectAttributes.getFlashAttributes().get("preferenceMessage"))
-                .isEqualTo("Preference sportive ajoutee.");
+        assertThat(flashAttributes(redirectAttributes))
+                .containsEntry("preferenceMessage", "Preference sportive ajoutee.");
     }
 
     @Test
@@ -146,7 +146,7 @@ class ProfileControllerTest {
         String view = controller.supprimerPreferenceSportive(2L, 1L, session, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/profile/edit");
-        assertThat(redirectAttributes.getFlashAttributes().get("preferenceErreur")).isEqualTo("introuvable");
+        assertThat(flashAttributes(redirectAttributes)).containsEntry("preferenceErreur", "introuvable");
     }
 
     @Test
@@ -166,8 +166,8 @@ class ProfileControllerTest {
 
         assertThat(view).isEqualTo("redirect:/profile/edit?id=1");
         verify(utilisateurService).modifierPhotoProfil(1L, "/uploads/photo.png");
-        assertThat(redirectAttributes.getFlashAttributes().get("photoMessage"))
-                .isEqualTo("Photo de profil mise à jour.");
+        assertThat(flashAttributes(redirectAttributes))
+                .containsEntry("photoMessage", "Photo de profil mise à jour.");
     }
 
     @Test
@@ -179,12 +179,12 @@ class ProfileControllerTest {
         String view = controller.televerserPhotoProfil(file, session, redirectAttributes);
 
         assertThat(view).isEqualTo("redirect:/profile/edit?id=1");
-        assertThat(redirectAttributes.getFlashAttributes().get("photoErreur"))
-                .isEqualTo("Impossible d'enregistrer la photo.");
+        assertThat(flashAttributes(redirectAttributes))
+                .containsEntry("photoErreur", "Impossible d'enregistrer la photo.");
     }
 
     @Test
-    void televerserPhotoProfil_redirigeLoginSansSession() throws Exception {
+    void televerserPhotoProfil_redirigeLoginSansSession() {
         MockMultipartFile file = new MockMultipartFile("file", "photo.png", "image/png", new byte[] {1});
 
         String view = controller.televerserPhotoProfil(file, new MockHttpSession(), new RedirectAttributesModelMap());
@@ -262,5 +262,10 @@ class ProfileControllerTest {
         assertThat(view).isEqualTo("profile/view");
         assertThat(model.getAttribute("profilCompletVisible")).isEqualTo(true);
         assertThat(model.getAttribute("estAmi")).isEqualTo(false);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> flashAttributes(RedirectAttributesModelMap redirectAttributes) {
+        return new java.util.HashMap<>((Map<String, Object>) (Map<?, ?>) redirectAttributes.getFlashAttributes());
     }
 }
