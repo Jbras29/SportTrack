@@ -162,6 +162,28 @@ class CommentaireServiceTest {
         }
 
         @Test
+        void messageNull() {
+            Executable appel = () -> commentaireService.ajouterCommentaireTexte(AUTEUR_ID, ACTIVITE_ID, null);
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, appel);
+            assertThat(ex.getMessage()).contains("vide");
+        }
+
+        @Test
+        void auteurOuActiviteManquant() {
+            when(utilisateurRepository.findById(AUTEUR_ID)).thenReturn(Optional.empty());
+            Executable appelAuteur = () -> commentaireService.creerCommentaire(
+                    AUTEUR_ID, ACTIVITE_ID, TypeCommentaire.MESSAGE, "hello");
+            assertThrows(IllegalArgumentException.class, appelAuteur);
+
+            when(utilisateurRepository.findById(AUTEUR_ID)).thenReturn(Optional.of(auteur()));
+            when(activiteRepository.findById(ACTIVITE_ID)).thenReturn(Optional.empty());
+            Executable appelActivite = () -> commentaireService.creerCommentaire(
+                    AUTEUR_ID, ACTIVITE_ID, TypeCommentaire.MESSAGE, "hello");
+            assertThrows(IllegalArgumentException.class, appelActivite);
+        }
+
+        @Test
         void messageTropLong() {
             String tropLong = "x".repeat(1001);
             Executable appel = () -> commentaireService.ajouterCommentaireTexte(AUTEUR_ID, ACTIVITE_ID, tropLong);
@@ -193,6 +215,35 @@ class CommentaireServiceTest {
 
             IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, appel);
             assertThat(ex.getMessage()).contains("emoji");
+        }
+
+        @Test
+        void emojiNull() {
+            when(utilisateurRepository.findById(AUTEUR_ID)).thenReturn(Optional.of(auteur()));
+            when(activiteRepository.findById(ACTIVITE_ID)).thenReturn(Optional.of(activite()));
+            Executable appel = () -> commentaireService.ajouterReactionEmoji(AUTEUR_ID, ACTIVITE_ID, null);
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, appel);
+            assertThat(ex.getMessage()).contains("emoji");
+        }
+
+        @Test
+        void auteurManquant() {
+            when(utilisateurRepository.findById(AUTEUR_ID)).thenReturn(Optional.empty());
+            Executable appel = () -> commentaireService.ajouterReactionEmoji(AUTEUR_ID, ACTIVITE_ID, "👍");
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, appel);
+            assertThat(ex.getMessage()).contains("Auteur introuvable");
+        }
+
+        @Test
+        void activiteManquante() {
+            when(utilisateurRepository.findById(AUTEUR_ID)).thenReturn(Optional.of(auteur()));
+            when(activiteRepository.findById(ACTIVITE_ID)).thenReturn(Optional.empty());
+            Executable appel = () -> commentaireService.ajouterReactionEmoji(AUTEUR_ID, ACTIVITE_ID, "👍");
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, appel);
+            assertThat(ex.getMessage()).contains("Activite introuvable");
         }
 
         @Test
@@ -296,6 +347,15 @@ class CommentaireServiceTest {
 
             verify(commentaireRepository).delete(c);
         }
+
+        @Test
+        void commentaireIntrouvable() {
+            when(commentaireRepository.findById(COMMENTAIRE_ID)).thenReturn(Optional.empty());
+            Executable appel = () ->
+                    commentaireService.supprimerCommentaireTexte(ACTIVITE_ID, COMMENTAIRE_ID, AUTEUR_ID);
+
+            assertThrows(IllegalArgumentException.class, appel);
+        }
     }
 
     @Nested
@@ -310,6 +370,25 @@ class CommentaireServiceTest {
 
             IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, appel);
             assertThat(ex.getMessage()).contains("réaction");
+        }
+
+        @Test
+        void commentaireIntrouvable() {
+            when(commentaireRepository.findById(COMMENTAIRE_ID)).thenReturn(Optional.empty());
+            Executable appel = () ->
+                    commentaireService.supprimerReaction(ACTIVITE_ID, COMMENTAIRE_ID, AUTEUR_ID);
+
+            assertThrows(IllegalArgumentException.class, appel);
+        }
+
+        @Test
+        void ok() {
+            Commentaire c = commentairePersiste(TypeCommentaire.REACTION, "👍");
+            when(commentaireRepository.findById(COMMENTAIRE_ID)).thenReturn(Optional.of(c));
+
+            commentaireService.supprimerReaction(ACTIVITE_ID, COMMENTAIRE_ID, AUTEUR_ID);
+
+            verify(commentaireRepository).delete(c);
         }
     }
 

@@ -252,6 +252,14 @@ class UtilisateurTest {
     }
 
     @Test
+    void cheminPhotoProfilAffichee_viaGetter_retourneLePlaceholderQuandLaPhotoEstVide() {
+        Utilisateur u = utilisateurMinimalPourCreation();
+        u.setPhotoProfil("   ");
+
+        assertThat(u.cheminPhotoProfilAffichee()).isEqualTo(PLACEHOLDER_PHOTO);
+    }
+
+    @Test
     void getHpNormalise_viaCreerUtilisateur_defaut100() {
         when(utilisateurRepository.existsByEmail(VALID_EMAIL)).thenReturn(false);
         when(passwordEncoder.encode(VALID_MOTDEPASSE)).thenReturn("encoded");

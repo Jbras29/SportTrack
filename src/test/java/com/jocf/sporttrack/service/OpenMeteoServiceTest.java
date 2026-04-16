@@ -61,6 +61,60 @@ class OpenMeteoServiceTest {
     }
 
     @Test
+    void suggestLocations_retourneVideQuandLaReponseEstNulleOuSansResults() {
+        OpenMeteoService service = new OpenMeteoService();
+        RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(service, "restTemplate");
+
+        MockRestServiceServer serverNull = MockRestServiceServer.bindTo(restTemplate).build();
+        serverNull.expect(requestTo(containsString("geocoding-api.open-meteo.com")))
+                .andRespond(withSuccess("null", MediaType.APPLICATION_JSON));
+        assertThat(service.suggestLocations("Pa", 3)).isEmpty();
+        serverNull.verify();
+
+        MockRestServiceServer serverSansResults = MockRestServiceServer.bindTo(restTemplate).build();
+        serverSansResults.expect(requestTo(containsString("geocoding-api.open-meteo.com")))
+                .andRespond(withSuccess("{\"foo\":[]}", MediaType.APPLICATION_JSON));
+        assertThat(service.suggestLocations("Pa", 3)).isEmpty();
+        serverSansResults.verify();
+    }
+
+    @Test
+    void suggestLocations_retourneVideQuandLaListeDeResultatsEstVide() {
+        OpenMeteoService service = new OpenMeteoService();
+        RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(service, "restTemplate");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        server.expect(requestTo(containsString("geocoding-api.open-meteo.com")))
+                .andRespond(withSuccess("{\"results\":[]}", MediaType.APPLICATION_JSON));
+
+        assertThat(service.suggestLocations("Pa", 3)).isEmpty();
+        server.verify();
+    }
+
+    @Test
+    void suggestLocations_ignoreLesEntreesSansNomEtRetourneVideQuandJsonInvalide() {
+        OpenMeteoService service = new OpenMeteoService();
+        RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(service, "restTemplate");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        server.expect(requestTo(containsString("geocoding-api.open-meteo.com")))
+                .andRespond(withSuccess("""
+                        {"results":[
+                          {"name":"Paris"},
+                          {"lat":48.85}
+                        ]}
+                        """, MediaType.APPLICATION_JSON));
+
+        assertThat(service.suggestLocations("Pa", 3)).containsExactly("Paris");
+        server.verify();
+
+        MockRestServiceServer serverInvalide = MockRestServiceServer.bindTo(restTemplate).build();
+        serverInvalide.expect(requestTo(containsString("geocoding-api.open-meteo.com")))
+                .andRespond(withSuccess("{", MediaType.APPLICATION_JSON));
+
+        assertThat(service.suggestLocations("Pa", 3)).isEmpty();
+        serverInvalide.verify();
+    }
+
+    @Test
     void suggestLocations_retourneLesVillesTrouvees() {
         OpenMeteoService service = new OpenMeteoService();
         RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(service, "restTemplate");
@@ -92,6 +146,23 @@ class OpenMeteoServiceTest {
                         """, MediaType.APPLICATION_JSON));
 
         assertThat(service.locationExists("Paris")).isTrue();
+        server.verify();
+    }
+
+    @Test
+    void locationExists_retourneFalseQuandAucuneSuggestionNeCorrespond() {
+        OpenMeteoService service = new OpenMeteoService();
+        RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(service, "restTemplate");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        server.expect(requestTo(containsString("geocoding-api.open-meteo.com")))
+                .andRespond(withSuccess("""
+                        {"results":[
+                          {"name":"Paris"},
+                          {"name":"Pau"}
+                        ]}
+                        """, MediaType.APPLICATION_JSON));
+
+        assertThat(service.locationExists("Lyon")).isFalse();
         server.verify();
     }
 
@@ -172,6 +243,20 @@ class OpenMeteoServiceTest {
                 service.getWeatherForLocationAndDate("Paris", LocalDate.now().minusDays(1));
 
         assertThat(info).isEqualTo(new OpenMeteoService.WeatherInfo(12.0, "Inconnu"));
+        server.verify();
+    }
+
+    @Test
+    void getWeatherForLocationAndDate_retourneNullQuandLaReponseEstInvalide() {
+        OpenMeteoService service = new OpenMeteoService();
+        RestTemplate restTemplate = (RestTemplate) ReflectionTestUtils.getField(service, "restTemplate");
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).ignoreExpectOrder(true).build();
+        server.expect(requestTo(containsString("geocoding-api.open-meteo.com")))
+                .andRespond(withSuccess("{\"results\":[{\"latitude\":48.85,\"longitude\":2.35}]}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo(containsString("api.open-meteo.com")))
+                .andRespond(withSuccess("{", MediaType.APPLICATION_JSON));
+
+        assertThat(service.getWeatherForLocationAndDate("Paris", LocalDate.now().plusDays(1))).isNull();
         server.verify();
     }
 

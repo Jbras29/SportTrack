@@ -9,12 +9,14 @@ import com.jocf.sporttrack.repository.ActiviteRepository;
 import com.jocf.sporttrack.repository.ChallengeRepository;
 import com.jocf.sporttrack.service.UtilisateurService;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.HashSet;
 import java.util.List;
 import java.lang.reflect.Method;
 import java.util.Map;
-
+import java.util.HashSet;
+import java.util.Locale;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -126,6 +128,67 @@ class DashboardControllerTest {
     }
 
     @Test
+    void dashboard_couvreLesValeursNullEtLesDefisExpires() {
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(
+                        "jane@test.com", "x", List.of(new SimpleGrantedAuthority("ROLE_USER"))));
+        LocalDate today = LocalDate.now();
+        Activite activiteAvecNulls = Activite.builder()
+                .date(today.minusMonths(2))
+                .typeSport(null)
+                .distance(null)
+                .temps(null)
+                .utilisateur(utilisateur)
+                .build();
+        Activite activiteCourse = Activite.builder()
+                .date(today)
+                .temps(30)
+                .distance(10.0)
+                .typeSport(TypeSport.COURSE)
+                .utilisateur(utilisateur)
+                .build();
+        when(utilisateurService.trouverParEmail("jane@test.com")).thenReturn(utilisateur);
+        when(activiteRepository.findByUtilisateurOrderByDateDesc(utilisateur))
+                .thenReturn(List.of(activiteAvecNulls, activiteCourse));
+
+        Challenge challengeExpire = challenge(today.minusDays(4), today.minusDays(1));
+        Challenge challengeSansParticipants = Challenge.builder()
+                .nom("Sans participants")
+                .dateDebut(java.sql.Date.valueOf(today.minusDays(1)))
+                .dateFin(java.sql.Date.valueOf(today.plusDays(1)))
+                .build();
+        Challenge challengeAvecParticipants = Challenge.builder()
+                .nom("Avec participants")
+                .dateDebut(java.sql.Date.valueOf(today))
+                .dateFin(java.sql.Date.valueOf(today.plusDays(2)))
+                .build();
+        challengeAvecParticipants.setParticipants(new HashSet<>(List.of(utilisateur)));
+        when(challengeRepository.findByParticipants_IdOrderByDateFinAsc(1L))
+                .thenReturn(List.of(challengeExpire, challengeSansParticipants, challengeAvecParticipants));
+
+        Model model = new ExtendedModelMap();
+
+        String view = controller.dashboard(model);
+
+        assertThat(view).isEqualTo("dashboard");
+        assertThat(model.getAttribute("totalDistanceKm")).isEqualTo(10.0);
+        assertThat(model.getAttribute("totalTempsMinutes")).isEqualTo(30);
+        assertThat(model.getAttribute("moyenneDistanceKm")).isEqualTo(5.0);
+        assertThat(model.getAttribute("moyenneTempsMinutes")).isEqualTo(15);
+        assertThat(model.getAttribute("sportFavori")).isEqualTo("COURSE");
+        assertThat(model.getAttribute("sportFavoriSeances")).isEqualTo(1L);
+        assertThat(model.getAttribute("moisDistanceKm")).isEqualTo(10.0);
+        assertThat(model.getAttribute("derniereSeanceTexte"))
+                .isEqualTo(activiteAvecNulls.getDate().format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.FRENCH)));
+        assertThat((List<?>) model.getAttribute("defisEnCours")).hasSize(2);
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> cartes = (List<Map<String, Object>>) model.getAttribute("defisEnCoursAffichage");
+        assertThat(cartes).hasSize(2);
+        assertThat(cartes.get(0)).containsEntry("participants", 0);
+        assertThat(cartes.get(1)).containsEntry("participants", 1);
+    }
+
+    @Test
     void dashboard_remplitModele() {
         SecurityContextHolder.getContext()
                 .setAuthentication(new UsernamePasswordAuthenticationToken(
@@ -204,6 +267,8 @@ class DashboardControllerTest {
         assertThat(invokeStaticString("formatDuration", new Class<?>[] {int.class}, 90)).isEqualTo("1h 30min");
 
         assertThat(invokeStaticString("formatAllure", new Class<?>[] {double.class}, 0.0)).isEqualTo("—");
+        assertThat(invokeStaticString("formatAllure", new Class<?>[] {double.class}, Double.NaN)).isEqualTo("—");
+        assertThat(invokeStaticString("formatAllure", new Class<?>[] {double.class}, Double.POSITIVE_INFINITY)).isEqualTo("—");
         assertThat(invokeStaticString("formatAllure", new Class<?>[] {double.class}, 1.999)).isEqualTo("2'00\"/km");
 
         assertThat(invokeStaticString("formatRelativeDays", new Class<?>[] {long.class}, 0L)).isEqualTo("Aujourd'hui");
@@ -217,6 +282,18 @@ class DashboardControllerTest {
 
         Challenge challengeSansDates = Challenge.builder().build();
         assertThat(invokeStaticInt("calculerProgression", new Class<?>[] {Challenge.class, LocalDate.class}, challengeSansDates, today))
+                .isZero();
+
+        Challenge challengeSansDateDebut = Challenge.builder()
+                .dateFin(java.sql.Date.valueOf(today.plusDays(3)))
+                .build();
+        assertThat(invokeStaticInt("calculerProgression", new Class<?>[] {Challenge.class, LocalDate.class}, challengeSansDateDebut, today))
+                .isZero();
+
+        Challenge challengeSansDateFin = Challenge.builder()
+                .dateDebut(java.sql.Date.valueOf(today.minusDays(2)))
+                .build();
+        assertThat(invokeStaticInt("calculerProgression", new Class<?>[] {Challenge.class, LocalDate.class}, challengeSansDateFin, today))
                 .isZero();
 
         Challenge challengeFutur = challenge(today.plusDays(2), today.plusDays(5));
@@ -248,6 +325,8 @@ class DashboardControllerTest {
         assertThat(invokeStaticString("calculerStatutTemps",
                 new Class<?>[] {LocalDate.class, LocalDate.class, LocalDate.class},
                 today.minusDays(2), today.plusDays(3), today)).isEqualTo("3 jours restants");
+        assertThat(invokeStaticString("formatDateFr", new Class<?>[] {LocalDate.class}, (Object) null)).isEqualTo("");
+        assertThat(invokeStaticString("formatDateCourte", new Class<?>[] {LocalDate.class}, (Object) null)).isEqualTo("");
     }
 
     private static Challenge challenge(LocalDate debut, LocalDate fin) {

@@ -21,6 +21,7 @@ import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,5 +69,16 @@ class NotificationControllerTest {
         assertThat(view).isEqualTo("notifications/list");
         assertThat(model.getAttribute("notifications")).isEqualTo(List.of(item));
         verify(utilisateurService).enregistrerDerniereConsultationNotifications(1L);
+    }
+
+    @Test
+    void notifications_lanceErreurQuandUtilisateurIntrouvable() {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(SessionKeys.UTILISATEUR, new SessionUtilisateur(1L, "jane@test.com", "Doe", "Jane"));
+        when(utilisateurService.trouverParId(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> controller.notifications(session, new ExtendedModelMap()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Utilisateur introuvable");
     }
 }

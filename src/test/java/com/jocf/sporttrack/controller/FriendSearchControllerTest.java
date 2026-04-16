@@ -23,6 +23,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -69,6 +70,15 @@ class FriendSearchControllerTest {
     }
 
     @Test
+    void afficherPageAmis_redirigeSiAuthVide() {
+        var authVide = new UsernamePasswordAuthenticationToken("", "x");
+
+        assertThatThrownBy(() -> controller.afficherPageAmis(authVide, new ExtendedModelMap()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("non authentifie");
+    }
+
+    @Test
     void rechercherAmis_retourneVueEtResultats() {
         Model model = new ExtendedModelMap();
 
@@ -92,6 +102,15 @@ class FriendSearchControllerTest {
     }
 
     @Test
+    void envoyerDemandeAmi_lanceExceptionSiDestinataireIntrouvable() {
+        when(utilisateurRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> controller.envoyerDemandeAmi(99L, null, null, auth, new RedirectAttributesModelMap()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Utilisateur introuvable");
+    }
+
+    @Test
     void envoyerDemandeAmi_enregistreEtRedirigeVersProfil() {
         RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
         when(utilisateurRepository.findById(2L)).thenReturn(Optional.of(autre));
@@ -103,6 +122,44 @@ class FriendSearchControllerTest {
         verify(utilisateurRepository).save(courant);
         assertThat(flashAttributes(redirectAttributes))
                 .containsEntry("successMessage", "Demande d'ami envoyee.");
+    }
+
+    @Test
+    void envoyerDemandeAmi_refuseQuandDejaAmiOuDemandeRecueOuDejaEnvoyee() {
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+        when(utilisateurRepository.findById(2L)).thenReturn(Optional.of(autre));
+        when(utilisateurRepository.findAmiIdsByUtilisateurId(1L)).thenReturn(List.of(2L));
+
+        String view = controller.envoyerDemandeAmi(2L, "bob", "friend", auth, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/friend?recherche=bob");
+        assertThat(flashAttributes(redirectAttributes))
+                .containsEntry("errorMessage", "Cet utilisateur est deja votre ami.");
+    }
+
+    @Test
+    void envoyerDemandeAmi_refuseQuandDemandeRecueExiste() {
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+        when(utilisateurRepository.findById(2L)).thenReturn(Optional.of(autre));
+        when(utilisateurRepository.findDemandesAmisRecuesByUtilisateurId(1L)).thenReturn(List.of(autre));
+
+        String view = controller.envoyerDemandeAmi(2L, null, null, auth, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/friend/search");
+        assertThat(flashAttributes(redirectAttributes))
+                .containsEntry("errorMessage", "Cet utilisateur vous a deja envoye une demande.");
+    }
+
+    @Test
+    void envoyerDemandeAmi_refuseQuandDemandeDejaEnvoyee() {
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+        when(utilisateurRepository.findById(2L)).thenReturn(Optional.of(autre));
+        when(utilisateurRepository.findDemandesAmisEnvoyeesIdsByUtilisateurId(1L)).thenReturn(List.of(2L));
+
+        String view = controller.envoyerDemandeAmi(2L, null, "friend", auth, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/friend");
+        assertThat(redirectAttributes.getFlashAttributes()).isEmpty();
     }
 
     @Test
@@ -119,6 +176,42 @@ class FriendSearchControllerTest {
     }
 
     @Test
+    void accepterDemandeAmi_lanceExceptionSiExpediteurIntrouvable() {
+        when(utilisateurRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> controller.accepterDemandeAmi(2L, null, null, auth, new RedirectAttributesModelMap()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Utilisateur introuvable");
+    }
+
+    @Test
+    void accepterDemandeAmi_neDupliquePasLesAmisEtRedirigeVersRecherche() {
+        autre.setDemandesAmisEnvoyees(new ArrayList<>(List.of(courant)));
+        courant.getAmis().add(autre);
+        autre.getAmis().add(courant);
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+        when(utilisateurRepository.findById(2L)).thenReturn(Optional.of(autre));
+
+        String view = controller.accepterDemandeAmi(2L, " bob ", null, auth, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/friend/search?recherche=bob");
+        assertThat(courant.getAmis()).containsExactly(autre);
+        assertThat(autre.getAmis()).containsExactly(courant);
+    }
+
+    @Test
+    void accepterDemandeAmi_refuseQuandAucuneDemandeCorrespondante() {
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+        when(utilisateurRepository.findById(2L)).thenReturn(Optional.of(autre));
+
+        String view = controller.accepterDemandeAmi(2L, null, null, auth, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/friend/search");
+        assertThat(flashAttributes(redirectAttributes))
+                .containsEntry("errorMessage", "Cette demande d'ami est introuvable.");
+    }
+
+    @Test
     void refuserDemandeAmi_retourneErreurSiIntrouvable() {
         RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
         when(utilisateurRepository.findById(2L)).thenReturn(Optional.of(autre));
@@ -131,12 +224,57 @@ class FriendSearchControllerTest {
     }
 
     @Test
+    void refuserDemandeAmi_lanceExceptionSiExpediteurIntrouvable() {
+        when(utilisateurRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> controller.refuserDemandeAmi(2L, null, null, auth, new RedirectAttributesModelMap()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Utilisateur introuvable");
+    }
+
+    @Test
+    void refuserDemandeAmi_suppprimeEtRedirigeQuandTrouvee() {
+        autre.setDemandesAmisEnvoyees(new ArrayList<>(List.of(courant)));
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+        when(utilisateurRepository.findById(2L)).thenReturn(Optional.of(autre));
+
+        String view = controller.refuserDemandeAmi(2L, "bob", "friend", auth, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/friend?recherche=bob");
+        assertThat(flashAttributes(redirectAttributes))
+                .containsEntry("successMessage", "Demande d'ami refusee.");
+        verify(utilisateurRepository).save(autre);
+    }
+
+    @Test
     void utilisateurCardView_peutEnvoyerDemande_dependsFlags() {
         var carte = new FriendSearchController.UtilisateurCardView(autre, "Bob Smith", "Course", false, false, false);
         var carteBloquee = new FriendSearchController.UtilisateurCardView(autre, "Bob Smith", "Course", true, false, false);
 
         assertThat(carte.peutEnvoyerDemande()).isTrue();
         assertThat(carteBloquee.peutEnvoyerDemande()).isFalse();
+    }
+
+    @Test
+    void afficherPageAmis_exclutLesCandidatsDejaAmisEtMontreLesPreferencesVides() {
+        Utilisateur ami = utilisateur(2L, "Bob", "Smith", "bob@test.com");
+        Utilisateur demandeRecue = utilisateur(3L, "Chloe", "Jones", "chloe@test.com");
+        Utilisateur sansPrefs = utilisateur(4L, "Dana", "White", "dana@test.com");
+
+        when(utilisateurRepository.findAmiIdsByUtilisateurId(1L)).thenReturn(List.of(2L));
+        when(utilisateurRepository.findDemandesAmisRecuesByUtilisateurId(1L)).thenReturn(List.of(demandeRecue));
+        when(utilisateurRepository.findAllWithPrefSportives()).thenReturn(List.of(courant, ami, demandeRecue, sansPrefs));
+        when(utilisateurRepository.rechercherPourReseau(1L, "Dana")).thenReturn(List.of(sansPrefs));
+
+        Model model = new ExtendedModelMap();
+        String view = controller.rechercherAmis("Dana", auth, model);
+
+        assertThat(view).isEqualTo("friend/search");
+        @SuppressWarnings("unchecked")
+        List<FriendSearchController.UtilisateurCardView> suggestions =
+                (List<FriendSearchController.UtilisateurCardView>) model.getAttribute("suggestions");
+        assertThat(suggestions).hasSize(1);
+        assertThat(suggestions.get(0).sportsTexte()).isEqualTo("Aucune preference sportive");
     }
 
     private static Utilisateur utilisateur(Long id, String prenom, String nom, String email) {

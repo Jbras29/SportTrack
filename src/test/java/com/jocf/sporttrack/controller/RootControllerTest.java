@@ -70,8 +70,28 @@ class RootControllerTest {
     }
 
     @Test
+    void racine_redirigeVersHomeQuandAuthentifie() {
+        var auth = UsernamePasswordAuthenticationToken.authenticated(
+                "jane@test.com", "x", List.of(new SimpleGrantedAuthority("ROLE_USER")));
+
+        String view = controller.racine(auth);
+
+        assertThat(view).isEqualTo("redirect:/home");
+    }
+
+    @Test
     void home_redirigeVersLoginQuandNonAuthentifie() {
         String view = controller.home(new ExtendedModelMap(), null);
+
+        assertThat(view).isEqualTo("redirect:/login");
+    }
+
+    @Test
+    void home_redirigeVersLoginQuandAnonyme() {
+        var auth = new AnonymousAuthenticationToken(
+                "key", "anonymousUser", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS")));
+
+        String view = controller.home(new ExtendedModelMap(), auth);
 
         assertThat(view).isEqualTo("redirect:/login");
     }
@@ -82,8 +102,12 @@ class RootControllerTest {
                 .id(1L)
                 .dateFin(Date.valueOf(LocalDate.now().plusDays(1)))
                 .build();
+        Challenge expire = Challenge.builder()
+                .id(2L)
+                .dateFin(Date.valueOf(LocalDate.now().minusDays(1)))
+                .build();
         when(utilisateurService.trouverParEmailAvecAmis("jane@test.com")).thenReturn(utilisateur);
-        when(challengeRepository.findByParticipants_IdOrderByDateFinAsc(1L)).thenReturn(List.of(actif));
+        when(challengeRepository.findByParticipants_IdOrderByDateFinAsc(1L)).thenReturn(List.of(actif, expire));
         when(activiteService.recupererActivitesFilActualite(utilisateur)).thenReturn(List.of());
         Model model = new ExtendedModelMap();
 
@@ -102,7 +126,15 @@ class RootControllerTest {
     @Test
     void homeAdmin_ajouteCollectionsAdmin() {
         when(utilisateurService.trouverParEmailAvecAmis("jane@test.com")).thenReturn(utilisateur);
-        when(challengeRepository.findByParticipants_IdOrderByDateFinAsc(1L)).thenReturn(List.of());
+        Challenge actif = Challenge.builder()
+                .id(1L)
+                .dateFin(Date.valueOf(LocalDate.now().plusDays(1)))
+                .build();
+        Challenge expire = Challenge.builder()
+                .id(2L)
+                .dateFin(Date.valueOf(LocalDate.now().minusDays(1)))
+                .build();
+        when(challengeRepository.findByParticipants_IdOrderByDateFinAsc(1L)).thenReturn(List.of(actif, expire));
         when(activiteService.recupererActivitesFilActualite(utilisateur)).thenReturn(List.of());
         when(utilisateurService.recupererTousLesUtilisateurs()).thenReturn(List.of(utilisateur));
         when(commentaireService.recupererTousLesCommentaires()).thenReturn(List.of());
@@ -115,6 +147,19 @@ class RootControllerTest {
 
         assertThat(view).isEqualTo("homeAdmin");
         assertThat(model.getAttribute("tousUtilisateurs")).isEqualTo(List.of(utilisateur));
+        @SuppressWarnings("unchecked")
+        List<Challenge> defis = (List<Challenge>) model.getAttribute("defisEnCours");
+        assertThat(defis).containsExactly(actif);
+    }
+
+    @Test
+    void homeAdmin_redirigeVersLoginQuandAnonyme() {
+        var auth = new AnonymousAuthenticationToken(
+                "key", "anonymousUser", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS")));
+
+        String view = controller.homeAdmin(new ExtendedModelMap(), auth);
+
+        assertThat(view).isEqualTo("redirect:/login");
     }
 
     @Test
@@ -129,5 +174,15 @@ class RootControllerTest {
 
         assertThat(view).isEqualTo("evenement/creer-evenement");
         assertThat(model.getAttribute("user")).isSameAs(utilisateur);
+    }
+
+    @Test
+    void creerEvenementPage_redirigeLoginQuandAnonyme() {
+        var auth = new AnonymousAuthenticationToken(
+                "key", "anonymousUser", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS")));
+
+        String view = controller.creerEvenementPage(auth, new ExtendedModelMap());
+
+        assertThat(view).isEqualTo("redirect:/login");
     }
 }

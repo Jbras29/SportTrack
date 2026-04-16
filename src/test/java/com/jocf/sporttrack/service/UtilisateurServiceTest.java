@@ -376,6 +376,18 @@ class UtilisateurServiceTest {
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Utilisateur introuvable");
         }
+
+        @Test
+        void enregistrerDerniereConsultation_metAJourEtSauvegarde() {
+            Utilisateur u = utilisateurEnBase();
+            when(utilisateurRepository.findById(USER_ID)).thenReturn(Optional.of(u));
+
+            utilisateurService.enregistrerDerniereConsultationNotifications(USER_ID);
+
+            ArgumentCaptor<Utilisateur> captor = ArgumentCaptor.forClass(Utilisateur.class);
+            verify(utilisateurRepository).save(captor.capture());
+            assertThat(captor.getValue().getDerniereConsultationNotifications()).isNotNull();
+        }
     }
 
     @Nested
@@ -524,6 +536,15 @@ class UtilisateurServiceTest {
 
             assertThat(resultat).isSameAs(u);
             verify(authManager).authenticate(any());
+        }
+
+        @Test
+        void connecter_sansAuthenticationConfiguration_lanceErreur() {
+            when(authenticationConfigurationProvider.getIfAvailable()).thenReturn(null);
+
+            assertThatThrownBy(() -> utilisateurService.connecter(EMAIL, MOTDEPASSE_CLAIR))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("Impossible d'initialiser");
         }
 
         @Test

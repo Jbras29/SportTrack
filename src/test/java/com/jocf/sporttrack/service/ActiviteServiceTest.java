@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -305,6 +306,15 @@ class ActiviteServiceTest {
     }
 
     @Test
+    void creerActiviteVersionSimple_utilisateurIntrouvable() {
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.creerActivite(1L, "Run", TypeSport.COURSE, LocalDate.now()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Utilisateur introuvable");
+    }
+
+    @Test
     void modifierActivite_metAJourEtRecalcule() {
         Activite activite = Activite.builder()
                 .id(4L)
@@ -470,6 +480,22 @@ class ActiviteServiceTest {
         assertThat(service.calculerKcalPourActivite(activite)).isEqualTo(350.0);
     }
 
+    @Test
+    void calculerKcalPourActivite_retourneZeroQuandLaDureeEstNulleOuAbsente() {
+        Activite sansDuree = Activite.builder()
+                .typeSport(TypeSport.COURSE)
+                .utilisateur(Utilisateur.builder().id(1L).poids(70.0).build())
+                .build();
+        Activite dureeNulle = Activite.builder()
+                .typeSport(TypeSport.COURSE)
+                .temps(0)
+                .utilisateur(Utilisateur.builder().id(1L).poids(70.0).build())
+                .build();
+
+        assertThat(service.calculerKcalPourActivite(sansDuree)).isZero();
+        assertThat(service.calculerKcalPourActivite(dureeNulle)).isZero();
+    }
+
     @ParameterizedTest
     @CsvSource({
             "COURSE,10.0",
@@ -553,6 +579,40 @@ class ActiviteServiceTest {
 
         assertThat(count).isEqualTo(1);
         verify(activiteRepository).save(a);
+    }
+
+    @Test
+    void recalculerMeteoEtCaloriesPourToutesLesActivites_gereMeteoAbsenteEtSauvegardeQuandLesCaloriesManquent() {
+        Activite a = Activite.builder()
+                .id(2L)
+                .typeSport(TypeSport.COURSE)
+                .temps(40)
+                .utilisateur(utilisateur)
+                .date(LocalDate.now())
+                .location("Paris")
+                .build();
+        when(activiteRepository.findAll()).thenReturn(List.of(a));
+        when(openMeteoService.getWeatherForLocationAndDate("Paris", a.getDate())).thenReturn(null);
+
+        int count = service.recalculerMeteoEtCaloriesPourToutesLesActivites();
+
+        assertThat(count).isEqualTo(1);
+        verify(activiteRepository).save(a);
+        assertThat(a.getCalories()).isNotNull();
+        assertThat(a.getMeteoCondition()).isNull();
+    }
+
+    @Test
+    void crediterExperiencePourInvites_retourneSansActionQuandLeMontantEstNul() throws Exception {
+        Utilisateur invite = Utilisateur.builder().id(2L).build();
+        List<Utilisateur> invites = List.of(invite);
+
+        Method method = ActiviteService.class.getDeclaredMethod(
+                "crediterExperiencePourInvites", List.class, Long.class, int.class);
+        method.setAccessible(true);
+        method.invoke(service, invites, 1L, 0);
+
+        verifyNoInteractions(utilisateurService);
     }
 
     @Test

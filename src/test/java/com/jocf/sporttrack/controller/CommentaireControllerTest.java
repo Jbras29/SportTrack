@@ -118,6 +118,14 @@ class CommentaireControllerTest {
     }
 
     @Test
+    void posterCommentaireTexte_retourne400SiBodyNull() {
+        var response = controller.posterCommentaireTexte(2L, null);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getBody()).isEqualTo(CommentaireFeedbackResponse.erreur("Le corps doit contenir auteurId."));
+    }
+
+    @Test
     void posterCommentaireTexte_retourne404QuandActiviteIntrouvable() {
         when(commentaireService.ajouterCommentaireTexte(1L, 2L, "hello"))
                 .thenThrow(new IllegalArgumentException("Activite introuvable : 2"));
@@ -173,6 +181,25 @@ class CommentaireControllerTest {
     }
 
     @Test
+    void posterReaction_retourne400SiBodyNull() {
+        var response = controller.posterReaction(2L, null);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getBody()).isEqualTo(CommentaireFeedbackResponse.erreur("Le corps doit contenir auteurId."));
+    }
+
+    @Test
+    void posterReaction_retourne404QuandAuteurIntrouvable() {
+        when(commentaireService.ajouterReactionEmoji(1L, 2L, "👍"))
+                .thenThrow(new IllegalArgumentException("Auteur introuvable : 1"));
+
+        var response = controller.posterReaction(2L, new CreerReactionRequest(1L, "👍"));
+
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
+        assertThat(response.getBody().message()).isEqualTo("Auteur introuvable : 1");
+    }
+
+    @Test
     void updateCommentaire_retourne404QuandErreur() {
         when(commentaireService.modifierCommentaire(3L, "nouveau"))
                 .thenThrow(new IllegalArgumentException("absent"));
@@ -183,10 +210,30 @@ class CommentaireControllerTest {
     }
 
     @Test
+    void updateCommentaire_retourne200QuandSucces() {
+        when(commentaireService.modifierCommentaire(3L, "nouveau")).thenReturn(commentaire);
+
+        var response = controller.updateCommentaire(3L, "nouveau");
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isSameAs(commentaire);
+    }
+
+    @Test
     void deleteCommentaire_retourne204QuandSucces() {
         var response = controller.deleteCommentaire(3L);
 
         assertThat(response.getStatusCode().value()).isEqualTo(204);
+    }
+
+    @Test
+    void deleteCommentaire_retourne404QuandErreur() {
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("absent"))
+                .when(commentaireService).supprimerCommentaire(3L);
+
+        var response = controller.deleteCommentaire(3L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
     }
 
     @Test
@@ -219,6 +266,17 @@ class CommentaireControllerTest {
     }
 
     @Test
+    void supprimerReaction_retourne403QuandNonAutorise() {
+        org.mockito.Mockito.doThrow(new NonAutoriseException("forbidden"))
+                .when(commentaireService).supprimerReaction(1L, 2L, 3L);
+
+        var response = controller.supprimerReaction(1L, 2L, 3L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(403);
+        assertThat(response.getBody().message()).isEqualTo("forbidden");
+    }
+
+    @Test
     void supprimerReaction_retourne404QuandCommentaireIntrouvable() {
         org.mockito.Mockito.doThrow(new IllegalArgumentException("Commentaire introuvable : 2"))
                 .when(commentaireService).supprimerReaction(1L, 2L, 3L);
@@ -226,6 +284,28 @@ class CommentaireControllerTest {
         var response = controller.supprimerReaction(1L, 2L, 3L);
 
         assertThat(response.getStatusCode().value()).isEqualTo(404);
+    }
+
+    @Test
+    void supprimerReaction_retourne400QuandErreurInattendue() {
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("autre probleme"))
+                .when(commentaireService).supprimerReaction(1L, 2L, 3L);
+
+        var response = controller.supprimerReaction(1L, 2L, 3L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getBody()).isEqualTo(CommentaireFeedbackResponse.erreur("autre probleme"));
+    }
+
+    @Test
+    void posterReaction_retourne400QuandMessageAbsent() {
+        when(commentaireService.ajouterReactionEmoji(1L, 2L, "👍"))
+                .thenThrow(new IllegalArgumentException());
+
+        var response = controller.posterReaction(2L, new CreerReactionRequest(1L, "👍"));
+
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getBody().message()).isEqualTo("");
     }
 
     @Test

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ActiviteTest {
 
@@ -305,5 +306,162 @@ class ActiviteTest {
                     creerCommentaire((long) i, TypeCommentaire.REACTION, "emoji" + i, auteur)
             );
         }
+    }
+
+    @Test
+    void getReactionsGroupeesAffichees_retourneToutesSousLaLimite() {
+        Utilisateur u = Utilisateur.builder().id(1L).prenom("X").nom("Y").build();
+        Activite activite = Activite.builder()
+                .nom("test")
+                .typeSport(TypeSport.BOXE)
+                .date(LocalDate.now())
+                .utilisateur(u)
+                .build();
+        activite.getCommentaires().add(
+                Commentaire.builder().id(1L).type(TypeCommentaire.REACTION)
+                        .message("👍").auteur(u).build());
+
+        assertThat(activite.getReactionsGroupeesAffichees()).hasSize(1);
+    }
+
+    @Test
+    void getReactionsGroupeesMasqueesCount_retourne0SiMoinsQue5() {
+        Utilisateur u = Utilisateur.builder().id(1L).prenom("A").nom("B").build();
+        Activite activite = Activite.builder()
+                .nom("test")
+                .typeSport(TypeSport.TENNIS)
+                .date(LocalDate.now())
+                .utilisateur(u)
+                .build();
+        activite.getCommentaires().add(
+                Commentaire.builder().id(1L).type(TypeCommentaire.REACTION)
+                        .message("👍").auteur(u).build());
+
+        assertThat(activite.getReactionsGroupeesMasqueesCount()).isZero();
+    }
+
+    @Test
+    void utilisateurAEmitReactionAvecEmoji_trouveReactionExistante() {
+        Utilisateur u = Utilisateur.builder().id(1L).prenom("A").nom("B").build();
+        Commentaire reaction = Commentaire.builder()
+                .id(10L).type(TypeCommentaire.REACTION).message("🔥").auteur(u).build();
+
+        Activite activite = Activite.builder()
+                .nom("test").typeSport(TypeSport.CYCLISME)
+                .date(LocalDate.now()).utilisateur(u).build();
+        activite.getCommentaires().add(reaction);
+
+        assertThat(activite.utilisateurAEmitReactionAvecEmoji(1L, "🔥")).isTrue();
+        assertThat(activite.utilisateurAEmitReactionAvecEmoji(1L, "💀")).isFalse();
+        assertThat(activite.utilisateurAEmitReactionAvecEmoji(99L, "🔥")).isFalse();
+    }
+
+    @Test
+    void utilisateurAEmitReactionAvecEmoji_avecIdOuEmojiNull_retourneFalse() {
+        Activite activite = Activite.builder()
+                .nom("t").typeSport(TypeSport.YOGA)
+                .date(LocalDate.now())
+                .utilisateur(Utilisateur.builder().id(1L).build())
+                .build();
+
+        assertThat(activite.utilisateurAEmitReactionAvecEmoji(null, "👍")).isFalse();
+        assertThat(activite.utilisateurAEmitReactionAvecEmoji(1L, null)).isFalse();
+    }
+
+    @Test
+    void getIdCommentaireReactionUtilisateur_retourneLId() {
+        Utilisateur u = Utilisateur.builder().id(5L).prenom("A").nom("B").build();
+        Commentaire reaction = Commentaire.builder()
+                .id(42L).type(TypeCommentaire.REACTION).message("❤️").auteur(u).build();
+
+        Activite activite = Activite.builder()
+                .nom("t").typeSport(TypeSport.NATATION)
+                .date(LocalDate.now()).utilisateur(u).build();
+        activite.getCommentaires().add(reaction);
+
+        assertThat(activite.getIdCommentaireReactionUtilisateur(5L, "❤️")).isEqualTo(42L);
+        assertThat(activite.getIdCommentaireReactionUtilisateur(5L, "👍")).isNull();
+    }
+
+    @Test
+    void getReactionsParEmoji_retourneMapAvecCounts() {
+        Utilisateur u1 = Utilisateur.builder().id(1L).prenom("A").nom("B").build();
+        Utilisateur u2 = Utilisateur.builder().id(2L).prenom("C").nom("D").build();
+
+        Activite activite = Activite.builder()
+                .nom("t").typeSport(TypeSport.FOOTBALL)
+                .date(LocalDate.now()).utilisateur(u1).build();
+        activite.getCommentaires().add(
+                Commentaire.builder().id(1L).type(TypeCommentaire.REACTION).message("👍").auteur(u1).build());
+        activite.getCommentaires().add(
+                Commentaire.builder().id(2L).type(TypeCommentaire.REACTION).message("👍").auteur(u2).build());
+        activite.getCommentaires().add(
+                Commentaire.builder().id(3L).type(TypeCommentaire.REACTION).message("🔥").auteur(u1).build());
+
+        var map = activite.getReactionsParEmoji();
+
+        assertThat(map).containsEntry("👍", 2L).containsEntry("🔥", 1L);
+    }
+
+    @Test
+    void getInvitesAffiches_etMasques_couvrentLesBranches() {
+        Utilisateur hote = Utilisateur.builder().id(1L).prenom("H").nom("O").build();
+        Utilisateur i1 = Utilisateur.builder().id(2L).prenom("A").nom("A").build();
+        Utilisateur i2 = Utilisateur.builder().id(3L).prenom("B").nom("B").build();
+        Utilisateur i3 = Utilisateur.builder().id(4L).prenom("C").nom("C").build();
+        Utilisateur i4 = Utilisateur.builder().id(5L).prenom("D").nom("D").build();
+
+        Activite vide = Activite.builder()
+                .nom("vide")
+                .typeSport(TypeSport.YOGA)
+                .date(LocalDate.now())
+                .utilisateur(hote)
+                .build();
+        assertThat(vide.getInvitesAffiches()).isEmpty();
+        assertThat(vide.getInvitesMasquesCount()).isZero();
+
+        Activite activite = Activite.builder()
+                .nom("invite")
+                .typeSport(TypeSport.YOGA)
+                .date(LocalDate.now())
+                .utilisateur(hote)
+                .invites(List.of(i1, i2, i3, i4))
+                .build();
+
+        assertThat(activite.getInvitesAffiches()).containsExactly(i1, i2, i3);
+        assertThat(activite.getInvitesMasquesCount()).isEqualTo(1);
+    }
+
+    @Test
+    void getInvitesAffiches_retourneLaListeOriginaleSousLaLimite() {
+        Utilisateur hote = Utilisateur.builder().id(1L).prenom("H").nom("O").build();
+        Utilisateur i1 = Utilisateur.builder().id(2L).prenom("A").nom("A").build();
+        Utilisateur i2 = Utilisateur.builder().id(3L).prenom("B").nom("B").build();
+        Utilisateur i3 = Utilisateur.builder().id(4L).prenom("C").nom("C").build();
+
+        Activite activite = Activite.builder()
+                .nom("invite")
+                .typeSport(TypeSport.YOGA)
+                .date(LocalDate.now())
+                .utilisateur(hote)
+                .invites(List.of(i1, i2, i3))
+                .build();
+
+        assertThat(activite.getInvitesAffiches()).containsExactly(i1, i2, i3);
+        assertThat(activite.getInvitesMasquesCount()).isZero();
+    }
+
+    @Test
+    void getInvitesAffiches_retourneListeVideQuandInvitesNull() {
+        Activite activite = Activite.builder()
+                .nom("invite")
+                .typeSport(TypeSport.YOGA)
+                .date(LocalDate.now())
+                .utilisateur(Utilisateur.builder().id(1L).build())
+                .invites(null)
+                .build();
+
+        assertThat(activite.getInvitesAffiches()).isEmpty();
+        assertThat(activite.getInvitesMasquesCount()).isZero();
     }
 }

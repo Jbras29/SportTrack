@@ -72,9 +72,30 @@ class PrefSportiveControllerTest {
     }
 
     @Test
+    void updatePrefSportive_retourneEntite() {
+        PrefSportive pref = new PrefSportive(1L, "Yoga", List.of());
+        when(prefSportiveService.modifierPrefSportive(1L, "Yoga")).thenReturn(pref);
+
+        var response = controller.updatePrefSportive(1L, "Yoga");
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isSameAs(pref);
+    }
+
+    @Test
     void deletePrefSportive_retourne204QuandSucces() {
         var response = controller.deletePrefSportive(1L);
 
         assertThat(response.getStatusCode().value()).isEqualTo(204);
+    }
+
+    @Test
+    void deletePrefSportive_retourne404QuandErreur() {
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("absente"))
+                .when(prefSportiveService).supprimerPrefSportive(1L);
+
+        var response = controller.deletePrefSportive(1L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
     }
 }

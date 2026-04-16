@@ -114,6 +114,114 @@ class BadgeTest {
     }
 
     @Test
+    void shouldNotBeEqualWhenIdDiffers() {
+        Badge badge1 = badgeBase();
+        Badge badge2 = badgeBase();
+        badge2.setId(2L);
+
+        assertThat(badge1).isNotEqualTo(badge2);
+    }
+
+    @Test
+    void shouldNotBeEqualWhenIdIsNullOnOneSide() {
+        Badge badge1 = new Badge();
+        badge1.setCode("PREMIER_PAS");
+        Badge badge2 = badgeBase();
+
+        assertThat(badge1.equals(badge2)).isFalse();
+    }
+
+    @Test
+    void shouldNotBeEqualToDifferentClassViaEquals() {
+        Badge badge = badgeBase();
+
+        assertThat(badge.equals("badge")).isFalse();
+    }
+
+    @Test
+    void shouldNotBeEqualToNullViaEquals() {
+        Badge badge = badgeBase();
+
+        assertThat(badge.equals(null)).isFalse();
+    }
+
+    @Test
+    void shouldNotBeEqualWhenCodeDiffers() {
+        Badge badge1 = badgeBase();
+        Badge badge2 = badgeBase();
+        badge2.setCode("AUTRE");
+
+        assertThat(badge1).isNotEqualTo(badge2);
+    }
+
+    @Test
+    void shouldNotBeEqualWhenCodeIsNullOnOneSide() {
+        Badge badge1 = badgeBase();
+        badge1.setCode(null);
+        Badge badge2 = badgeBase();
+        badge2.setCode("AUTRE");
+
+        assertThat(badge1.equals(badge2)).isFalse();
+    }
+
+    @Test
+    void shouldNotBeEqualWhenNomDiffers() {
+        Badge badge1 = badgeBase();
+        Badge badge2 = badgeBase();
+        badge2.setNom("Autre nom");
+
+        assertThat(badge1).isNotEqualTo(badge2);
+    }
+
+    @Test
+    void shouldNotBeEqualWhenNomIsNullOnOneSide() {
+        Badge badge1 = badgeBase();
+        badge1.setNom(null);
+        Badge badge2 = badgeBase();
+        badge2.setNom("Autre nom");
+
+        assertThat(badge1.equals(badge2)).isFalse();
+    }
+
+    @Test
+    void shouldNotBeEqualWhenPhotoDiffers() {
+        Badge badge1 = badgeBase();
+        Badge badge2 = badgeBase();
+        badge2.setPhoto("https://example.com/autre.png");
+
+        assertThat(badge1).isNotEqualTo(badge2);
+    }
+
+    @Test
+    void shouldNotBeEqualWhenPhotoIsNullOnOneSide() {
+        Badge badge1 = badgeBase();
+        badge1.setPhoto(null);
+        Badge badge2 = badgeBase();
+        badge2.setPhoto("https://example.com/autre.png");
+
+        assertThat(badge1.equals(badge2)).isFalse();
+    }
+
+    @Test
+    void shouldNotBeEqualWhenDescriptionDiffers() {
+        Badge badge1 = badgeBase();
+        Badge badge2 = badgeBase();
+        badge2.setDescription("Autre description");
+
+        assertThat(badge1).isNotEqualTo(badge2);
+    }
+
+    @Test
+    void shouldNotBeEqualWhenDescriptionIsNullOnOneSide() {
+        Badge badge1 = badgeBase();
+        badge1.setDescription(null);
+        Badge badge2 = badgeBase();
+        badge2.setDescription("Autre description");
+
+        assertThat(badge1.equals(badge2)).isFalse();
+    }
+
+    @Test
     void shouldNotBeEqualToNullOrDifferentClass() {
         Badge badge = new Badge();
         badge.setId(1L);
@@ -138,5 +246,15 @@ class BadgeTest {
         Badge badge2 = new Badge();
 
         assertThat(badge1).isEqualTo(badge2).hasSameHashCodeAs(badge2);
+    }
+
+    private static Badge badgeBase() {
+        Badge badge = new Badge();
+        badge.setId(1L);
+        badge.setCode("PREMIER_PAS");
+        badge.setNom("Premier pas");
+        badge.setPhoto("https://example.com/badge.png");
+        badge.setDescription("Description");
+        return badge;
     }
 }

@@ -107,12 +107,31 @@ class ActiviteBadgeEvaluationServiceTest {
         verify(badgeService).attribuerBadgeParCodeSiPresent(1L, "IRON_WILL_2H");
     }
 
+    @Test
+    void evaluerEtAttribuerBadges_couvreLesBranchesSansBadge() {
+        Utilisateur user = Utilisateur.builder()
+                .id(1L)
+                .nom("Doe")
+                .prenom("Jane")
+                .email("jane@test.com")
+                .motdepasse("x")
+                .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
+                .build();
+        Activite activiteCourante = activite(10L, user, TypeSport.YOGA, 1.0, Integer.valueOf(0), LocalDate.now(), "Stade", "Yoga");
+        Activite autre = activite(11L, user, TypeSport.CYCLISME, 10.0, 0, LocalDate.now().minusDays(1), null, "Velo");
+        when(activiteRepository.findByUtilisateur(user)).thenReturn(List.of(activiteCourante, autre));
+
+        service.evaluerEtAttribuerBadges(activiteCourante);
+
+        verify(badgeService, never()).attribuerBadgeParCodeSiPresent(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyString());
+    }
+
     private static Activite activite(
             Long id,
             Utilisateur user,
             TypeSport typeSport,
             double distance,
-            int temps,
+            Integer temps,
             LocalDate date,
             String location,
             String nom) {

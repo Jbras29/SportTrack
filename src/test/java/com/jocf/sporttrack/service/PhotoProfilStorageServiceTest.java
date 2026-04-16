@@ -11,6 +11,7 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class PhotoProfilStorageServiceTest {
 
@@ -103,5 +104,38 @@ class PhotoProfilStorageServiceTest {
         String url = service.enregistrerPhotoProfil(fichier, 1L);
 
         assertThat(url).endsWith(".jpg");
+    }
+
+    @Test
+    void extensionDepuisContentType_gif() throws IOException {
+        MockMultipartFile fichier =
+                new MockMultipartFile("f", "p.gif", "image/gif", new byte[] { 1 });
+
+        String url = service.enregistrerPhotoProfil(fichier, 1L);
+
+        assertThat(url).endsWith(".gif");
+    }
+
+    @Test
+    void extensionDepuisContentType_jpeg() throws IOException {
+        MockMultipartFile fichier =
+                new MockMultipartFile("f", "p.jpeg", "image/jpeg", new byte[] { 1 });
+
+        String url = service.enregistrerPhotoProfil(fichier, 1L);
+
+        assertThat(url).endsWith(".jpg");
+    }
+
+    @Test
+    void cheminInvalide_leveIllegalArgumentException() {
+        ReflectionTestUtils.setField(
+                service,
+                "repertoireUpload",
+                Path.of(repertoireTemporaire.toString(), "..", "evil"));
+        MockMultipartFile fichier = new MockMultipartFile("f", "photo.png", "image/png", new byte[] { 1 });
+
+        assertThatThrownBy(() -> service.enregistrerPhotoProfil(fichier, 42L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Chemin de fichier invalide");
     }
 }

@@ -287,10 +287,7 @@ public class Utilisateur {
         }
         int bas = SEUILS_XP_NIVEAU_EXPERIENCE[niveau - 1];
         int haut = SEUILS_XP_NIVEAU_EXPERIENCE[niveau];
-        int plage = haut - bas;
-        if (plage <= 0) {
-            return 100.0;
-        }
+        int plage = Math.max(1, haut - bas);
         return 100.0 * (getXpEffectif() - bas) / plage;
     }
 

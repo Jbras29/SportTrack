@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -240,6 +241,50 @@ class ChallengeWebControllerTest {
 
         assertEquals(true, afficherNomClassement.get(1L));
         assertEquals(false, afficherNomClassement.get(2L));
+    }
+
+    @Test
+    @DisplayName("GET /challenges/{id} -> gère un classement avec doublons et un organisateur masqué")
+    void detailChallenge_shouldHandleDuplicateRankingAndHiddenOrganizer() throws Exception {
+        MockHttpSession session = sessionAvecUtilisateur(1L);
+        Utilisateur sessionUser = buildUtilisateur(1L, 90);
+        Utilisateur autreUtilisateur = buildUtilisateur(2L, 50);
+        Challenge challenge = buildChallenge(10L, null, List.of(sessionUser, autreUtilisateur));
+
+        LigneClassementChallenge ligne1 = new LigneClassementChallenge(sessionUser, 5);
+        LigneClassementChallenge ligne2 = new LigneClassementChallenge(sessionUser, 7);
+
+        when(utilisateurService.trouverParId(1L)).thenReturn(Optional.of(sessionUser));
+        when(challengeService.trouverParId(10L)).thenReturn(Optional.of(challenge));
+        when(challengeService.recupererReponseDuJour(10L, 1L, LocalDate.now())).thenReturn(null);
+        when(challengeService.getClassement(10L)).thenReturn(List.of(ligne1, ligne2));
+        when(utilisateurService.peutAfficherIdentiteVers(sessionUser, 1L)).thenReturn(true);
+
+        MvcResult result = mockMvc.perform(get("/challenges/10").session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("challenges/detail"))
+                .andExpect(model().attribute("afficherNomOrganisateurChallenge", false))
+                .andExpect(model().attribute("aDejaReponduAujourdhui", false))
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        Map<Long, Boolean> afficherNomClassement =
+                (Map<Long, Boolean>) result.getModelAndView().getModel().get("afficherNomClassement");
+
+        assertEquals(true, afficherNomClassement.get(1L));
+        assertEquals(1, afficherNomClassement.size());
+    }
+
+    @Test
+    @DisplayName("GET /challenges/{id} -> lève une erreur si le challenge manque")
+    void detailChallenge_shouldThrowWhenChallengeMissing() {
+        MockHttpSession session = sessionAvecUtilisateur(1L);
+        Utilisateur sessionUser = buildUtilisateur(1L, 90);
+        when(utilisateurService.trouverParId(1L)).thenReturn(Optional.of(sessionUser));
+        when(challengeService.trouverParId(10L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () ->
+                challengeWebController.detailChallenge(10L, new org.springframework.ui.ExtendedModelMap(), session));
     }
 
     @Test

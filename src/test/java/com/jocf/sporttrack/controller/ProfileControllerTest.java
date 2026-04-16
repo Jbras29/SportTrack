@@ -27,6 +27,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -98,6 +99,31 @@ class ProfileControllerTest {
     }
 
     @Test
+    void editProfileForm_renvoieErreurSiProfilIntrouvable() {
+        when(utilisateurService.trouverParId(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> controller.editProfileForm(null, session, new ExtendedModelMap()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Utilisateur introuvable");
+    }
+
+    @Test
+    void editProfileForm_trieLesPreferencesAvecNomNull() {
+        utilisateur.setPrefSportives(new ArrayList<>(List.of(
+                new PrefSportive(3L, null, List.of()),
+                new PrefSportive(4L, "Yoga", List.of()))));
+        when(utilisateurService.trouverParId(1L)).thenReturn(Optional.of(utilisateur));
+
+        Model model = new ExtendedModelMap();
+
+        String view = controller.editProfileForm(null, session, model);
+
+        assertThat(view).isEqualTo("profile/edit");
+        assertThat(((Utilisateur) model.getAttribute("utilisateur")).getPrefSportives()).hasSize(2);
+        assertThat(((Utilisateur) model.getAttribute("utilisateur")).getPrefSportives().get(0).getNom()).isNull();
+    }
+
+    @Test
     void editProfileSubmit_nettoieMotDePasseVide() {
         ModifierUtilisateurRequest form = ModifierUtilisateurRequest.fromUtilisateur(utilisateur);
         form.setMotdepasse("   ");
@@ -115,6 +141,16 @@ class ProfileControllerTest {
         form.setId(2L);
 
         String view = controller.editProfileSubmit(form, session);
+
+        assertThat(view).isEqualTo("redirect:/login");
+    }
+
+    @Test
+    void editProfileSubmit_redirigeLoginQuandSessionAbsente() {
+        ModifierUtilisateurRequest form = ModifierUtilisateurRequest.fromUtilisateur(utilisateur);
+        MockHttpSession vide = new MockHttpSession();
+
+        String view = controller.editProfileSubmit(form, vide);
 
         assertThat(view).isEqualTo("redirect:/login");
     }
@@ -138,6 +174,28 @@ class ProfileControllerTest {
     }
 
     @Test
+    void ajouterPreferenceSportive_retourneEditQuandIdNeCorrespondPas() {
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+
+        String view = controller.ajouterPreferenceSportive(2L, "Course", session, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/profile/edit");
+        assertThat(redirectAttributes.getFlashAttributes()).isEmpty();
+    }
+
+    @Test
+    void ajouterPreferenceSportive_captreErreurDuService() {
+        doThrow(new IllegalArgumentException("doublon"))
+                .when(utilisateurService).ajouterPrefSportive(1L, "Course");
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+
+        String view = controller.ajouterPreferenceSportive(1L, "Course", session, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/profile/edit");
+        assertThat(flashAttributes(redirectAttributes)).containsEntry("preferenceErreur", "doublon");
+    }
+
+    @Test
     void supprimerPreferenceSportive_stockeFlashErreur() {
         doThrow(new IllegalArgumentException("introuvable"))
                 .when(utilisateurService).supprimerPrefSportive(1L, 2L);
@@ -150,10 +208,32 @@ class ProfileControllerTest {
     }
 
     @Test
+    void supprimerPreferenceSportive_stockeFlashSucces() {
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+
+        String view = controller.supprimerPreferenceSportive(2L, 1L, session, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/profile/edit");
+        assertThat(flashAttributes(redirectAttributes))
+                .containsEntry("preferenceMessage", "Preference sportive supprimee.");
+        verify(utilisateurService).supprimerPrefSportive(1L, 2L);
+    }
+
+    @Test
     void supprimerPreferenceSportive_redirigeLoginSansSession() {
         String view = controller.supprimerPreferenceSportive(2L, null, new MockHttpSession(), new RedirectAttributesModelMap());
 
         assertThat(view).isEqualTo("redirect:/login");
+    }
+
+    @Test
+    void supprimerPreferenceSportive_retourneEditQuandIdNeCorrespondPas() {
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+
+        String view = controller.supprimerPreferenceSportive(2L, 2L, session, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/profile/edit");
+        assertThat(redirectAttributes.getFlashAttributes()).isEmpty();
     }
 
     @Test
@@ -193,6 +273,19 @@ class ProfileControllerTest {
     }
 
     @Test
+    void televerserPhotoProfil_gereErreurMetier() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "photo.png", "image/png", new byte[] {1});
+        when(photoProfilStorageService.enregistrerPhotoProfil(file, 1L))
+                .thenThrow(new IllegalArgumentException("pas bon"));
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+
+        String view = controller.televerserPhotoProfil(file, session, redirectAttributes);
+
+        assertThat(view).isEqualTo("redirect:/profile/edit?id=1");
+        assertThat(flashAttributes(redirectAttributes)).containsEntry("photoErreur", "pas bon");
+    }
+
+    @Test
     void viewProfile_chargeLeProfilCourant() {
         when(utilisateurService.trouverParId(1L)).thenReturn(Optional.of(utilisateur));
         when(activiteService.recupererActivitesPourProfil(utilisateur)).thenReturn(List.of());
@@ -205,8 +298,24 @@ class ProfileControllerTest {
     }
 
     @Test
+    void viewProfile_redirigeSiProfilCourantIntrouvable() {
+        when(utilisateurService.trouverParId(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> controller.viewProfile(session, new ExtendedModelMap()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Utilisateur introuvable");
+    }
+
+    @Test
     void viewProfile_redirigeLoginSansSession() {
         String view = controller.viewProfile(new MockHttpSession(), new ExtendedModelMap());
+
+        assertThat(view).isEqualTo("redirect:/login");
+    }
+
+    @Test
+    void viewProfileAutre_redirigeLoginSansSession() {
+        String view = controller.viewProfile(2L, new MockHttpSession(), new ExtendedModelMap());
 
         assertThat(view).isEqualTo("redirect:/login");
     }
@@ -239,6 +348,50 @@ class ProfileControllerTest {
     }
 
     @Test
+    void viewProfileAutre_rendLeProfilVisibleQuandLUtilisateurEstAmi() {
+        Utilisateur prive = Utilisateur.builder()
+                .id(2L)
+                .nom("Smith")
+                .prenom("Bob")
+                .email("bob@test.com")
+                .motdepasse("x")
+                .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
+                .comptePrive(true)
+                .amis(new ArrayList<>())
+                .evenementsOrganises(new ArrayList<>())
+                .evenementsParticipes(new ArrayList<>())
+                .build();
+        Utilisateur connecte = Utilisateur.builder()
+                .id(1L)
+                .nom("Doe")
+                .prenom("Jane")
+                .email("jane@test.com")
+                .motdepasse("x")
+                .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
+                .amis(new ArrayList<>(List.of(prive)))
+                .build();
+        when(utilisateurService.trouverParId(2L)).thenReturn(Optional.of(prive));
+        when(utilisateurService.findByIdWithAmis(1L)).thenReturn(connecte);
+        when(activiteService.recupererActivitesPourProfil(prive)).thenReturn(List.of());
+
+        Model model = new ExtendedModelMap();
+        String view = controller.viewProfile(2L, session, model);
+
+        assertThat(view).isEqualTo("profile/view");
+        assertThat(model.getAttribute("estAmi")).isEqualTo(true);
+        assertThat(model.getAttribute("profilCompletVisible")).isEqualTo(true);
+    }
+
+    @Test
+    void viewProfileAutre_redirigeSiProfilCibleIntrouvable() {
+        when(utilisateurService.trouverParId(2L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> controller.viewProfile(2L, session, new ExtendedModelMap()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Utilisateur introuvable");
+    }
+
+    @Test
     void viewProfileAutre_rendLeProfilVisibleQuandIlEstPublic() {
         Utilisateur publicProfile = Utilisateur.builder()
                 .id(2L)
@@ -262,6 +415,34 @@ class ProfileControllerTest {
         assertThat(view).isEqualTo("profile/view");
         assertThat(model.getAttribute("profilCompletVisible")).isEqualTo(true);
         assertThat(model.getAttribute("estAmi")).isEqualTo(false);
+    }
+
+    @Test
+    void viewProfileAutre_cacheProfilPriveEtExposeLesChampsDeDemande() {
+        Utilisateur prive = Utilisateur.builder()
+                .id(2L)
+                .nom("Smith")
+                .prenom("Bob")
+                .email("bob@test.com")
+                .motdepasse("x")
+                .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
+                .comptePrive(true)
+                .amis(new ArrayList<>())
+                .evenementsOrganises(new ArrayList<>())
+                .evenementsParticipes(new ArrayList<>())
+                .build();
+        when(utilisateurService.trouverParId(2L)).thenReturn(Optional.of(prive));
+        when(utilisateurService.findByIdWithAmis(1L)).thenReturn(utilisateur);
+        when(utilisateurRepository.findDemandesAmisEnvoyeesIdsByUtilisateurId(1L)).thenReturn(List.of(2L));
+        when(utilisateurRepository.findDemandesAmisRecuesByUtilisateurId(1L)).thenReturn(List.of());
+
+        Model model = new ExtendedModelMap();
+        String view = controller.viewProfile(2L, session, model);
+
+        assertThat(view).isEqualTo("profile/view");
+        assertThat(model.getAttribute("profilCompletVisible")).isEqualTo(false);
+        assertThat(model.getAttribute("demandeEnvoyeeProfil")).isEqualTo(true);
+        assertThat(model.getAttribute("peutEnvoyerDemandeAmiProfil")).isEqualTo(false);
     }
 
     @SuppressWarnings("unchecked")

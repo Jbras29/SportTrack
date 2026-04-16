@@ -143,9 +143,27 @@ class MessageServiceTest {
         }
 
         @Test
+        void getMessagesRecus_delegueAuRepository() {
+            Utilisateur destinataire = user(USER_B_ID);
+            Message message = Message.builder().id(2L).destinataire(destinataire).build();
+            when(messageRepository.findByDestinataireOrderByDateEnvoiDesc(destinataire)).thenReturn(List.of(message));
+
+            assertThat(messageService.getMessagesRecus(destinataire)).containsExactly(message);
+        }
+
+        @Test
         void getMessagesEnvoyes_expediteurNull_retourneVide() {
             assertThat(messageService.getMessagesEnvoyes(null)).isEmpty();
             verify(messageRepository, never()).findByExpediteurOrderByDateEnvoiDesc(any());
+        }
+
+        @Test
+        void getMessagesEnvoyes_delegueAuRepository() {
+            Utilisateur expediteur = user(USER_A_ID);
+            Message message = Message.builder().id(3L).expediteur(expediteur).build();
+            when(messageRepository.findByExpediteurOrderByDateEnvoiDesc(expediteur)).thenReturn(List.of(message));
+
+            assertThat(messageService.getMessagesEnvoyes(expediteur)).containsExactly(message);
         }
     }
 

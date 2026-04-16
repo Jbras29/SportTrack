@@ -134,6 +134,16 @@ class ActiviteControllerTest {
     }
 
     @Test
+    void getActivitesByUtilisateur_retourneListeQuandTrouvee() {
+        when(activiteService.recupererActivitesParUtilisateur(1L)).thenReturn(List.of(activite));
+
+        var response = controller.getActivitesByUtilisateur(1L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).containsExactly(activite);
+    }
+
+    @Test
     void getActivitesByTypeSport_retourneListe() {
         when(activiteService.recupererActivitesParTypeSport(TypeSport.COURSE)).thenReturn(List.of(activite));
 
@@ -175,6 +185,17 @@ class ActiviteControllerTest {
         @SuppressWarnings("unchecked")
         List<Utilisateur> amis = (List<Utilisateur>) model.getAttribute("amis");
         assertThat(amis).containsExactly(ami);
+    }
+
+    @Test
+    void createActivite_vueSansAuthExposeUneListeVideDamis() {
+        Model model = new ExtendedModelMap();
+
+        String view = controller.createActivite(model, null);
+
+        assertThat(view).isEqualTo("activity/create");
+        assertThat((Object[]) model.getAttribute("typesSportifs")).contains(TypeSport.COURSE);
+        assertThat((List<?>) model.getAttribute("amis")).isEmpty();
     }
 
     @Test
@@ -234,6 +255,19 @@ class ActiviteControllerTest {
     }
 
     @Test
+    void updateActivite_retourne200QuandTrouvee() {
+        when(activiteService.modifierActivite(eq(9L), any(ModifierActiviteRequest.class))).thenReturn(activite);
+
+        var response = controller.updateActivite(
+                9L,
+                new ModifierActiviteRequest("Acti", TypeSport.COURSE, 5.0, 30,
+                        LocalDate.now(), "Paris", 5, List.of()));
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isSameAs(activite);
+    }
+
+    @Test
     void deleteActivite_retourne204QuandSupprimee() {
         var response = controller.deleteActivite(9L);
 
@@ -258,6 +292,15 @@ class ActiviteControllerTest {
         var response = controller.getKilocalories(9L);
 
         assertThat(response.getBody()).isEqualTo(345.5);
+    }
+
+    @Test
+    void getKilocalories_retourne404QuandAbsente() {
+        when(activiteService.calculerKilocalories(9L)).thenThrow(new IllegalArgumentException("absente"));
+
+        var response = controller.getKilocalories(9L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
     }
 
     @Test
