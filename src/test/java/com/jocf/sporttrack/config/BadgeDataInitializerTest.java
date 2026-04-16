@@ -58,14 +58,13 @@ class BadgeDataInitializerTest {
         verify(badgeRepository, atLeastOnce()).save(captor.capture());
 
         List<Badge> sauvegardes = captor.getAllValues();
-        assertThat(sauvegardes).noneMatch(badge -> "PREMIER_PAS".equals(badge.getCode()));
-        assertThat(sauvegardes).anySatisfy(badge -> {
-            assertThat(badge)
-                    .hasFieldOrPropertyWithValue("code", "CINQ_K_STARTER")
-                    .hasFieldOrPropertyWithValue("nom", "5K Starter")
-                    .hasFieldOrPropertyWithValue("photo", "https://placehold.co/120x120/2563eb/ffffff/png?text=5K")
-                    .hasFieldOrPropertyWithValue("description", "Premier parcours de 5 km.");
-        });
+        assertThat(sauvegardes)
+                .noneMatch(badge -> "PREMIER_PAS".equals(badge.getCode()))
+                .anySatisfy(badge -> assertThat(badge)
+                        .hasFieldOrPropertyWithValue("code", "CINQ_K_STARTER")
+                        .hasFieldOrPropertyWithValue("nom", "5K Starter")
+                        .hasFieldOrPropertyWithValue("photo", "https://placehold.co/120x120/2563eb/ffffff/png?text=5K")
+                        .hasFieldOrPropertyWithValue("description", "Premier parcours de 5 km."));
         assertThat(store).hasSize(20);
         assertThat(store.get("CINQ_K_STARTER").getNom()).isEqualTo("5K Starter");
     }

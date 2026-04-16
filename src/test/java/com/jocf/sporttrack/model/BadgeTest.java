@@ -91,8 +91,7 @@ class BadgeTest {
         badge2.setPhoto("https://example.com/badge.png");
         badge2.setDescription("Description");
 
-        assertThat(badge1).isEqualTo(badge2);
-        assertThat(badge1.hashCode()).isEqualTo(badge2.hashCode());
+        assertThat(badge1).isEqualTo(badge2).hasSameHashCodeAs(badge2);
     }
 
     @Test
@@ -138,7 +137,6 @@ class BadgeTest {
         Badge badge1 = new Badge();
         Badge badge2 = new Badge();
 
-        assertThat(badge1).isEqualTo(badge2);
-        assertThat(badge1.hashCode()).isEqualTo(badge2.hashCode());
+        assertThat(badge1).isEqualTo(badge2).hasSameHashCodeAs(badge2);
     }
 }
