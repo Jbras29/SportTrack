@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -31,17 +32,17 @@ public class UtilisateurService implements UserDetailsService {
     private final UtilisateurRepository utilisateurRepository;
     private final PrefSportiveRepository prefSportiveRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationConfiguration authenticationConfiguration;
+    private final ObjectProvider<AuthenticationConfiguration> authenticationConfigurationProvider;
 
     public UtilisateurService(
             UtilisateurRepository utilisateurRepository,
             PrefSportiveRepository prefSportiveRepository,
             PasswordEncoder passwordEncoder,
-            AuthenticationConfiguration authenticationConfiguration) {
+            ObjectProvider<AuthenticationConfiguration> authenticationConfigurationProvider) {
         this.utilisateurRepository = utilisateurRepository;
         this.prefSportiveRepository = prefSportiveRepository;
         this.passwordEncoder = passwordEncoder;
-        this.authenticationConfiguration = authenticationConfiguration;
+        this.authenticationConfigurationProvider = authenticationConfigurationProvider;
     }
 
     public List<Utilisateur> recupererTousLesUtilisateurs() {
@@ -189,6 +190,10 @@ public class UtilisateurService implements UserDetailsService {
 
     private org.springframework.security.authentication.AuthenticationManager getAuthenticationManager() {
         try {
+            AuthenticationConfiguration authenticationConfiguration = authenticationConfigurationProvider.getIfAvailable();
+            if (authenticationConfiguration == null) {
+                throw new IllegalStateException("Impossible d'initialiser AuthenticationManager.");
+            }
             return authenticationConfiguration.getAuthenticationManager();
         } catch (Exception exception) {
             throw new IllegalStateException("Impossible d'initialiser AuthenticationManager.", exception);

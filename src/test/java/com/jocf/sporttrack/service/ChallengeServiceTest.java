@@ -60,6 +60,7 @@ class ChallengeServiceTest {
                 .motdepasse("x")
                 .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
                 .build();
+        service.setSelf(service);
         lenient().doAnswer(invocation -> {
             Long userId = invocation.getArgument(0);
             Integer points = invocation.getArgument(1);
@@ -100,6 +101,17 @@ class ChallengeServiceTest {
         CreerChallengeRequest invalidRequest = new CreerChallengeRequest("Bad", LocalDate.of(2026, 1, 3), LocalDate.of(2026, 1, 1));
         assertThatThrownBy(() -> service.creerChallenge(invalidRequest, 1L))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void creerChallenge_lanceUneErreurQuandOrganisateurAbsent() {
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.creerChallenge(
+                new CreerChallengeRequest("Défi", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 3)),
+                1L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Organisateur introuvable");
     }
 
 
@@ -251,6 +263,21 @@ class ChallengeServiceTest {
     }
 
     @Test
+    void enregistrerSaisieQuotidienne_rejetteQuandLeParticipantNestPasInscrit() {
+        Challenge challengeVide = Challenge.builder()
+                .id(2L)
+                .dateFin(java.sql.Date.valueOf(java.time.LocalDate.now().plusDays(10)))
+                .participants(new java.util.HashSet<>())
+                .build();
+        when(challengeRepository.findById(2L)).thenReturn(Optional.of(challengeVide));
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+
+        assertThatThrownBy(() -> service.enregistrerSaisieQuotidienne(2L, 1L, LocalDate.now(), true))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Vous ne participez pas");
+    }
+
+    @Test
     void enregistrerSaisieQuotidienne_sanctionneUnNonManuelUneSeuleFois() {
         when(challengeRepository.findById(2L)).thenReturn(Optional.of(challenge));
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
@@ -277,6 +304,28 @@ class ChallengeServiceTest {
                 .thenReturn(false);
 
         service.enregistrerAbsenceQuotidienne(2L, 1L, LocalDate.now());
+
+        assertThat(utilisateur.getHpNormalise()).isEqualTo(98);
+        verify(challengeSaisieQuotidienneRepository).save(any(ChallengeSaisieQuotidienne.class));
+    }
+
+    @Test
+    void sanctionnerAbsencesQuotidiennes_ignoreLesChallengesInactifsEtPunitionAutomatique() {
+        LocalDate hier = LocalDate.now().minusDays(1);
+        Challenge challengeInactif = Challenge.builder()
+                .id(3L)
+                .dateDebut(Date.valueOf(LocalDate.now().plusDays(1)))
+                .dateFin(Date.valueOf(LocalDate.now().plusDays(2)))
+                .participants(Set.of(utilisateur))
+                .build();
+        when(challengeRepository.findAll()).thenReturn(List.of(challenge, challengeInactif));
+        when(challengeSaisieQuotidienneRepository.existsByChallenge_IdAndUtilisateur_IdAndJour(2L, 1L, hier))
+                .thenReturn(false)
+                .thenReturn(false);
+        when(challengeRepository.findById(2L)).thenReturn(Optional.of(challenge));
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+
+        service.sanctionnerAbsencesQuotidiennes(hier);
 
         assertThat(utilisateur.getHpNormalise()).isEqualTo(98);
         verify(challengeSaisieQuotidienneRepository).save(any(ChallengeSaisieQuotidienne.class));

@@ -8,13 +8,17 @@ import com.jocf.sporttrack.enumeration.TypeUtilisateur;
 import com.jocf.sporttrack.model.Utilisateur;
 import com.jocf.sporttrack.repository.ActiviteRepository;
 import com.jocf.sporttrack.repository.UtilisateurRepository;
+import java.lang.reflect.Method;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -23,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -84,6 +89,13 @@ class ActiviteServiceTest {
     }
 
     @Test
+    void recupererSuggestionsLocations_retourneVidePourParametresInvalides() {
+        assertThat(service.recupererSuggestionsLocations(null, 2)).isEmpty();
+        assertThat(service.recupererSuggestionsLocations("   ", 2)).isEmpty();
+        assertThat(service.recupererSuggestionsLocations("Pa", 0)).isEmpty();
+    }
+
+    @Test
     void creerActivite_refuseUneLocationInexistante() {
         CreerActiviteCommand command = new CreerActiviteCommand(
                 1L, "Run", TypeSport.COURSE, LocalDate.now(), 5000.0, 30, "PasDeVille", 4, List.of());
@@ -95,12 +107,54 @@ class ActiviteServiceTest {
     }
 
     @Test
+    void creerActivite_refuseUtilisateurInexistant() {
+        CreerActiviteCommand command = new CreerActiviteCommand(
+                99L, "Run", TypeSport.COURSE, LocalDate.now(), 5000.0, 30, "Paris", 4, List.of());
+        when(openMeteoService.locationExists("Paris")).thenReturn(true);
+
+        assertThatThrownBy(() -> service.creerActivite(command))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Utilisateur introuvable");
+    }
+
+    @Test
+    void creerActivite_gereLesValeursNullesEtLaLocationAbsente() {
+        CreerActiviteCommand command = new CreerActiviteCommand(
+                1L, "Run", TypeSport.COURSE, LocalDate.now(), null, null, null, null, List.of());
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+        when(activiteRepository.save(any(Activite.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(openMeteoService.getWeatherForLocationAndDate("", command.date())).thenReturn(null);
+
+        Activite saved = service.creerActivite(command);
+
+        assertThat(saved.getDistance()).isZero();
+        assertThat(saved.getTemps()).isZero();
+        assertThat(saved.getLocation()).isEqualTo("");
+        verify(openMeteoService, never()).locationExists(any());
+        verify(openMeteoService).getWeatherForLocationAndDate("", command.date());
+    }
+
+    @Test
     void recupererActivitesParUtilisateur_lanceSiUtilisateurAbsent() {
         when(utilisateurRepository.findById(9L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.recupererActivitesParUtilisateur(9L))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Utilisateur introuvable");
+    }
+
+    @Test
+    void recupererActivitesParUtilisateur_retourneLesActivitesQuandUtilisateurPresent() {
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+        Activite activite = Activite.builder()
+                .id(3L)
+                .utilisateur(utilisateur)
+                .typeSport(TypeSport.COURSE)
+                .date(LocalDate.now())
+                .build();
+        when(activiteRepository.findByUtilisateur(utilisateur)).thenReturn(List.of(activite));
+
+        assertThat(service.recupererActivitesParUtilisateur(1L)).containsExactly(activite);
     }
 
     @Test
@@ -166,6 +220,22 @@ class ActiviteServiceTest {
     }
 
     @Test
+    void recupererActivitesDesAmis_retourneVideQuandLaListeDAmisEstNulle() {
+        utilisateur.setAmis(null);
+
+        assertThat(service.recupererActivitesDesAmis(utilisateur)).isEmpty();
+    }
+
+    @Test
+    void recupererActivitesFilActualite_gereUneListeDAmisNulle() {
+        utilisateur.setAmis(null);
+        when(activiteRepository.findByUtilisateurIdsWithUtilisateurOrderByDateDesc(any()))
+                .thenReturn(List.of());
+
+        assertThat(service.recupererActivitesFilActualite(utilisateur)).isEmpty();
+    }
+
+    @Test
     void creerActivite_enregistreEtEnrichitActivite() {
         CreerActiviteCommand command = new CreerActiviteCommand(
                 1L, "Run", TypeSport.COURSE, LocalDate.now(), 5000.0, 30, "Paris", 4, List.of(2L));
@@ -196,6 +266,20 @@ class ActiviteServiceTest {
         verify(utilisateurService).crediterExperience(utilisateur, saved.getXpGagne());
         verify(utilisateurService).crediterExperience(invite, saved.getXpGagne());
         verify(activiteBadgeEvaluationService).evaluerEtAttribuerBadges(saved);
+    }
+
+    @Test
+    void creerActivite_ignoreLesInvitesInexistantsEtLeComptePrincipal() {
+        CreerActiviteCommand command = new CreerActiviteCommand(
+                1L, "Run", TypeSport.COURSE, LocalDate.now(), 5000.0, 30, " ", null,
+                new ArrayList<>(Arrays.asList(1L, null)));
+        when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
+        when(activiteRepository.save(any(Activite.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Activite saved = service.creerActivite(command);
+
+        assertThat(saved.getInvites()).isEmpty();
+        verify(utilisateurRepository, never()).findAllById(any());
     }
 
     @Test
@@ -259,6 +343,82 @@ class ActiviteServiceTest {
     }
 
     @Test
+    void modifierActivite_ignoreLesInvitesNullsEtCrediteSeulementLesNouveaux() throws Exception {
+        Activite activite = Activite.builder()
+                .id(4L)
+                .nom("Old")
+                .typeSport(TypeSport.COURSE)
+                .date(LocalDate.now().minusDays(1))
+                .temps(20)
+                .distance(3000.0)
+                .utilisateur(utilisateur)
+                .invites(new ArrayList<>())
+                .build();
+        Utilisateur ancienInviteSansId = Utilisateur.builder()
+                .nom("Ghost")
+                .prenom("Null")
+                .email("ghost@test.com")
+                .motdepasse("x")
+                .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
+                .build();
+        Utilisateur inviteAncien = Utilisateur.builder()
+                .id(2L)
+                .nom("Friend")
+                .prenom("Joe")
+                .email("joe@test.com")
+                .motdepasse("x")
+                .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
+                .build();
+        Utilisateur inviteNouveau = Utilisateur.builder()
+                .id(3L)
+                .nom("New")
+                .prenom("Nina")
+                .email("nina@test.com")
+                .motdepasse("x")
+                .typeUtilisateur(TypeUtilisateur.UTILISATEUR)
+                .build();
+        activite.setInvites(new ArrayList<>(Arrays.asList(ancienInviteSansId, inviteAncien)));
+        when(activiteRepository.findByIdAvecUtilisateurEtInvites(4L)).thenReturn(Optional.of(activite));
+        when(utilisateurRepository.findAllById(any())).thenReturn(List.of(inviteAncien, inviteNouveau));
+        when(activiteRepository.save(any(Activite.class))).thenAnswer(invocation -> {
+            Activite a = invocation.getArgument(0);
+            a.setXpGagne(null);
+            return a;
+        });
+
+        Activite updated = service.modifierActivite(
+                4L,
+                new ModifierActiviteRequest("New", TypeSport.CYCLISME, 10000.0, 60, LocalDate.now(), null, 5,
+                        new ArrayList<>(Arrays.asList(2L, null, 3L, 1L))));
+
+        assertThat(updated.getInvites()).containsExactly(inviteAncien, inviteNouveau);
+    }
+
+    @Test
+    void modifierActivite_gereDateEtLieuNuls() {
+        Activite activite = Activite.builder()
+                .id(4L)
+                .nom("Old")
+                .typeSport(TypeSport.COURSE)
+                .distance(3000.0)
+                .temps(20)
+                .xpGagne(42)
+                .utilisateur(utilisateur)
+                .invites(new ArrayList<>())
+                .build();
+        when(activiteRepository.findByIdAvecUtilisateurEtInvites(4L)).thenReturn(Optional.of(activite));
+        when(activiteRepository.save(activite)).thenReturn(activite);
+
+        Activite updated = service.modifierActivite(
+                4L,
+                new ModifierActiviteRequest("New", TypeSport.CYCLISME, 10000.0, 60, null, null, 5, null));
+
+        assertThat(updated.getDate()).isNull();
+        assertThat(updated.getLocation()).isNull();
+        assertThat(updated.getInvites()).isEmpty();
+    }
+
+    @Test
     void modifierActivite_lanceUneErreurQuandLActiviteNExistePas() {
         when(activiteRepository.findByIdAvecUtilisateurEtInvites(99L)).thenReturn(Optional.empty());
 
@@ -288,6 +448,82 @@ class ActiviteServiceTest {
         assertThat(service.calculerKilocalories(4L)).isEqualTo(service.calculerKcalPourActivite(activite));
         assertThat(service.calculerKcalPourActivite(Activite.builder().typeSport(TypeSport.COURSE).utilisateur(utilisateur).date(LocalDate.now()).build()))
                 .isEqualTo(0.0);
+    }
+
+    @Test
+    void calculerKilocalories_lanceQuandActiviteAbsente() {
+        when(activiteRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.calculerKilocalories(99L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Activite introuvable");
+    }
+
+    @Test
+    void calculerKcalPourActivite_utiliseLePoidsParDefautQuandIlManque() {
+        Activite activite = Activite.builder()
+                .typeSport(TypeSport.COURSE)
+                .temps(30)
+                .utilisateur(Utilisateur.builder().id(1L).poids(null).build())
+                .build();
+
+        assertThat(service.calculerKcalPourActivite(activite)).isEqualTo(350.0);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "COURSE,10.0",
+            "CYCLISME,8.0",
+            "NATATION,7.0",
+            "TRIATHLON,9.0",
+            "AVIRON,7.0",
+            "RANDONNEE,5.0",
+            "FOOTBALL,8.0",
+            "VOLLEYBALL,6.0",
+            "TENNIS,7.0",
+            "PING_PONG,5.0",
+            "BOXE,10.0",
+            "JUDO,7.0",
+            "ALPINISME,8.0",
+            "SKI_ALPIN,6.0",
+            "SKI_DE_FOND,9.0",
+            "SURF,6.0",
+            "PLONGEE,5.0",
+            "MUSCULATION,6.0",
+            "YOGA,3.0",
+            "SKATEBOARD,5.0",
+            "PATINAGE_ARTISTIQUE,6.0",
+            "EQUITATION,5.0",
+            "PARACHUTISME,4.0",
+            "GOLF,3.0",
+            "DANSE_SPORTIVE,6.0",
+            "AUTRE,5.0"
+    })
+    void calculerKcalPourActivite_couvreTousLesMetValues(TypeSport typeSport, double met) {
+        Activite activite = Activite.builder()
+                .typeSport(typeSport)
+                .temps(60)
+                .utilisateur(Utilisateur.builder().id(1L).poids(70.0).build())
+                .build();
+
+        assertThat(service.calculerKcalPourActivite(activite)).isEqualTo(met * 70.0);
+    }
+
+    @Test
+    void crediterExperiencePourInvites_ignoreLesDoublonsEtLesInvitesNonValides() throws Exception {
+        Utilisateur inviteValide = Utilisateur.builder().id(2L).build();
+        Utilisateur inviteDuplique = Utilisateur.builder().id(2L).build();
+        Utilisateur auteur = Utilisateur.builder().id(1L).build();
+        List<Utilisateur> invites = new ArrayList<>(Arrays.asList(null, auteur, inviteValide, inviteDuplique));
+
+        Method method = ActiviteService.class.getDeclaredMethod(
+                "crediterExperiencePourInvites", List.class, Long.class, int.class);
+        method.setAccessible(true);
+        method.invoke(service, invites, 1L, 42);
+
+        verify(utilisateurService).crediterExperience(inviteValide, 42);
+        verify(utilisateurService).crediterExperience(inviteDuplique, 42);
+        verify(utilisateurService, never()).crediterExperience(auteur, 42);
     }
 
     @Test

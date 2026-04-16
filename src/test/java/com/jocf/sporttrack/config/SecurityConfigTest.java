@@ -27,12 +27,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SecurityConfigTest {
 
     private final SecurityConfig config = new SecurityConfig();
+    private final PasswordEncoderConfig passwordEncoderConfig = new PasswordEncoderConfig();
     private final SessionAuthenticationSuccessHandler successHandler = org.mockito.Mockito.mock(
             SessionAuthenticationSuccessHandler.class);
 
     @Test
     void passwordEncoder_estUnBCryptPasswordEncoder() {
-        PasswordEncoder passwordEncoder = config.passwordEncoder();
+        PasswordEncoder passwordEncoder = passwordEncoderConfig.passwordEncoder();
 
         assertThat(passwordEncoder).isInstanceOf(BCryptPasswordEncoder.class);
         assertThat(passwordEncoder.matches("secret", passwordEncoder.encode("secret"))).isTrue();

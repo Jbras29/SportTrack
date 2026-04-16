@@ -14,6 +14,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.Authentication;
@@ -55,6 +56,8 @@ class UtilisateurServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
+    private ObjectProvider<AuthenticationConfiguration> authenticationConfigurationProvider;
+    @Mock
     private AuthenticationConfiguration authenticationConfiguration;
 
     @InjectMocks
@@ -64,6 +67,7 @@ class UtilisateurServiceTest {
     void lenientSave() {
         lenient().when(utilisateurRepository.save(any(Utilisateur.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(authenticationConfigurationProvider.getIfAvailable()).thenReturn(authenticationConfiguration);
         lenient().when(prefSportiveRepository.save(any(PrefSportive.class)))
                 .thenAnswer(invocation -> {
                     PrefSportive p = invocation.getArgument(0);

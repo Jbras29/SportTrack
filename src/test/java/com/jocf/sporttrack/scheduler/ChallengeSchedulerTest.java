@@ -49,6 +49,24 @@ class ChallengeSchedulerTest {
     }
 
     @Test
+    void verifierLesChallengesTermines_ignoreLesParticipantsAvecUnScoreSuffisant() {
+        Utilisateur user = Utilisateur.builder()
+                .id(1L).nom("Doe").prenom("Jane").email("jane@test.com").motdepasse("x")
+                .typeUtilisateur(TypeUtilisateur.UTILISATEUR).build();
+        Challenge challenge = Challenge.builder()
+                .id(2L)
+                .dateDebut(Date.valueOf(LocalDate.now().minusDays(2)))
+                .dateFin(Date.valueOf(LocalDate.now().minusDays(1)))
+                .build();
+        when(challengeService.trouverChallengesTerminesLe(LocalDate.now().minusDays(1))).thenReturn(List.of(challenge));
+        when(challengeService.getClassement(2L)).thenReturn(List.of(new LigneClassementChallenge(user, 2L)));
+
+        scheduler.verifierLesChallengesTermines();
+
+        verify(utilisateurService, org.mockito.Mockito.never()).appliquerPunitionChallenge(1L, 20);
+    }
+
+    @Test
     void sanctionnerLesAbsencesQuotidiennes_delegueAuService() {
         scheduler.sanctionnerLesAbsencesQuotidiennes();
 
