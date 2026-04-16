@@ -10,12 +10,10 @@ import com.jocf.sporttrack.repository.ChallengeRepository;
 import com.jocf.sporttrack.service.UtilisateurService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 import java.util.HashSet;
 import java.util.List;
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.HashSet;
 import java.util.Locale;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -325,8 +323,8 @@ class DashboardControllerTest {
         assertThat(invokeStaticString("calculerStatutTemps",
                 new Class<?>[] {LocalDate.class, LocalDate.class, LocalDate.class},
                 today.minusDays(2), today.plusDays(3), today)).isEqualTo("3 jours restants");
-        assertThat(invokeStaticString("formatDateFr", new Class<?>[] {LocalDate.class}, (Object) null)).isEqualTo("");
-        assertThat(invokeStaticString("formatDateCourte", new Class<?>[] {LocalDate.class}, (Object) null)).isEqualTo("");
+        assertThat(invokeStaticString("formatDateFr", new Class<?>[] {LocalDate.class}, (Object) null)).isEmpty();
+        assertThat(invokeStaticString("formatDateCourte", new Class<?>[] {LocalDate.class}, (Object) null)).isEmpty();
     }
 
     private static Challenge challenge(LocalDate debut, LocalDate fin) {
@@ -361,13 +359,13 @@ class DashboardControllerTest {
         assertThat(frResult).contains("avr").contains("2026");
 
         String frNullResult = ReflectionTestUtils.invokeMethod(controller, "formatDateFr", (LocalDate) null);
-        assertThat(frNullResult).isEqualTo("");
+        assertThat(frNullResult).isEmpty();
 
         String courteResult = ReflectionTestUtils.invokeMethod(controller, "formatDateCourte", dateTest);
         assertThat(courteResult).isEqualTo("16/04/2026");
 
         String courteNullResult = ReflectionTestUtils.invokeMethod(controller, "formatDateCourte", (LocalDate) null);
-        assertThat(courteNullResult).isEqualTo("");
+        assertThat(courteNullResult).isEmpty();
     }
 
     @Test
@@ -382,7 +380,7 @@ class DashboardControllerTest {
 
         int res1 = ReflectionTestUtils.invokeMethod(controller, "calculerProgression", c1, today);
 
-        assertThat(res1).isEqualTo(0);
+        assertThat(res1).isZero();
 
         Challenge c2 = Challenge.builder()
                 .dateDebut(java.sql.Date.valueOf(today))
@@ -391,7 +389,7 @@ class DashboardControllerTest {
 
         int res2 = ReflectionTestUtils.invokeMethod(controller, "calculerProgression", c2, today);
 
-        assertThat(res2).isEqualTo(0);
+        assertThat(res2).isZero();
     }
 
     @Test

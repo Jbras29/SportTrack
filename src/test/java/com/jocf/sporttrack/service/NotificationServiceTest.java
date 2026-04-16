@@ -137,14 +137,16 @@ class NotificationServiceTest {
 
         List<NotificationItem> items = service.listerPourUtilisateur(1L, null);
 
-        assertThat(items).extracting(NotificationItem::type)
-                .contains(NotificationType.REACTION, NotificationType.REPONSE_ACTIVITE,
-                        NotificationType.ANNONCE_EVENEMENT, NotificationType.RAPPEL_ACTIVITE,
-                        NotificationType.RAPPEL_CHALLENGE_QUOTIDIEN);
-        assertThat(items).anySatisfy(item -> assertThat(item.detail()).contains("…"));
-        assertThat(items).allMatch(NotificationItem::nonLue);
-        assertThat(items).extracting(NotificationItem::lien)
-                .contains("/activites/create", "/challenges/10");
+        assertThat(items).satisfies(list -> {
+            assertThat(list).extracting(NotificationItem::type)
+                    .contains(NotificationType.REACTION, NotificationType.REPONSE_ACTIVITE,
+                            NotificationType.ANNONCE_EVENEMENT, NotificationType.RAPPEL_ACTIVITE,
+                            NotificationType.RAPPEL_CHALLENGE_QUOTIDIEN);
+            assertThat(list).anySatisfy(item -> assertThat(item.detail()).contains("…"));
+            assertThat(list).allMatch(NotificationItem::nonLue);
+            assertThat(list).extracting(NotificationItem::lien)
+                    .contains("/activites/create", "/challenges/10");
+        });
     }
 
     @Test

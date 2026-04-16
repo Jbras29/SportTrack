@@ -305,7 +305,7 @@ class CommentaireControllerTest {
         var response = controller.posterReaction(2L, new CreerReactionRequest(1L, "👍"));
 
         assertThat(response.getStatusCode().value()).isEqualTo(400);
-        assertThat(response.getBody().message()).isEqualTo("");
+        assertThat(response.getBody().message()).isEmpty();
     }
 
     @Test

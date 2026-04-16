@@ -101,8 +101,9 @@ class ProfileControllerTest {
     @Test
     void editProfileForm_renvoieErreurSiProfilIntrouvable() {
         when(utilisateurService.trouverParId(1L)).thenReturn(Optional.empty());
+        ExtendedModelMap model = new ExtendedModelMap();
 
-        assertThatThrownBy(() -> controller.editProfileForm(null, session, new ExtendedModelMap()))
+        assertThatThrownBy(() -> controller.editProfileForm(null, session, model))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Utilisateur introuvable");
     }
@@ -300,8 +301,9 @@ class ProfileControllerTest {
     @Test
     void viewProfile_redirigeSiProfilCourantIntrouvable() {
         when(utilisateurService.trouverParId(1L)).thenReturn(Optional.empty());
+        ExtendedModelMap model = new ExtendedModelMap();
 
-        assertThatThrownBy(() -> controller.viewProfile(session, new ExtendedModelMap()))
+        assertThatThrownBy(() -> controller.viewProfile(session, model))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Utilisateur introuvable");
     }
@@ -385,8 +387,9 @@ class ProfileControllerTest {
     @Test
     void viewProfileAutre_redirigeSiProfilCibleIntrouvable() {
         when(utilisateurService.trouverParId(2L)).thenReturn(Optional.empty());
+        ExtendedModelMap model = new ExtendedModelMap();
 
-        assertThatThrownBy(() -> controller.viewProfile(2L, session, new ExtendedModelMap()))
+        assertThatThrownBy(() -> controller.viewProfile(2L, session, model))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Utilisateur introuvable");
     }

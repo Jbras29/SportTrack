@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
+import org.springframework.ui.ExtendedModelMap;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -283,8 +284,10 @@ class ChallengeWebControllerTest {
         when(utilisateurService.trouverParId(1L)).thenReturn(Optional.of(sessionUser));
         when(challengeService.trouverParId(10L)).thenReturn(Optional.empty());
 
+        ExtendedModelMap model = new ExtendedModelMap();
+
         assertThrows(IllegalArgumentException.class, () ->
-                challengeWebController.detailChallenge(10L, new org.springframework.ui.ExtendedModelMap(), session));
+                challengeWebController.detailChallenge(10L, model, session));
     }
 
     @Test

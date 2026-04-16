@@ -311,33 +311,33 @@ class ActiviteTest {
     @Test
     void getReactionsGroupeesAffichees_retourneToutesSousLaLimite() {
         Utilisateur u = Utilisateur.builder().id(1L).prenom("X").nom("Y").build();
-        Activite activite = Activite.builder()
+        Activite activiteTest = Activite.builder()
                 .nom("test")
                 .typeSport(TypeSport.BOXE)
                 .date(LocalDate.now())
                 .utilisateur(u)
                 .build();
-        activite.getCommentaires().add(
+        activiteTest.getCommentaires().add(
                 Commentaire.builder().id(1L).type(TypeCommentaire.REACTION)
                         .message("👍").auteur(u).build());
 
-        assertThat(activite.getReactionsGroupeesAffichees()).hasSize(1);
+        assertThat(activiteTest.getReactionsGroupeesAffichees()).hasSize(1);
     }
 
     @Test
     void getReactionsGroupeesMasqueesCount_retourne0SiMoinsQue5() {
         Utilisateur u = Utilisateur.builder().id(1L).prenom("A").nom("B").build();
-        Activite activite = Activite.builder()
+        Activite activiteTest = Activite.builder()
                 .nom("test")
                 .typeSport(TypeSport.TENNIS)
                 .date(LocalDate.now())
                 .utilisateur(u)
                 .build();
-        activite.getCommentaires().add(
+        activiteTest.getCommentaires().add(
                 Commentaire.builder().id(1L).type(TypeCommentaire.REACTION)
                         .message("👍").auteur(u).build());
 
-        assertThat(activite.getReactionsGroupeesMasqueesCount()).isZero();
+        assertThat(activiteTest.getReactionsGroupeesMasqueesCount()).isZero();
     }
 
     @Test
@@ -346,26 +346,26 @@ class ActiviteTest {
         Commentaire reaction = Commentaire.builder()
                 .id(10L).type(TypeCommentaire.REACTION).message("🔥").auteur(u).build();
 
-        Activite activite = Activite.builder()
+        Activite activiteTest = Activite.builder()
                 .nom("test").typeSport(TypeSport.CYCLISME)
                 .date(LocalDate.now()).utilisateur(u).build();
-        activite.getCommentaires().add(reaction);
+        activiteTest.getCommentaires().add(reaction);
 
-        assertThat(activite.utilisateurAEmitReactionAvecEmoji(1L, "🔥")).isTrue();
-        assertThat(activite.utilisateurAEmitReactionAvecEmoji(1L, "💀")).isFalse();
-        assertThat(activite.utilisateurAEmitReactionAvecEmoji(99L, "🔥")).isFalse();
+        assertThat(activiteTest.utilisateurAEmitReactionAvecEmoji(1L, "🔥")).isTrue();
+        assertThat(activiteTest.utilisateurAEmitReactionAvecEmoji(1L, "💀")).isFalse();
+        assertThat(activiteTest.utilisateurAEmitReactionAvecEmoji(99L, "🔥")).isFalse();
     }
 
     @Test
     void utilisateurAEmitReactionAvecEmoji_avecIdOuEmojiNull_retourneFalse() {
-        Activite activite = Activite.builder()
+        Activite activiteTest = Activite.builder()
                 .nom("t").typeSport(TypeSport.YOGA)
                 .date(LocalDate.now())
                 .utilisateur(Utilisateur.builder().id(1L).build())
                 .build();
 
-        assertThat(activite.utilisateurAEmitReactionAvecEmoji(null, "👍")).isFalse();
-        assertThat(activite.utilisateurAEmitReactionAvecEmoji(1L, null)).isFalse();
+        assertThat(activiteTest.utilisateurAEmitReactionAvecEmoji(null, "👍")).isFalse();
+        assertThat(activiteTest.utilisateurAEmitReactionAvecEmoji(1L, null)).isFalse();
     }
 
     @Test
@@ -374,13 +374,13 @@ class ActiviteTest {
         Commentaire reaction = Commentaire.builder()
                 .id(42L).type(TypeCommentaire.REACTION).message("❤️").auteur(u).build();
 
-        Activite activite = Activite.builder()
+        Activite activiteTest = Activite.builder()
                 .nom("t").typeSport(TypeSport.NATATION)
                 .date(LocalDate.now()).utilisateur(u).build();
-        activite.getCommentaires().add(reaction);
+        activiteTest.getCommentaires().add(reaction);
 
-        assertThat(activite.getIdCommentaireReactionUtilisateur(5L, "❤️")).isEqualTo(42L);
-        assertThat(activite.getIdCommentaireReactionUtilisateur(5L, "👍")).isNull();
+        assertThat(activiteTest.getIdCommentaireReactionUtilisateur(5L, "❤️")).isEqualTo(42L);
+        assertThat(activiteTest.getIdCommentaireReactionUtilisateur(5L, "👍")).isNull();
     }
 
     @Test
@@ -388,17 +388,17 @@ class ActiviteTest {
         Utilisateur u1 = Utilisateur.builder().id(1L).prenom("A").nom("B").build();
         Utilisateur u2 = Utilisateur.builder().id(2L).prenom("C").nom("D").build();
 
-        Activite activite = Activite.builder()
+        Activite activiteTest = Activite.builder()
                 .nom("t").typeSport(TypeSport.FOOTBALL)
                 .date(LocalDate.now()).utilisateur(u1).build();
-        activite.getCommentaires().add(
+        activiteTest.getCommentaires().add(
                 Commentaire.builder().id(1L).type(TypeCommentaire.REACTION).message("👍").auteur(u1).build());
-        activite.getCommentaires().add(
+        activiteTest.getCommentaires().add(
                 Commentaire.builder().id(2L).type(TypeCommentaire.REACTION).message("👍").auteur(u2).build());
-        activite.getCommentaires().add(
+        activiteTest.getCommentaires().add(
                 Commentaire.builder().id(3L).type(TypeCommentaire.REACTION).message("🔥").auteur(u1).build());
 
-        var map = activite.getReactionsParEmoji();
+        var map = activiteTest.getReactionsParEmoji();
 
         assertThat(map).containsEntry("👍", 2L).containsEntry("🔥", 1L);
     }
@@ -420,7 +420,7 @@ class ActiviteTest {
         assertThat(vide.getInvitesAffiches()).isEmpty();
         assertThat(vide.getInvitesMasquesCount()).isZero();
 
-        Activite activite = Activite.builder()
+        Activite activiteTest = Activite.builder()
                 .nom("invite")
                 .typeSport(TypeSport.YOGA)
                 .date(LocalDate.now())
@@ -428,8 +428,8 @@ class ActiviteTest {
                 .invites(List.of(i1, i2, i3, i4))
                 .build();
 
-        assertThat(activite.getInvitesAffiches()).containsExactly(i1, i2, i3);
-        assertThat(activite.getInvitesMasquesCount()).isEqualTo(1);
+        assertThat(activiteTest.getInvitesAffiches()).containsExactly(i1, i2, i3);
+        assertThat(activiteTest.getInvitesMasquesCount()).isEqualTo(1);
     }
 
     @Test
@@ -439,7 +439,7 @@ class ActiviteTest {
         Utilisateur i2 = Utilisateur.builder().id(3L).prenom("B").nom("B").build();
         Utilisateur i3 = Utilisateur.builder().id(4L).prenom("C").nom("C").build();
 
-        Activite activite = Activite.builder()
+        Activite activiteTest = Activite.builder()
                 .nom("invite")
                 .typeSport(TypeSport.YOGA)
                 .date(LocalDate.now())
@@ -447,13 +447,13 @@ class ActiviteTest {
                 .invites(List.of(i1, i2, i3))
                 .build();
 
-        assertThat(activite.getInvitesAffiches()).containsExactly(i1, i2, i3);
-        assertThat(activite.getInvitesMasquesCount()).isZero();
+        assertThat(activiteTest.getInvitesAffiches()).containsExactly(i1, i2, i3);
+        assertThat(activiteTest.getInvitesMasquesCount()).isZero();
     }
 
     @Test
     void getInvitesAffiches_retourneListeVideQuandInvitesNull() {
-        Activite activite = Activite.builder()
+        Activite activiteTest = Activite.builder()
                 .nom("invite")
                 .typeSport(TypeSport.YOGA)
                 .date(LocalDate.now())
@@ -461,7 +461,7 @@ class ActiviteTest {
                 .invites(null)
                 .build();
 
-        assertThat(activite.getInvitesAffiches()).isEmpty();
-        assertThat(activite.getInvitesMasquesCount()).isZero();
+        assertThat(activiteTest.getInvitesAffiches()).isEmpty();
+        assertThat(activiteTest.getInvitesMasquesCount()).isZero();
     }
 }

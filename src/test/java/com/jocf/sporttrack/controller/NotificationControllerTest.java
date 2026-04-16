@@ -76,8 +76,9 @@ class NotificationControllerTest {
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(SessionKeys.UTILISATEUR, new SessionUtilisateur(1L, "jane@test.com", "Doe", "Jane"));
         when(utilisateurService.trouverParId(1L)).thenReturn(Optional.empty());
+        ExtendedModelMap model = new ExtendedModelMap();
 
-        assertThatThrownBy(() -> controller.notifications(session, new ExtendedModelMap()))
+        assertThatThrownBy(() -> controller.notifications(session, model))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Utilisateur introuvable");
     }

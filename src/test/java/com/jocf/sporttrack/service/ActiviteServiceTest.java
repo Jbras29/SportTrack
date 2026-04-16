@@ -130,7 +130,7 @@ class ActiviteServiceTest {
 
         assertThat(saved.getDistance()).isZero();
         assertThat(saved.getTemps()).isZero();
-        assertThat(saved.getLocation()).isEqualTo("");
+        assertThat(saved.getLocation()).isEmpty();
         verify(openMeteoService, never()).locationExists(any());
         verify(openMeteoService).getWeatherForLocationAndDate("", command.date());
     }
@@ -285,8 +285,9 @@ class ActiviteServiceTest {
 
     @Test
     void creerActivite_refuseUneDateDansLeFutur() {
+        LocalDate today = LocalDate.now();
         CreerActiviteCommand command = new CreerActiviteCommand(
-                1L, "Run", TypeSport.COURSE, LocalDate.now().plusDays(1), 5000.0, 30, "Paris", 4, List.of());
+                1L, "Run", TypeSport.COURSE, today.plusDays(1), 5000.0, 30, "Paris", 4, List.of());
 
         assertThatThrownBy(() -> service.creerActivite(command))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -308,8 +309,9 @@ class ActiviteServiceTest {
     @Test
     void creerActiviteVersionSimple_utilisateurIntrouvable() {
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.empty());
+        LocalDate today = LocalDate.now();
 
-        assertThatThrownBy(() -> service.creerActivite(1L, "Run", TypeSport.COURSE, LocalDate.now()))
+        assertThatThrownBy(() -> service.creerActivite(1L, "Run", TypeSport.COURSE, today))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Utilisateur introuvable");
     }
@@ -353,7 +355,7 @@ class ActiviteServiceTest {
     }
 
     @Test
-    void modifierActivite_ignoreLesInvitesNullsEtCrediteSeulementLesNouveaux() throws Exception {
+    void modifierActivite_ignoreLesInvitesNullsEtCrediteSeulementLesNouveaux() {
         Activite activite = Activite.builder()
                 .id(4L)
                 .nom("Old")

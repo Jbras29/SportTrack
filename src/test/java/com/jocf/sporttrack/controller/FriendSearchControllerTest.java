@@ -72,8 +72,9 @@ class FriendSearchControllerTest {
     @Test
     void afficherPageAmis_redirigeSiAuthVide() {
         var authVide = new UsernamePasswordAuthenticationToken("", "x");
+        Model model = new ExtendedModelMap();
 
-        assertThatThrownBy(() -> controller.afficherPageAmis(authVide, new ExtendedModelMap()))
+        assertThatThrownBy(() -> controller.afficherPageAmis(authVide, model))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("non authentifie");
     }
@@ -104,8 +105,9 @@ class FriendSearchControllerTest {
     @Test
     void envoyerDemandeAmi_lanceExceptionSiDestinataireIntrouvable() {
         when(utilisateurRepository.findById(99L)).thenReturn(Optional.empty());
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
 
-        assertThatThrownBy(() -> controller.envoyerDemandeAmi(99L, null, null, auth, new RedirectAttributesModelMap()))
+        assertThatThrownBy(() -> controller.envoyerDemandeAmi(99L, null, null, auth, redirectAttributes))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Utilisateur introuvable");
     }
@@ -178,8 +180,9 @@ class FriendSearchControllerTest {
     @Test
     void accepterDemandeAmi_lanceExceptionSiExpediteurIntrouvable() {
         when(utilisateurRepository.findById(2L)).thenReturn(Optional.empty());
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
 
-        assertThatThrownBy(() -> controller.accepterDemandeAmi(2L, null, null, auth, new RedirectAttributesModelMap()))
+        assertThatThrownBy(() -> controller.accepterDemandeAmi(2L, null, null, auth, redirectAttributes))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Utilisateur introuvable");
     }
@@ -226,8 +229,9 @@ class FriendSearchControllerTest {
     @Test
     void refuserDemandeAmi_lanceExceptionSiExpediteurIntrouvable() {
         when(utilisateurRepository.findById(2L)).thenReturn(Optional.empty());
+        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
 
-        assertThatThrownBy(() -> controller.refuserDemandeAmi(2L, null, null, auth, new RedirectAttributesModelMap()))
+        assertThatThrownBy(() -> controller.refuserDemandeAmi(2L, null, null, auth, redirectAttributes))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Utilisateur introuvable");
     }

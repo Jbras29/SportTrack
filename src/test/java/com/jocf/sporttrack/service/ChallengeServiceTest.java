@@ -106,10 +106,10 @@ class ChallengeServiceTest {
     @Test
     void creerChallenge_lanceUneErreurQuandOrganisateurAbsent() {
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.empty());
+        CreerChallengeRequest request = new CreerChallengeRequest(
+                "Défi", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 3));
 
-        assertThatThrownBy(() -> service.creerChallenge(
-                new CreerChallengeRequest("Défi", LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 3)),
-                1L))
+        assertThatThrownBy(() -> service.creerChallenge(request, 1L))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Organisateur introuvable");
     }
@@ -269,10 +269,11 @@ class ChallengeServiceTest {
                 .dateFin(java.sql.Date.valueOf(java.time.LocalDate.now().plusDays(10)))
                 .participants(new java.util.HashSet<>())
                 .build();
+        LocalDate today = LocalDate.now();
         when(challengeRepository.findById(2L)).thenReturn(Optional.of(challengeVide));
         when(utilisateurRepository.findById(1L)).thenReturn(Optional.of(utilisateur));
 
-        assertThatThrownBy(() -> service.enregistrerSaisieQuotidienne(2L, 1L, LocalDate.now(), true))
+        assertThatThrownBy(() -> service.enregistrerSaisieQuotidienne(2L, 1L, today, true))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Vous ne participez pas");
     }
