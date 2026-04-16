@@ -10,8 +10,11 @@ import com.jocf.sporttrack.repository.ChallengeRepository;
 import com.jocf.sporttrack.service.UtilisateurService;
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.List;
 import java.lang.reflect.Method;
+import java.util.Map;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 
@@ -266,5 +270,67 @@ class DashboardControllerTest {
         Method method = DashboardController.class.getDeclaredMethod(name, parameterTypes);
         method.setAccessible(true);
         return method.invoke(null, args);
+    }
+
+    @Test
+    void testFormatDateMethods_CouvertureComplete() {
+
+        LocalDate dateTest = LocalDate.of(2026, 4, 16);
+
+        String frResult = ReflectionTestUtils.invokeMethod(controller, "formatDateFr", dateTest);
+
+        assertThat(frResult).contains("avr").contains("2026");
+
+        String frNullResult = ReflectionTestUtils.invokeMethod(controller, "formatDateFr", (LocalDate) null);
+        assertThat(frNullResult).isEqualTo("");
+
+        String courteResult = ReflectionTestUtils.invokeMethod(controller, "formatDateCourte", dateTest);
+        assertThat(courteResult).isEqualTo("16/04/2026");
+
+        String courteNullResult = ReflectionTestUtils.invokeMethod(controller, "formatDateCourte", (LocalDate) null);
+        assertThat(courteNullResult).isEqualTo("");
+    }
+
+    @Test
+    void testCalculerProgression_DatesNulles() {
+
+        LocalDate today = LocalDate.of(2026, 4, 16);
+
+        Challenge c1 = Challenge.builder()
+                .dateDebut(null)
+                .dateFin(java.sql.Date.valueOf(today))
+                .build();
+
+        int res1 = ReflectionTestUtils.invokeMethod(controller, "calculerProgression", c1, today);
+
+        assertThat(res1).isEqualTo(0);
+
+        Challenge c2 = Challenge.builder()
+                .dateDebut(java.sql.Date.valueOf(today))
+                .dateFin(null)
+                .build();
+
+        int res2 = ReflectionTestUtils.invokeMethod(controller, "calculerProgression", c2, today);
+
+        assertThat(res2).isEqualTo(0);
+    }
+
+    @Test
+    void testFormatAllure_CouvertureEdges() {
+
+        String resZero = ReflectionTestUtils.invokeMethod(controller, "formatAllure", 0.0);
+        assertThat(resZero).isEqualTo("—");
+
+        String resNegatif = ReflectionTestUtils.invokeMethod(controller, "formatAllure", -5.0);
+        assertThat(resNegatif).isEqualTo("—");
+
+        String resNaN = ReflectionTestUtils.invokeMethod(controller, "formatAllure", Double.NaN);
+        assertThat(resNaN).isEqualTo("—");
+
+        String resInfinie = ReflectionTestUtils.invokeMethod(controller, "formatAllure", Double.POSITIVE_INFINITY);
+        assertThat(resInfinie).isEqualTo("—");
+
+        String resNormal = ReflectionTestUtils.invokeMethod(controller, "formatAllure", 5.999);
+        assertThat(resNormal).isEqualTo("6'00\"/km");
     }
 }
