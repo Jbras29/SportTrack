@@ -24,10 +24,12 @@ public class EvenementService {
     private final UtilisateurRepository utilisateurRepository;
     private final AnnonceRepository annonceRepository;
 
+    private EvenementService self;
 
     @Autowired
-    @Lazy
-    private EvenementService self;
+    public void setSelf(@Lazy EvenementService self) {
+        this.self = self;
+    }
 
     public EvenementService(EvenementRepository evenementRepository, UtilisateurRepository utilisateurRepository, AnnonceRepository annonceRepository) {
         this.evenementRepository = evenementRepository;
