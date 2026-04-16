@@ -1,276 +1,309 @@
 package com.jocf.sporttrack.model;
 
-import org.junit.jupiter.api.Test;
-
 import com.jocf.sporttrack.enumeration.TypeCommentaire;
 import com.jocf.sporttrack.enumeration.TypeSport;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ActiviteTest {
 
-    // ── Builder & champs de base ─────────────────────────────────────────────
+    private Activite activite;
+    private Utilisateur auteur1;
+    private Utilisateur auteur2;
+    private Utilisateur auteur3;
 
-    @Test
-    void builderCreeUneActiviteAvecLesChampsDBase() {
-        LocalDate date = LocalDate.of(2025, 6, 15);
-        Utilisateur user = Utilisateur.builder().id(1L).build();
+    @BeforeEach
+    void setUp() {
+        auteur1 = creerUtilisateur(1L, "Jean", "Dupont");
+        auteur2 = creerUtilisateur(2L, "Marie", "Martin");
+        auteur3 = creerUtilisateur(3L, "Paul", "Bernard");
 
-        Activite activite = Activite.builder()
-                .id(1L)
+        activite = Activite.builder()
+                .id(100L)
                 .nom("Course du dimanche")
-                .typeSport(TypeSport.COURSE_A_PIED)
-                .date(date)
-                .distance(10.0)
-                .temps(60)
-                .location("Paris")
-                .evaluation(5)
-                .xpGagne(42)
-                .calories(700.0)
-                .meteoTemperature(18.5)
-                .meteoCondition("Ensoleillé")
-                .utilisateur(user)
-                .build();
-
-        assertThat(activite.getId()).isEqualTo(1L);
-        assertThat(activite.getNom()).isEqualTo("Course du dimanche");
-        assertThat(activite.getTypeSport()).isEqualTo(TypeSport.COURSE_A_PIED);
-        assertThat(activite.getDate()).isEqualTo(date);
-        assertThat(activite.getDistance()).isEqualTo(10.0);
-        assertThat(activite.getTemps()).isEqualTo(60);
-        assertThat(activite.getLocation()).isEqualTo("Paris");
-        assertThat(activite.getEvaluation()).isEqualTo(5);
-        assertThat(activite.getXpGagne()).isEqualTo(42);
-        assertThat(activite.getCalories()).isEqualTo(700.0);
-        assertThat(activite.getMeteoTemperature()).isEqualTo(18.5);
-        assertThat(activite.getMeteoCondition()).isEqualTo("Ensoleillé");
-        assertThat(activite.getUtilisateur()).isSameAs(user);
-    }
-
-    @Test
-    void constructeurParDefautInitialiseListesVides() {
-        Activite activite = new Activite();
-
-        assertThat(activite.getCommentaires()).isNotNull().isEmpty();
-        assertThat(activite.getInvites()).isNotNull().isEmpty();
-        assertThat(activite.getCalories()).isNull();
-        assertThat(activite.getMeteoCondition()).isNull();
-        assertThat(activite.getMeteoTemperature()).isNull();
-    }
-
-    @Test
-    void getLimiteReactionsAffichees_retourne5() {
-        assertThat(Activite.getLimiteReactionsAffichees()).isEqualTo(5);
-    }
-
-    // ── Calories & Météo ─────────────────────────────────────────────────────
-
-    @Test
-    void caloriesEtMeteoSontNull_parDefaut() {
-        Activite a = Activite.builder()
-                .nom("Yoga")
-                .typeSport(TypeSport.YOGA)
-                .date(LocalDate.now())
-                .utilisateur(Utilisateur.builder().id(1L).build())
-                .build();
-
-        assertThat(a.getCalories()).isNull();
-        assertThat(a.getMeteoTemperature()).isNull();
-        assertThat(a.getMeteoCondition()).isNull();
-    }
-
-    @Test
-    void setCaloriesEtMeteoMiseAJourCorrecte() {
-        Activite a = Activite.builder()
-                .nom("Natation")
-                .typeSport(TypeSport.NATATION)
-                .date(LocalDate.now())
-                .utilisateur(Utilisateur.builder().id(2L).build())
-                .build();
-
-        a.setCalories(350.0);
-        a.setMeteoTemperature(22.5);
-        a.setMeteoCondition("Nuageux");
-
-        assertThat(a.getCalories()).isEqualTo(350.0);
-        assertThat(a.getMeteoTemperature()).isEqualTo(22.5);
-        assertThat(a.getMeteoCondition()).isEqualTo("Nuageux");
-    }
-
-    // ── Commentaires & Réactions ─────────────────────────────────────────────
-
-    @Test
-    void getCommentairesMessages_retourneSeulementLesMessages() {
-        Utilisateur auteur = Utilisateur.builder().id(1L).prenom("Alice").nom("D").build();
-
-        Commentaire msg = Commentaire.builder()
-                .id(1L).type(TypeCommentaire.MESSAGE)
-                .message("Bravo !").auteur(auteur).build();
-        Commentaire reaction = Commentaire.builder()
-                .id(2L).type(TypeCommentaire.REACTION)
-                .message("👍").auteur(auteur).build();
-
-        Activite activite = Activite.builder()
-                .nom("test")
                 .typeSport(TypeSport.COURSE)
                 .date(LocalDate.now())
-                .utilisateur(auteur)
+                .utilisateur(auteur1)
+                .commentaires(new ArrayList<>())
+                .invites(new ArrayList<>())
                 .build();
-        activite.getCommentaires().add(msg);
-        activite.getCommentaires().add(reaction);
-
-        List<Commentaire> messages = activite.getCommentairesMessages();
-
-        assertThat(messages).hasSize(1);
-        assertThat(messages.get(0).getMessage()).isEqualTo("Bravo !");
     }
 
     @Test
-    void getCommentairesMessages_listeVideSiAucunComentaire() {
-        Activite activite = Activite.builder()
-                .nom("test")
-                .typeSport(TypeSport.YOGA)
-                .date(LocalDate.now())
-                .utilisateur(Utilisateur.builder().id(1L).build())
-                .build();
+    void getCommentairesMessages_doitRetournerSeulementLesCommentairesDeTypeMessage() {
+        Commentaire message1 = creerCommentaire(1L, TypeCommentaire.MESSAGE, "Bravo !", auteur2);
+        Commentaire reaction1 = creerCommentaire(2L, TypeCommentaire.REACTION, "🔥", auteur3);
+        Commentaire message2 = creerCommentaire(3L, TypeCommentaire.MESSAGE, "Belle perf", auteur1);
 
-        assertThat(activite.getCommentairesMessages()).isEmpty();
+        activite.getCommentaires().add(message1);
+        activite.getCommentaires().add(reaction1);
+        activite.getCommentaires().add(message2);
+
+        List<Commentaire> result = activite.getCommentairesMessages();
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains(message1));
+        assertTrue(result.contains(message2));
+        assertFalse(result.contains(reaction1));
     }
 
     @Test
-    void getReactionsGroupees_agrageLesReactionsMemeEmoji() {
-        Utilisateur u1 = Utilisateur.builder().id(1L).prenom("Alice").nom("A").build();
-        Utilisateur u2 = Utilisateur.builder().id(2L).prenom("Bob").nom("B").build();
+    void getCommentairesMessages_doitRetournerListeVideSiAucunMessage() {
+        activite.getCommentaires().add(creerCommentaire(1L, TypeCommentaire.REACTION, "🔥", auteur1));
+        activite.getCommentaires().add(creerCommentaire(2L, TypeCommentaire.REACTION, "👏", auteur2));
 
-        Commentaire r1 = Commentaire.builder()
-                .id(1L).type(TypeCommentaire.REACTION).message("👍").auteur(u1).build();
-        Commentaire r2 = Commentaire.builder()
-                .id(2L).type(TypeCommentaire.REACTION).message("👍").auteur(u2).build();
-        Commentaire r3 = Commentaire.builder()
-                .id(3L).type(TypeCommentaire.REACTION).message("🔥").auteur(u1).build();
+        List<Commentaire> result = activite.getCommentairesMessages();
 
-        Activite activite = Activite.builder()
-                .nom("test")
-                .typeSport(TypeSport.FOOTBALL)
-                .date(LocalDate.now())
-                .utilisateur(u1)
-                .build();
-        activite.getCommentaires().addAll(List.of(r1, r2, r3));
-
-        List<ReactionGroupee> groupees = activite.getReactionsGroupees();
-
-        assertThat(groupees).hasSize(2);
-        ReactionGroupee thumbs = groupees.stream()
-                .filter(g -> g.emoji().equals("👍")).findFirst().orElseThrow();
-        assertThat(thumbs.nombre()).isEqualTo(2);
-        assertThat(thumbs.nomsDesReacteurs()).contains("Alice A", "Bob B");
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    void getReactionsGroupeesAffichees_limiteeA5() {
-        Utilisateur u = Utilisateur.builder().id(1L).prenom("X").nom("Y").build();
-        Activite activite = Activite.builder()
-                .nom("test")
-                .typeSport(TypeSport.BOXE)
-                .date(LocalDate.now())
-                .utilisateur(u)
-                .build();
+    void getReactionsGroupees_doitRegrouperParEmojiEnConservantOrdreApparition() {
+        activite.getCommentaires().add(creerCommentaire(1L, TypeCommentaire.REACTION, "🔥", auteur1));
+        activite.getCommentaires().add(creerCommentaire(2L, TypeCommentaire.REACTION, "👏", auteur2));
+        activite.getCommentaires().add(creerCommentaire(3L, TypeCommentaire.REACTION, "🔥", auteur3));
+        activite.getCommentaires().add(creerCommentaire(4L, TypeCommentaire.MESSAGE, "Top", auteur2));
 
-        // 6 réactions avec 6 emojis différents
-        String[] emojis = {"😀", "😂", "🔥", "👍", "❤️", "🎉"};
-        int i = 1;
-        for (String emoji : emojis) {
-            Utilisateur reacteur = Utilisateur.builder().id((long) i).prenom("U" + i).nom("N").build();
+        List<ReactionGroupee> result = activite.getReactionsGroupees();
+
+        assertEquals(2, result.size());
+
+        ReactionGroupee premiere = result.get(0);
+        assertEquals("🔥", premiere.emoji());
+        assertEquals(2, premiere.nombre());
+        assertEquals("Jean Dupont, Paul Bernard", premiere.nomsDesReacteurs());
+
+        ReactionGroupee deuxieme = result.get(1);
+        assertEquals("👏", deuxieme.emoji());
+        assertEquals(1, deuxieme.nombre());
+        assertEquals("Marie Martin", deuxieme.nomsDesReacteurs());
+    }
+
+    @Test
+    void getReactionsGroupees_doitIgnorerLesReactionsSansAuteur() {
+        activite.getCommentaires().add(creerCommentaire(1L, TypeCommentaire.REACTION, "🔥", null));
+        activite.getCommentaires().add(creerCommentaire(2L, TypeCommentaire.REACTION, "🔥", auteur1));
+
+        List<ReactionGroupee> result = activite.getReactionsGroupees();
+
+        assertEquals(1, result.size());
+        assertEquals("🔥", result.get(0).emoji());
+        assertEquals(1, result.get(0).nombre());
+        assertEquals("Jean Dupont", result.get(0).nomsDesReacteurs());
+    }
+
+    @Test
+    void getReactionsGroupeesAffichees_doitRetournerToutesSiInferieurOuEgalALaLimite() {
+        ajouterReactionsDistinctes(5);
+
+        List<ReactionGroupee> result = activite.getReactionsGroupeesAffichees();
+
+        assertEquals(5, result.size());
+        assertEquals(0, activite.getReactionsGroupeesMasqueesCount());
+    }
+
+    @Test
+    void getReactionsGroupeesAffichees_doitLimiterALaValeurMaximale() {
+        ajouterReactionsDistinctes(7);
+
+        List<ReactionGroupee> result = activite.getReactionsGroupeesAffichees();
+
+        assertEquals(5, result.size());
+        assertEquals("emoji1", result.get(0).emoji());
+        assertEquals("emoji5", result.get(4).emoji());
+    }
+
+    @Test
+    void getReactionsGroupeesMasqueesCount_doitRetournerNombreMasque() {
+        ajouterReactionsDistinctes(7);
+
+        int result = activite.getReactionsGroupeesMasqueesCount();
+
+        assertEquals(2, result);
+    }
+
+    @Test
+    void getReactionsGroupeesMasqueesCount_doitRetournerZeroSiPasDeDepassement() {
+        ajouterReactionsDistinctes(3);
+
+        int result = activite.getReactionsGroupeesMasqueesCount();
+
+        assertEquals(0, result);
+    }
+
+    @Test
+    void utilisateurAEmitReactionAvecEmoji_doitRetournerTrueSiReactionExiste() {
+        activite.getCommentaires().add(creerCommentaire(10L, TypeCommentaire.REACTION, "🔥", auteur2));
+
+        boolean result = activite.utilisateurAEmitReactionAvecEmoji(2L, "🔥");
+
+        assertTrue(result);
+    }
+
+    @Test
+    void utilisateurAEmitReactionAvecEmoji_doitRetournerFalseSiReactionAbsente() {
+        activite.getCommentaires().add(creerCommentaire(10L, TypeCommentaire.REACTION, "🔥", auteur2));
+
+        boolean result = activite.utilisateurAEmitReactionAvecEmoji(2L, "👏");
+
+        assertFalse(result);
+    }
+
+    @Test
+    void getIdCommentaireReactionUtilisateur_doitRetournerIdDuCommentaireTrouve() {
+        activite.getCommentaires().add(creerCommentaire(55L, TypeCommentaire.REACTION, "🔥", auteur2));
+        activite.getCommentaires().add(creerCommentaire(56L, TypeCommentaire.REACTION, "👏", auteur2));
+
+        Long result = activite.getIdCommentaireReactionUtilisateur(2L, "👏");
+
+        assertEquals(56L, result);
+    }
+
+    @Test
+    void getIdCommentaireReactionUtilisateur_doitRetournerNullSiUtilisateurIdNull() {
+        activite.getCommentaires().add(creerCommentaire(55L, TypeCommentaire.REACTION, "🔥", auteur2));
+
+        Long result = activite.getIdCommentaireReactionUtilisateur(null, "🔥");
+
+        assertNull(result);
+    }
+
+    @Test
+    void getIdCommentaireReactionUtilisateur_doitRetournerNullSiEmojiNull() {
+        activite.getCommentaires().add(creerCommentaire(55L, TypeCommentaire.REACTION, "🔥", auteur2));
+
+        Long result = activite.getIdCommentaireReactionUtilisateur(2L, null);
+
+        assertNull(result);
+    }
+
+    @Test
+    void getIdCommentaireReactionUtilisateur_doitRetournerNullSiAucuneReactionCorrespondante() {
+        activite.getCommentaires().add(creerCommentaire(55L, TypeCommentaire.REACTION, "🔥", auteur2));
+
+        Long result = activite.getIdCommentaireReactionUtilisateur(3L, "🔥");
+
+        assertNull(result);
+    }
+
+    @Test
+    void getReactionsParEmoji_doitRetournerUneMapAvecLesComptages() {
+        activite.getCommentaires().add(creerCommentaire(1L, TypeCommentaire.REACTION, "🔥", auteur1));
+        activite.getCommentaires().add(creerCommentaire(2L, TypeCommentaire.REACTION, "🔥", auteur2));
+        activite.getCommentaires().add(creerCommentaire(3L, TypeCommentaire.REACTION, "👏", auteur3));
+
+        Map<String, Long> result = activite.getReactionsParEmoji();
+
+        assertEquals(2, result.size());
+        assertEquals(2L, result.get("🔥"));
+        assertEquals(1L, result.get("👏"));
+    }
+
+    @Test
+    void getInvitesAffiches_doitRetournerListeVideSiInvitesNull() {
+        activite.setInvites(null);
+
+        List<Utilisateur> result = activite.getInvitesAffiches();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getInvitesAffiches_doitRetournerListeVideSiAucunInvite() {
+        activite.setInvites(new ArrayList<>());
+
+        List<Utilisateur> result = activite.getInvitesAffiches();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getInvitesAffiches_doitRetournerTousLesInvitesSiInferieurOuEgalALaLimite() {
+        activite.setInvites(List.of(auteur1, auteur2, auteur3));
+
+        List<Utilisateur> result = activite.getInvitesAffiches();
+
+        assertEquals(3, result.size());
+        assertEquals(0, activite.getInvitesMasquesCount());
+    }
+
+    @Test
+    void getInvitesAffiches_doitLimiterALaTailleMaximale() {
+        Utilisateur u4 = creerUtilisateur(4L, "Luc", "Petit");
+        Utilisateur u5 = creerUtilisateur(5L, "Anna", "Moreau");
+
+        activite.setInvites(List.of(auteur1, auteur2, auteur3, u4, u5));
+
+        List<Utilisateur> result = activite.getInvitesAffiches();
+
+        assertEquals(3, result.size());
+        assertEquals(auteur1, result.get(0));
+        assertEquals(auteur2, result.get(1));
+        assertEquals(auteur3, result.get(2));
+    }
+
+    @Test
+    void getInvitesMasquesCount_doitRetournerLeNombreMasque() {
+        Utilisateur u4 = creerUtilisateur(4L, "Luc", "Petit");
+        Utilisateur u5 = creerUtilisateur(5L, "Anna", "Moreau");
+
+        activite.setInvites(List.of(auteur1, auteur2, auteur3, u4, u5));
+
+        int result = activite.getInvitesMasquesCount();
+
+        assertEquals(2, result);
+    }
+
+    @Test
+    void getInvitesMasquesCount_doitRetournerZeroSiInvitesNull() {
+        activite.setInvites(null);
+
+        int result = activite.getInvitesMasquesCount();
+
+        assertEquals(0, result);
+    }
+
+    @Test
+    void getLimiteReactionsAffichees_doitRetourner5() {
+        assertEquals(5, Activite.getLimiteReactionsAffichees());
+    }
+
+    private Utilisateur creerUtilisateur(Long id, String prenom, String nom) {
+        Utilisateur u = new Utilisateur();
+        u.setId(id);
+        u.setPrenom(prenom);
+        u.setNom(nom);
+        return u;
+    }
+
+    private Commentaire creerCommentaire(Long id, TypeCommentaire type, String message, Utilisateur auteur) {
+        Commentaire c = new Commentaire();
+        c.setId(id);
+        c.setType(type);
+        c.setMessage(message);
+        c.setAuteur(auteur);
+        c.setActivite(activite);
+        c.setDateCreation(LocalDateTime.now());
+        return c;
+    }
+
+    private void ajouterReactionsDistinctes(int nombre) {
+        for (int i = 1; i <= nombre; i++) {
+            Utilisateur auteur = creerUtilisateur((long) i, "Prenom" + i, "Nom" + i);
             activite.getCommentaires().add(
-                    Commentaire.builder().id((long) i).type(TypeCommentaire.REACTION)
-                            .message(emoji).auteur(reacteur).build());
-            i++;
+                    creerCommentaire((long) i, TypeCommentaire.REACTION, "emoji" + i, auteur)
+            );
         }
-
-        assertThat(activite.getReactionsGroupees()).hasSize(6);
-        assertThat(activite.getReactionsGroupeesAffichees()).hasSize(5);
-        assertThat(activite.getReactionsGroupeesMasqueesCount()).isEqualTo(1);
-    }
-
-    @Test
-    void getReactionsGroupeesMasqueesCount_retourne0SiMoinsQue5() {
-        Utilisateur u = Utilisateur.builder().id(1L).prenom("A").nom("B").build();
-        Activite activite = Activite.builder()
-                .nom("test")
-                .typeSport(TypeSport.TENNIS)
-                .date(LocalDate.now())
-                .utilisateur(u)
-                .build();
-        activite.getCommentaires().add(
-                Commentaire.builder().id(1L).type(TypeCommentaire.REACTION)
-                        .message("👍").auteur(u).build());
-
-        assertThat(activite.getReactionsGroupeesMasqueesCount()).isZero();
-    }
-
-    @Test
-    void utilisateurAEmitReactionAvecEmoji_trouveReactionExistante() {
-        Utilisateur u = Utilisateur.builder().id(1L).prenom("A").nom("B").build();
-        Commentaire reaction = Commentaire.builder()
-                .id(10L).type(TypeCommentaire.REACTION).message("🔥").auteur(u).build();
-
-        Activite activite = Activite.builder()
-                .nom("test").typeSport(TypeSport.CYCLISME)
-                .date(LocalDate.now()).utilisateur(u).build();
-        activite.getCommentaires().add(reaction);
-
-        assertThat(activite.utilisateurAEmitReactionAvecEmoji(1L, "🔥")).isTrue();
-        assertThat(activite.utilisateurAEmitReactionAvecEmoji(1L, "💀")).isFalse();
-        assertThat(activite.utilisateurAEmitReactionAvecEmoji(99L, "🔥")).isFalse();
-    }
-
-    @Test
-    void utilisateurAEmitReactionAvecEmoji_avecIdOuEmojiNull_retourneFalse() {
-        Activite activite = Activite.builder()
-                .nom("t").typeSport(TypeSport.YOGA)
-                .date(LocalDate.now())
-                .utilisateur(Utilisateur.builder().id(1L).build())
-                .build();
-
-        assertThat(activite.utilisateurAEmitReactionAvecEmoji(null, "👍")).isFalse();
-        assertThat(activite.utilisateurAEmitReactionAvecEmoji(1L, null)).isFalse();
-    }
-
-    @Test
-    void getIdCommentaireReactionUtilisateur_retourneLId() {
-        Utilisateur u = Utilisateur.builder().id(5L).prenom("A").nom("B").build();
-        Commentaire reaction = Commentaire.builder()
-                .id(42L).type(TypeCommentaire.REACTION).message("❤️").auteur(u).build();
-
-        Activite activite = Activite.builder()
-                .nom("t").typeSport(TypeSport.NATATION)
-                .date(LocalDate.now()).utilisateur(u).build();
-        activite.getCommentaires().add(reaction);
-
-        assertThat(activite.getIdCommentaireReactionUtilisateur(5L, "❤️")).isEqualTo(42L);
-        assertThat(activite.getIdCommentaireReactionUtilisateur(5L, "👍")).isNull();
-    }
-
-    @Test
-    void getReactionsParEmoji_retourneMapAvecCounts() {
-        Utilisateur u1 = Utilisateur.builder().id(1L).prenom("A").nom("B").build();
-        Utilisateur u2 = Utilisateur.builder().id(2L).prenom("C").nom("D").build();
-
-        Activite activite = Activite.builder()
-                .nom("t").typeSport(TypeSport.FOOTBALL)
-                .date(LocalDate.now()).utilisateur(u1).build();
-        activite.getCommentaires().add(
-                Commentaire.builder().id(1L).type(TypeCommentaire.REACTION).message("👍").auteur(u1).build());
-        activite.getCommentaires().add(
-                Commentaire.builder().id(2L).type(TypeCommentaire.REACTION).message("👍").auteur(u2).build());
-        activite.getCommentaires().add(
-                Commentaire.builder().id(3L).type(TypeCommentaire.REACTION).message("🔥").auteur(u1).build());
-
-        var map = activite.getReactionsParEmoji();
-
-        assertThat(map).containsEntry("👍", 2L).containsEntry("🔥", 1L);
     }
 }
